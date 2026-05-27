@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Testimonios - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="/admin/css/admin.css">
 </head>
 <body>
     <div class="admin-container">
         <aside class="sidebar">
             <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
             <nav class="sidebar-nav">
-                <a href="index.html">📊 Dashboard</a>
-                <a href="interface.html">🎨 Interfaz</a>
-                <a href="casos.html">📋 Casos</a>
-                <a href="testimonios.html" class="active">💬 Testimonios</a>
-                <a href="plantillas.html">📄 Plantillas</a>
-                <a href="menu.html">📑 Menú</a>
-                <a href="estadisticas.html">📈 Estadísticas</a>
-                <a href="configuracion.html">⚙️ Configuración</a>
+                <a href="/admin/index.html">📊 Dashboard</a>
+                <a href="/admin/interface.html">🎨 Interfaz</a>
+                <a href="/admin/casos.html">📋 Casos</a>
+                <a href="/admin/testimonios.html" class="active">💬 Testimonios</a>
+                <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/menu.html">📑 Menú</a>
+                <a href="/admin/estadisticas.html">📈 Estadísticas</a>
+                <a href="/admin/configuracion.html">⚙️ Configuración</a>
             </nav>
             <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
         </aside>
@@ -27,7 +27,7 @@
         <main class="main-content">
             <div class="admin-header"><h1>Gestión de Testimonios</h1><button class="btn-primary" onclick="abrirModalNuevo()">➕ Agregar Testimonio</button></div>
             <div class="table-container">
-                <table>
+                </table>
                     <thead><tr><th>ID</th><th>Cliente</th><th>Testimonio</th><th>Fecha</th><th>Aprobado</th><th>Acciones</th></tr></thead>
                     <tbody id="listaTestimonios"><tr><td colspan="6">Cargando...</td></tr></tbody>
                 </table>
@@ -35,10 +35,10 @@
         </main>
     </div>
 
-    <div id="modalTestimonio" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="modalTitle">Agregar Testimonio</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div id="modalBody"><div class="form-group"><label>Cliente</label><input type="text" id="cliente" placeholder="Nombre del cliente"></div><div class="form-group"><label>Testimonio *</label><textarea id="texto" rows="4" required></textarea></div><div class="form-group"><label><input type="checkbox" id="aprobado" checked> Aprobado</label></div><button class="btn-primary" onclick="guardarTestimonio()">Guardar</button></div></div></div>
+    <div id="modalTestimonio" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="modalTitle">Agregar Testimonio</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div class="form-group"><label>Cliente</label><input type="text" id="cliente" placeholder="Nombre del cliente"></div><div class="form-group"><label>Testimonio *</label><textarea id="texto" rows="4" required></textarea></div><div class="form-group"><label><input type="checkbox" id="aprobado" checked> Aprobado</label></div><button class="btn-primary" onclick="guardarTestimonio()">Guardar</button></div></div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = '/api';
         let token = localStorage.getItem('token');
         const isAdmin = localStorage.getItem('isAdmin');
         let editandoId = null;
@@ -50,7 +50,10 @@
             const testimonios = await res.json();
             const tbody = document.getElementById('listaTestimonios');
             if (testimonios.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay testimonios</td></tr>'; return; }
-            tbody.innerHTML = testimonios.map(t => `<tr><td>${t.id}</td><td>${t.cliente || 'Anónimo'}</td><td>${t.texto.substring(0, 80)}...</td><td>${t.fecha}</td><td>${t.aprobado ? '✅ Sí' : '❌ No'}</td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="editarTestimonio(${t.id})">✏️</button> <button class="btn-danger" onclick="eliminarTestimonio(${t.id})">🗑️</button></td></tr>`).join('');
+            tbody.innerHTML = testimonios.map(t => `<tr>
+                <td>${t.id}</td><td>${t.cliente || 'Anónimo'}</td><td>${t.texto.substring(0, 80)}...</td><td>${t.fecha}</td><td>${t.aprobado ? '✅ Sí' : '❌ No'}</td>
+                <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="editarTestimonio(${t.id})">✏️</button> <button class="btn-danger" onclick="eliminarTestimonio(${t.id})">🗑️</button></td>
+            </table>`).join('');
         }
 
         function abrirModalNuevo() { editandoId = null; document.getElementById('modalTitle').textContent = 'Agregar Testimonio'; document.getElementById('cliente').value = ''; document.getElementById('texto').value = ''; document.getElementById('aprobado').checked = true; document.getElementById('modalTestimonio').style.display = 'flex'; }
@@ -76,6 +79,7 @@
         async function eliminarTestimonio(id) { if (confirm('¿Eliminar?')) { await fetch(`${API_URL}/testimonios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarTestimonios(); } }
         function cerrarModal() { document.getElementById('modalTestimonio').style.display = 'none'; }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        
         cargarTestimonios();
     </script>
 </body>

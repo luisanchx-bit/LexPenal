@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="/admin/css/admin.css">
 </head>
 <body>
     <div class="admin-container">
@@ -15,14 +15,14 @@
                 <p>Panel de Control</p>
             </div>
             <nav class="sidebar-nav">
-                <a href="index.html" class="active">📊 Dashboard</a>
-                <a href="interface.html">🎨 Interfaz</a>
-                <a href="casos.html">📋 Casos</a>
-                <a href="testimonios.html">💬 Testimonios</a>
-                <a href="plantillas.html">📄 Plantillas</a>
-                <a href="menu.html">📑 Menú</a>
-                <a href="estadisticas.html">📈 Estadísticas</a>
-                <a href="configuracion.html">⚙️ Configuración</a>
+                <a href="/admin/index.html" class="active">📊 Dashboard</a>
+                <a href="/admin/interface.html">🎨 Interfaz</a>
+                <a href="/admin/casos.html">📋 Casos</a>
+                <a href="/admin/testimonios.html">💬 Testimonios</a>
+                <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/menu.html">📑 Menú</a>
+                <a href="/admin/estadisticas.html">📈 Estadísticas</a>
+                <a href="/admin/configuracion.html">⚙️ Configuración</a>
             </nav>
             <div class="sidebar-footer">
                 <p>Dr. Asmairo Conde Torres</p>
@@ -62,11 +62,11 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        // URL RELATIVA PARA RENDER
+        const API_URL = '/api';
         let token = localStorage.getItem('token');
         const isAdmin = localStorage.getItem('isAdmin');
 
-        // VERIFICAR AUTENTICACIÓN
         if (!token || isAdmin !== 'true') {
             window.location.href = '/login.html';
         }
@@ -112,8 +112,9 @@
             } catch (error) { tbody.innerHTML = '<tr><td colspan="6">Error al cargar casos</td></tr>'; }
         }
 
-        function verCaso(id) { window.location.href = `casos.html?id=${id}`; }
+        function verCaso(id) { window.location.href = `/admin/casos.html?id=${id}`; }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        
         cargarDashboard();
         cargarCasosRecientes();
     </script>

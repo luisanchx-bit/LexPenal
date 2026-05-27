@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LexPenal - Acceso</title>
-    <link rel="stylesheet" href="css/estilo.css">
+    <link rel="stylesheet" href="/css/estilo.css">
 </head>
 <body class="login-body">
     <div class="login-container">
@@ -56,7 +56,8 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api/auth';
+        // URL RELATIVA PARA RENDER - NO USAR LOCALHOST
+        const API_URL = '/api/auth';
         
         function mostrarTab(tab) {
             const loginContent = document.getElementById('loginForm');
@@ -104,17 +105,17 @@
                     mostrarMensaje('¡Bienvenido! Redirigiendo...', 'exito');
                     
                     setTimeout(() => {
-                        // Redirigir según rol
                         if (data.isAdmin || cedula === '1018457093') {
                             window.location.href = '/admin/index.html';
                         } else {
-                            window.location.href = 'cliente.html';
+                            window.location.href = '/cliente.html';
                         }
                     }, 1500);
                 } else {
                     mostrarMensaje(data.error || 'Error al iniciar sesión', 'error');
                 }
             } catch (error) {
+                console.error('Error:', error);
                 mostrarMensaje('Error de conexión con el servidor', 'error');
             }
         }
@@ -162,12 +163,13 @@
                     
                     mostrarMensaje('¡Registro exitoso! Redirigiendo...', 'exito');
                     setTimeout(() => {
-                        window.location.href = 'cliente.html';
+                        window.location.href = '/cliente.html';
                     }, 1500);
                 } else {
                     mostrarMensaje(data.error || 'Error en el registro', 'error');
                 }
             } catch (error) {
+                console.error('Error:', error);
                 mostrarMensaje('Error de conexión con el servidor', 'error');
             }
         }
@@ -189,7 +191,7 @@
             if (isAdmin === 'true') {
                 window.location.href = '/admin/index.html';
             } else {
-                window.location.href = 'cliente.html';
+                window.location.href = '/cliente.html';
             }
         }
     </script>

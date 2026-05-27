@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Casos - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="/admin/css/admin.css">
 </head>
 <body>
     <div class="admin-container">
         <aside class="sidebar">
             <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
             <nav class="sidebar-nav">
-                <a href="index.html">📊 Dashboard</a>
-                <a href="interface.html">🎨 Interfaz</a>
-                <a href="casos.html" class="active">📋 Casos</a>
-                <a href="testimonios.html">💬 Testimonios</a>
-                <a href="plantillas.html">📄 Plantillas</a>
-                <a href="menu.html">📑 Menú</a>
-                <a href="estadisticas.html">📈 Estadísticas</a>
-                <a href="configuracion.html">⚙️ Configuración</a>
+                <a href="/admin/index.html">📊 Dashboard</a>
+                <a href="/admin/interface.html">🎨 Interfaz</a>
+                <a href="/admin/casos.html" class="active">📋 Casos</a>
+                <a href="/admin/testimonios.html">💬 Testimonios</a>
+                <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/menu.html">📑 Menú</a>
+                <a href="/admin/estadisticas.html">📈 Estadísticas</a>
+                <a href="/admin/configuracion.html">⚙️ Configuración</a>
             </nav>
             <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
         </aside>
@@ -29,7 +29,7 @@
             <div class="table-container">
                 <table>
                     <thead><tr><th>ID</th><th>Cliente</th><th>Cédula</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th>Evidencias</th><th>Acciones</th></tr></thead>
-                    <tbody id="listaCasos"><tr><td colspan="8">Cargando casos...</td></tr></tbody>
+                    <tbody id="listaCasos"><tr><td colspan="8">Cargando casos...</td></tr></tr></tbody>
                 </table>
             </div>
         </main>
@@ -38,7 +38,7 @@
     <div id="modalCaso" class="modal"><div class="modal-content"><div class="modal-header"><h3>Detalles del Caso</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div id="modalBody"></div></div></div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = '/api';
         let token = localStorage.getItem('token');
         const isAdmin = localStorage.getItem('isAdmin');
 
@@ -116,6 +116,7 @@
         function contactarCliente(cedula) { window.open(`https://wa.me/573145879875?text=Hola,%20soy%20el%20Dr.%20Asmairo%20Conde%20Torres.%20Me%20comunico%20respecto%20a%20su%20caso%20(Cédula:%20${cedula}).`, '_blank'); }
         function cerrarModal() { document.getElementById('modalCaso').style.display = 'none'; }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        
         cargarCasos();
     </script>
 </body>

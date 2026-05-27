@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estadísticas - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="/admin/css/admin.css">
 </head>
 <body>
     <div class="admin-container">
         <aside class="sidebar">
             <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
             <nav class="sidebar-nav">
-                <a href="index.html">📊 Dashboard</a>
-                <a href="interface.html">🎨 Interfaz</a>
-                <a href="casos.html">📋 Casos</a>
-                <a href="testimonios.html">💬 Testimonios</a>
-                <a href="plantillas.html">📄 Plantillas</a>
-                <a href="menu.html">📑 Menú</a>
-                <a href="estadisticas.html" class="active">📈 Estadísticas</a>
-                <a href="configuracion.html">⚙️ Configuración</a>
+                <a href="/admin/index.html">📊 Dashboard</a>
+                <a href="/admin/interface.html">🎨 Interfaz</a>
+                <a href="/admin/casos.html">📋 Casos</a>
+                <a href="/admin/testimonios.html">💬 Testimonios</a>
+                <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/menu.html">📑 Menú</a>
+                <a href="/admin/estadisticas.html" class="active">📈 Estadísticas</a>
+                <a href="/admin/configuracion.html">⚙️ Configuración</a>
             </nav>
             <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
         </aside>
@@ -32,12 +32,12 @@
                 <div class="stat-card"><h3>Tipo más solicitado</h3><div class="stat-number" id="tipoPopular" style="font-size:1.2rem">-</div></div>
             </div>
             <div class="table-container"><h3 style="margin-bottom:1rem">📊 Casos por Mes</h3><table><thead><tr><th>Mes</th><th>Total Casos</th></tr></thead><tbody id="casosPorMes"></tbody></table></div>
-            <div class="table-container" style="margin-top:2rem"><h3 style="margin-bottom:1rem">🏆 Tipos de Caso más Solicitados</h3><table><thead><tr><th>Tipo de Caso</th><th>Cantidad</th></tr></thead><tbody id="tiposPopulares"></tbody></table></div>
+            <div class="table-container" style="margin-top:2rem"><h3 style="margin-bottom:1rem">🏆 Tipos de Caso más Solicitados</h3><table><thead><tr><th>Tipo de Caso</th><th>Cantidad</th><tr></thead><tbody id="tiposPopulares"></tbody></table></div>
         </main>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = '/api';
         let token = localStorage.getItem('token');
         const isAdmin = localStorage.getItem('isAdmin');
 
