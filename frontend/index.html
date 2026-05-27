@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asmairo Conde Torres | Defensa Penal Estratégica</title>
+    <link rel="stylesheet" href="css/estilo.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h2>⚖️ Asmairo Conde T.</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#casos">Casos</a></li>
+                <li><a href="#portafolio">Abogado</a></li>
+                <li><a href="#testimonios">Testimonios</a></li>
+                <li><a href="login.html" class="btn-login">Acceder</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="inicio" class="hero">
+        <div class="hero-content">
+            <h1>Defensa Penal <span class="dorado">Estratégica</span></h1>
+            <p>Más de 6 años protegiendo tus derechos con experiencia y compromiso</p>
+            <a href="login.html" class="btn-principal">Comenzar ahora</a>
+        </div>
+    </section>
+
+    <section id="casos" class="tipos-casos">
+        <div class="container">
+            <h2>Áreas de <span class="dorado">Práctica</span></h2>
+            <div class="casos-grid">
+                <div class="caso-card"><div class="icono">⚖️</div><h3>Homicidio</h3><p>Defensa especializada en casos complejos</p></div>
+                <div class="caso-card"><div class="icono">🛡️</div><h3>Violación</h3><p>Protección integral a las víctimas</p></div>
+                <div class="caso-card"><div class="icono">🔒</div><h3>Robo</h3><p>Estrategias de defensa efectivas</p></div>
+                <div class="caso-card"><div class="icono">📄</div><h3>Apelaciones</h3><p>Recursos y apelaciones penales</p></div>
+                <div class="caso-card"><div class="icono">📅</div><h3>Citaciones</h3><p>Acompañamiento en citaciones judiciales</p></div>
+                <div class="caso-card"><div class="icono">📋</div><h3>Trámites Legales</h3><p>Gestión completa de documentos</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="portafolio" class="portafolio">
+        <div class="container">
+            <h2><span class="dorado">Asmairo Conde Torres</span></h2>
+            <div class="portafolio-contenido">
+                <div class="portafolio-imagen"><div class="avatar-circle">⚖️</div></div>
+                <div class="portafolio-info">
+                    <div class="info-item">
+                        <span class="info-label">📜 Títulos Académicos:</span>
+                        <p>• Cursando actualmente Master en Ley</p>
+                        <p>• Curso actualización en Derecho Privado 1 y 2 - UDCA</p>
+                        <p>• Capacitación de Prevención y Protección - Ministerio del Interior</p>
+                        <p>• Capacitación en Plan de Contingencia para Víctimas</p>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">⭐ Experiencia Profesional:</span>
+                        <p>• +6 años de experiencia en derecho penal</p>
+                        <p>• Personería</p>
+                        <p>• Alcaldía</p>
+                        <p>• Gobernación de Cundinamarca - Secretaría de Gobierno</p>
+                        <p>• Asesor Jurídico en Responsabilidad Civil - Resbanc</p>
+                        <p>• Asistente Jurídico - Empresa Carbal</p>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📞 Contacto Directo:</span>
+                        <p>📱 WhatsApp: +57 2145879875</p>
+                        <p>✉️ Email: asmairo.conde.torres@hotmail.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="testimonios" class="testimonios">
+        <div class="container">
+            <h2>Lo que dicen <span class="dorado">nuestros clientes</span></h2>
+            <div class="carrusel"><div class="testimonio-activo"><p>"Excelente profesional, me ayudó en un caso muy complicado. Totalmente recomendado."</p><h4>- Cliente anónimo</h4></div></div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 Asmairo Conde Torres - Derecho Penal Estratégico</p>
+            <p>📞 +57 2145879875 | ✉️ asmairo.conde.torres@hotmail.com</p>
+            <p>⚖️ Defensa Penal en todas sus áreas</p>
+        </div>
+    </footer>
+
+    <script src="js/carrusel.js"></script>
+    <script>
+        const secciones = document.querySelectorAll('section');
+        const enlaces = document.querySelectorAll('.nav-menu a');
+        window.addEventListener('scroll', () => {
+            let scroll = window.scrollY + 100;
+            secciones.forEach(sec => {
+                if (scroll >= sec.offsetTop && scroll < sec.offsetTop + sec.offsetHeight) {
+                    enlaces.forEach(enlace => {
+                        enlace.classList.remove('active');
+                        if (enlace.getAttribute('href') === `#${sec.id}`) enlace.classList.add('active');
+                    });
+                }
+            });
+        });
+        enlaces.forEach(enlace => {
+            enlace.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    e.preventDefault();
+                    document.querySelector(href).scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área del Cliente - LexPenal</title>
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body class="cliente-body">
+    <nav class="navbar-cliente"><div class="nav-container"><div class="logo"><h2>⚖️ LexPenal</h2></div><div class="user-info"><span id="nombreUsuario">Cargando...</span><button onclick="cerrarSesion()" class="btn-cerrar">Cerrar sesión</button></div></div></nav>
+    <div class="cliente-container">
+        <div class="panel-lateral">
+            <button class="panel-btn active" onclick="mostrarPanel('nuevoCaso')">➕ Nuevo Caso</button>
+            <button class="panel-btn" onclick="mostrarPanel('misCasos')">📋 Mis Casos</button>
+            <button class="panel-btn" onclick="contactarAbogado()">📱 Contactar Abogado</button>
+        </div>
+        <div class="panel-contenido">
+            <div id="nuevoCasoPanel" class="panel-seccion active">
+                <h2>Generar nuevo documento legal</h2>
+                <form id="formCaso" onsubmit="event.preventDefault(); crearCaso();">
+                    <div class="input-group"><label>Tipo de caso *</label><select id="tipoCaso" required><option value="">Seleccione...</option></select></div>
+                    <div class="input-group"><label>Descripción del caso *</label><textarea id="descripcion" rows="5" placeholder="Describa detalladamente su caso..." required></textarea></div>
+                    <div class="input-group"><label>Fecha de los hechos</label><input type="date" id="fechaHechos"></div>
+                    <div class="input-group"><label>Lugar de los hechos</label><input type="text" id="lugarHechos" placeholder="Ciudad, dirección..."></div>
+                    <div class="input-group"><label>📎 Adjuntar evidencias</label><div class="upload-area" id="uploadArea"><div class="upload-icon">📁</div><p>Arrastra archivos o haz clic</p><input type="file" id="evidenciasInput" multiple accept="image/*,video/*,application/pdf,.doc,.docx,.txt"></div><div id="listaEvidencias" class="lista-evidencias"></div></div>
+                    <button type="submit" class="btn-enviar">Generar documento y enviar</button>
+                </form>
+                <div id="mensajeCaso" class="mensaje"></div>
+            </div>
+            <div id="misCasosPanel" class="panel-seccion"><h2>Mis casos enviados</h2><div id="listaCasos" class="lista-casos"><p>Cargando casos...</p></div></div>
+        </div>
+    </div>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        let evidenciasSeleccionadas = [];
+        if (!token) window.location.href = 'login.html';
+        document.getElementById('nombreUsuario').textContent = localStorage.getItem('nombre') || 'Cliente';
+
+        const uploadArea = document.getElementById('uploadArea');
+        const evidenciasInput = document.getElementById('evidenciasInput');
+        uploadArea.addEventListener('click', () => evidenciasInput.click());
+        uploadArea.addEventListener('dragover', e => e.preventDefault());
+        uploadArea.addEventListener('drop', e => { e.preventDefault(); agregarEvidencias(Array.from(e.dataTransfer.files)); });
+        evidenciasInput.addEventListener('change', e => agregarEvidencias(Array.from(e.target.files)));
+
+        function agregarEvidencias(archivos) {
+            archivos.forEach(archivo => {
+                if (archivo.size > 50 * 1024 * 1024) return mostrarMensaje(`${archivo.name} excede 50MB`, 'error', document.getElementById('mensajeCaso'));
+                evidenciasSeleccionadas.push({ id: Date.now() + Math.random(), archivo, nombre: archivo.name, tamaño: (archivo.size / 1024 / 1024).toFixed(2) + ' MB' });
+            });
+            actualizarListaEvidencias();
+            evidenciasInput.value = '';
+        }
+        function eliminarEvidencia(id) { evidenciasSeleccionadas = evidenciasSeleccionadas.filter(ev => ev.id !== id); actualizarListaEvidencias(); }
+        function actualizarListaEvidencias() {
+            const contenedor = document.getElementById('listaEvidencias');
+            if (evidenciasSeleccionadas.length === 0) { contenedor.innerHTML = ''; return; }
+            contenedor.innerHTML = evidenciasSeleccionadas.map(ev => `<div class="evidencia-item"><div><strong>${ev.nombre}</strong><br><small>${ev.tamaño}</small></div><button class="btn-eliminar-evidencia" onclick="eliminarEvidencia(${ev.id})">✖</button></div>`).join('');
+        }
+        async function cargarTiposCaso() {
+            const res = await fetch(`${API_URL}/casos/tipos`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const tipos = await res.json();
+            const select = document.getElementById('tipoCaso');
+            tipos.forEach(tipo => { const option = document.createElement('option'); option.value = tipo; option.textContent = tipo; select.appendChild(option); });
+        }
+        async function crearCaso() {
+            const tipoCaso = document.getElementById('tipoCaso').value;
+            const descripcion = document.getElementById('descripcion').value;
+            if (!tipoCaso || !descripcion) return mostrarMensaje('Complete campos obligatorios', 'error', document.getElementById('mensajeCaso'));
+            const formData = new FormData();
+            formData.append('tipo_caso', tipoCaso); formData.append('descripcion', descripcion);
+            formData.append('fecha_hechos', document.getElementById('fechaHechos').value);
+            formData.append('lugar_hechos', document.getElementById('lugarHechos').value);
+            evidenciasSeleccionadas.forEach((ev, i) => formData.append(`evidencia_${i}`, ev.archivo));
+            const res = await fetch(`${API_URL}/casos/nuevo`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+            const data = await res.json();
+            if (data.success) {
+                mostrarMensaje(`✓ Caso creado con ${evidenciasSeleccionadas.length} evidencias`, 'exito', document.getElementById('mensajeCaso'));
+                document.getElementById('formCaso').reset(); evidenciasSeleccionadas = []; actualizarListaEvidencias();
+                setTimeout(() => contactarAbogado(), 2000);
+            } else mostrarMensaje(data.error, 'error', document.getElementById('mensajeCaso'));
+        }
+        async function cargarMisCasos() {
+            const res = await fetch(`${API_URL}/casos/mis-casos`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const casos = await res.json();
+            const contenedor = document.getElementById('listaCasos');
+            if (casos.length === 0) { contenedor.innerHTML = '<p>No tienes casos registrados</p>'; return; }
+            contenedor.innerHTML = casos.map(c => `<div class="caso-item"><h3>${c.tipo_caso}</h3><p><strong>Fecha:</strong> ${new Date(c.fecha_registro).toLocaleDateString()}</p><p><strong>Estado:</strong> ${c.estado}</p><p>${c.descripcion.substring(0, 100)}...</p>${c.evidencias_count ? `<p>📎 ${c.evidencias_count} archivos</p>` : ''}</div>`).join('');
+        }
+        async function contactarAbogado() {
+            const res = await fetch(`${API_URL}/whatsapp/contacto`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            window.open(data.url, '_blank');
+        }
+        function mostrarPanel(panel) {
+            document.querySelectorAll('.panel-seccion').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.panel-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`${panel}Panel`).classList.add('active');
+            event.target.classList.add('active');
+            if (panel === 'misCasos') cargarMisCasos();
+        }
+        function mostrarMensaje(texto, tipo, elemento) {
+            elemento.textContent = texto; elemento.className = `mensaje ${tipo}`;
+            setTimeout(() => { elemento.textContent = ''; elemento.className = 'mensaje'; }, 4000);
+        }
+        function cerrarSesion() { localStorage.clear(); window.location.href = 'index.html'; }
+        cargarTiposCaso();
+    </script>
+</body>
+</html>
