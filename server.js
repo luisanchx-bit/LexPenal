@@ -3,8 +3,15 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
+// Cargar variables de entorno
 dotenv.config();
+
+// FALLBACK: Si no hay JWT_SECRET, usar uno por defecto
+const JWT_SECRET = process.env.JWT_SECRET || 'lexpenal_secret_default_2026';
+console.log(`🔐 JWT_SECRET: ${JWT_SECRET === 'lexpenal_secret_default_2026' ? 'Usando valor por defecto' : 'Usando variable de entorno'}`);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,31 +22,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'frontend')));
 app.use('/storage', express.static(path.join(__dirname, 'storage')));
 
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
 // ============ ARCHIVO DE DATOS LOCAL ============
 const DATA_FILE = path.join(__dirname, 'database.json');
 
 // Inicializar base de datos local si no existe
 function initDB() {
     if (!fs.existsSync(DATA_FILE)) {
+        const adminHash = bcrypt.hashSync("ACT1018457093", 10);
         const initialData = {
             usuarios: [
                 {
                     id: 1,
                     cedula: "1018457093",
                     nombre_completo: "Asmairo De Jesus Conde Torres",
-                    contrasena_hash: bcrypt.hashSync("ACT1018457093", 10),
+                    contrasena_hash: adminHash,
                     rol: "super_admin",
                     fecha_registro: new Date().toISOString()
                 }
             ],
             casos: [],
             testimonios: [
-                { id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional, me ayudó en un caso muy complicado. Totalmente recomendado.", aprobado: true, fecha: "2026-01-15" },
-                { id: 2, cliente: "María R.", texto: "Muy atento y resolvió mi caso rápidamente. Un abogado excepcional.", aprobado: true, fecha: "2026-02-20" },
-                { id: 3, cliente: "Carlos L.", texto: "Confianza y profesionalismo. Siempre disponible para responder mis dudas.", aprobado: true, fecha: "2026-03-10" }
+                { id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional, me ayudó en un caso muy complicado.", aprobado: true, fecha: "2026-01-15" },
+                { id: 2, cliente: "María R.", texto: "Muy atento y resolvió mi caso rápidamente.", aprobado: true, fecha: "2026-02-20" },
+                { id: 3, cliente: "Carlos L.", texto: "Confianza y profesionalismo. Siempre disponible.", aprobado: true, fecha: "2026-03-10" }
             ],
             plantillas: [],
             tipos_caso: [
@@ -57,6 +62,7 @@ function initDB() {
             abogado: { nombre: "Asmairo Conde Torres", telefono: "573145879875", email: "asmairo.conde.torres@hotmail.com" }
         };
         fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2));
+        console.log('✅ Base de datos inicializada');
     }
 }
 
@@ -71,7 +77,7 @@ function writeDB(data) {
 
 initDB();
 
-// ============ MIDDLEWARE DE AUTENTICACIÓN ============
+// ============ MIDDLEWARE ============
 function verificarToken(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -79,7 +85,7 @@ function verificarToken(req, res, next) {
     }
     const token = authHeader.split(' ')[1];
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'lexpenal_secret');
+        const decoded = jwt.verify(token, JWT_SECRET);
         req.usuario = decoded;
         next();
     } catch (error) {
@@ -89,12 +95,12 @@ function verificarToken(req, res, next) {
 
 function verificarAdmin(req, res, next) {
     if (req.usuario.rol !== 'super_admin' && req.usuario.cedula !== '1018457093') {
-        return res.status(403).json({ error: 'Acceso denegado. Solo administradores.' });
+        return res.status(403).json({ error: 'Acceso denegado' });
     }
     next();
 }
 
-// ============ RUTAS DE AUTENTICACIÓN ============
+// ============ RUTAS ============
 app.post('/api/auth/registro', async (req, res) => {
     try {
         const { cedula, nombre_completo, contrasena } = req.body;
@@ -124,7 +130,7 @@ app.post('/api/auth/registro', async (req, res) => {
         
         const token = jwt.sign(
             { id: nuevoUsuario.id, cedula, nombre: nombre_completo, rol: 'cliente' },
-            process.env.JWT_SECRET || 'lexpenal_secret',
+            JWT_SECRET,
             { expiresIn: '7d' }
         );
         
@@ -154,7 +160,7 @@ app.post('/api/auth/login', async (req, res) => {
         
         const token = jwt.sign(
             { id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol },
-            process.env.JWT_SECRET || 'lexpenal_secret',
+            JWT_SECRET,
             { expiresIn: '7d' }
         );
         
@@ -172,7 +178,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// ============ RUTAS DE CASOS ============
+// ============ CASOS ============
 app.get('/api/casos/tipos', (req, res) => {
     const db = readDB();
     res.json(db.tipos_caso.map(t => t.nombre));
@@ -235,11 +241,10 @@ app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     }
 });
 
-// ============ RUTAS DE TESTIMONIOS ============
+// ============ TESTIMONIOS ============
 app.get('/api/testimonios', (req, res) => {
     const db = readDB();
-    const aprobados = db.testimonios.filter(t => t.aprobado === true);
-    res.json(aprobados);
+    res.json(db.testimonios.filter(t => t.aprobado));
 });
 
 app.post('/api/testimonios', verificarToken, verificarAdmin, (req, res) => {
@@ -283,7 +288,7 @@ app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) =>
     res.json({ success: true });
 });
 
-// ============ RUTAS DE PLANTILLAS ============
+// ============ PLANTILLAS ============
 app.get('/api/plantillas', (req, res) => {
     const db = readDB();
     res.json(db.plantillas || []);
@@ -330,7 +335,7 @@ app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => 
     res.json({ success: true });
 });
 
-// ============ RUTAS DE TIPOS DE CASO ============
+// ============ TIPOS DE CASO ============
 app.get('/api/tipos-caso', (req, res) => {
     const db = readDB();
     res.json(db.tipos_caso);
@@ -376,14 +381,14 @@ app.delete('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => 
     res.json({ success: true });
 });
 
-// ============ RUTAS DE WHATSAPP ============
+// ============ WHATSAPP ============
 app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
     const numero = process.env.WHATSAPP_NUMBER || '573145879875';
     const mensaje = `Hola, soy el cliente con cédula ${req.usuario.cedula}. Necesito continuar con mi proceso legal.`;
     res.json({ url: `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}` });
 });
 
-// ============ RUTAS DE ADMIN ============
+// ============ ADMIN ============
 app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
     const db = readDB();
     const casos = db.casos;
@@ -430,7 +435,7 @@ app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) =
     res.json({ success: true });
 });
 
-// ============ RUTAS FRONTEND ============
+// ============ FRONTEND ============
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
@@ -449,4 +454,5 @@ app.listen(PORT, () => {
     console.log(`📱 WhatsApp: ${process.env.WHATSAPP_NUMBER || '573145879875'}`);
     console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
     console.log(`💾 Datos guardados en: ${DATA_FILE}`);
+    console.log(`🔐 JWT_SECRET: ${JWT_SECRET === 'lexpenal_secret_default_2026' ? 'Usando valor por defecto (OK)' : 'Usando variable de entorno'}`);
 });
