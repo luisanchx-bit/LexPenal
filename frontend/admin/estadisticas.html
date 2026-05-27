@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas - Admin LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+            <nav class="sidebar-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="interface.html">🎨 Interfaz</a>
+                <a href="casos.html">📋 Casos</a>
+                <a href="testimonios.html">💬 Testimonios</a>
+                <a href="plantillas.html">📄 Plantillas</a>
+                <a href="menu.html">📑 Menú</a>
+                <a href="estadisticas.html" class="active">📈 Estadísticas</a>
+                <a href="configuracion.html">⚙️ Configuración</a>
+            </nav>
+            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="admin-header"><h1>Estadísticas Avanzadas</h1></div>
+            <div class="stats-grid">
+                <div class="stat-card"><h3>Total Casos</h3><div class="stat-number" id="totalCasos">-</div></div>
+                <div class="stat-card"><h3>Tasa de Resolución</h3><div class="stat-number" id="tasaResolucion">-</div></div>
+                <div class="stat-card"><h3>Tipo más solicitado</h3><div class="stat-number" id="tipoPopular" style="font-size:1.2rem">-</div></div>
+            </div>
+            <div class="table-container"><h3 style="margin-bottom:1rem">📊 Casos por Mes</h3><table><thead><tr><th>Mes</th><th>Total Casos</th></tr></thead><tbody id="casosPorMes"></tbody></table></div>
+            <div class="table-container" style="margin-top:2rem"><h3 style="margin-bottom:1rem">🏆 Tipos de Caso más Solicitados</h3><table><thead><tr><th>Tipo de Caso</th><th>Cantidad</th></tr></thead><tbody id="tiposPopulares"></tbody></table></div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin');
+
+        if (!token || isAdmin !== 'true') { window.location.href = '/login.html'; }
+
+        async function cargarEstadisticas() {
+            const res = await fetch(`${API_URL}/admin/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            document.getElementById('totalCasos').textContent = data.total_casos || 0;
+            const tasa = data.total_casos > 0 ? Math.round((data.casos_resueltos / data.total_casos) * 100) : 0;
+            document.getElementById('tasaResolucion').textContent = `${tasa}%`;
+            let tipoPopular = '-', max = 0;
+            for (const [tipo, count] of Object.entries(data.tipos_caso_populares || {})) { if (count > max) { max = count; tipoPopular = tipo; } }
+            document.getElementById('tipoPopular').textContent = `${tipoPopular} (${max} casos)`;
+            const casosPorMes = document.getElementById('casosPorMes');
+            casosPorMes.innerHTML = Object.entries(data.casos_por_mes || {}).map(([mes, count]) => `<tr><td>${mes}</td><td>${count}</td></tr>`).join('');
+            if (Object.keys(data.casos_por_mes || {}).length === 0) casosPorMes.innerHTML = '<tr><td colspan="2">No hay datos</td></tr>';
+            const tiposPopulares = document.getElementById('tiposPopulares');
+            tiposPopulares.innerHTML = Object.entries(data.tipos_caso_populares || {}).sort((a,b) => b[1] - a[1]).map(([tipo, count]) => `<tr><td>${tipo}</td><td>${count}</td></tr>`).join('');
+        }
+
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        cargarEstadisticas();
+    </script>
+</body>
+</html>

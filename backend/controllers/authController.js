@@ -1,5 +1,25 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
+const dbPath = path.join(__dirname, '../data/database.json');
+
+function leerDB() {
+    try {
+        const data = fs.readFileSync(dbPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return { usuarios: [] };
+    }
+}
+
+function escribirDB(data) {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+}
+
+const ADMIN_CEDULA = "1018457093";
+const ADMIN_NOMBRE = "Asmairo De Jesus Conde Torres";
+const ADMIN_PASSWORD = "ACT1018457093";
 
 let usuarios = [];
 
@@ -43,7 +63,13 @@ exports.registro = async (req, res) => {
             { expiresIn: '7d' }
         );
         
-        res.status(201).json({ success: true, token, nombre: nombre_completo, cedula });
+        res.status(201).json({ 
+            success: true, 
+            token, 
+            nombre: nombre_completo, 
+            cedula,
+            isAdmin: false 
+        });
         
     } catch (error) {
         console.error(error);
@@ -59,6 +85,23 @@ exports.login = async (req, res) => {
             return res.status(400).json({ error: 'Cédula y contraseña son obligatorios' });
         }
         
+        // Verificar si es el administrador
+        if (cedula === ADMIN_CEDULA && contrasena === ADMIN_PASSWORD) {
+            const token = jwt.sign(
+                { id: 0, cedula: ADMIN_CEDULA, nombre: ADMIN_NOMBRE, rol: 'super_admin' },
+                process.env.JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+            return res.json({ 
+                success: true, 
+                token, 
+                nombre: ADMIN_NOMBRE, 
+                cedula: ADMIN_CEDULA, 
+                isAdmin: true 
+            });
+        }
+        
+        // Buscar en usuarios normales
         const usuario = usuarios.find(u => u.cedula === cedula);
         if (!usuario) {
             return res.status(401).json({ error: 'Cédula no registrada' });
@@ -75,7 +118,13 @@ exports.login = async (req, res) => {
             { expiresIn: '7d' }
         );
         
-        res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula });
+        res.json({ 
+            success: true, 
+            token, 
+            nombre: usuario.nombre_completo, 
+            cedula: usuario.cedula, 
+            isAdmin: false 
+        });
         
     } catch (error) {
         console.error(error);

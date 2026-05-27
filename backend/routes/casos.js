@@ -33,4 +33,9 @@ router.post('/nuevo', upload, casosController.nuevoCaso);
 router.get('/mis-casos', casosController.misCasos);
 router.get('/tipos', casosController.obtenerTiposCaso);
 
+// Rutas para admin (ver todos los casos)
+const verificarAdmin = require('../middleware/adminAuth');
+router.get('/todos', verificarAdmin, casosController.todosCasos);
+router.put('/:id/estado', verificarAdmin, casosController.actualizarEstadoCaso);
+
 module.exports = router;

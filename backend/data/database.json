@@ -1,0 +1,58 @@
+{
+  "configuracion": {
+    "colores": {
+      "fondo": "#000000",
+      "dorado": "#C8A951",
+      "azul": "#0A1628"
+    },
+    "fuentes": {
+      "titulos": "Playfair Display",
+      "textos": "Lato"
+    },
+    "textos": {
+      "hero_titulo": "Defensa Penal Estratégica",
+      "hero_subtitulo": "Más de 6 años protegiendo tus derechos"
+    }
+  },
+  "tipos_caso": [
+    { "id": 1, "nombre": "Homicidio", "icono": "⚖️", "orden": 1 },
+    { "id": 2, "nombre": "Violación", "icono": "🛡️", "orden": 2 },
+    { "id": 3, "nombre": "Robo", "icono": "🔒", "orden": 3 },
+    { "id": 4, "nombre": "Apelaciones", "icono": "📄", "orden": 4 },
+    { "id": 5, "nombre": "Citaciones", "icono": "📅", "orden": 5 },
+    { "id": 6, "nombre": "Trámites Legales", "icono": "📋", "orden": 6 }
+  ],
+  "testimonios": [
+    { "id": 1, "cliente": "Cliente anónimo", "texto": "Excelente profesional, me ayudó en un caso muy complicado. Totalmente recomendado.", "aprobado": true, "fecha": "2026-01-15" },
+    { "id": 2, "cliente": "María R.", "texto": "Muy atento y resolvió mi caso rápidamente. Un abogado excepcional.", "aprobado": true, "fecha": "2026-02-20" },
+    { "id": 3, "cliente": "Carlos L.", "texto": "Confianza y profesionalismo. Siempre disponible para responder mis dudas.", "aprobado": true, "fecha": "2026-03-10" }
+  ],
+  "plantillas": [
+    { "id": 1, "nombre": "Solicitud de Audiencia", "tipo_caso": "Homicidio", "contenido": "Señor Juez...", "fecha_creacion": "2026-01-01" }
+  ],
+  "casos": [],
+  "imagenes": {
+    "foto_perfil": null,
+    "logo": null,
+    "hero_fondo": null
+  },
+  "abogado": {
+    "nombre": "Asmairo Conde Torres",
+    "telefono": "573145879875",
+    "email": "asmairo.conde.torres@hotmail.com",
+    "experiencia_anios": 6,
+    "titulos": [
+      "Cursando actualmente Master en Ley",
+      "Curso actualización en Derecho Privado 1 y 2 - UDCA",
+      "Capacitación de Prevención y Protección - Ministerio del Interior",
+      "Capacitación en Plan de Contingencia para Víctimas"
+    ],
+    "experiencias": [
+      "Personería",
+      "Alcaldía",
+      "Gobernación de Cundinamarca - Secretaría de Gobierno",
+      "Asesor Jurídico en Responsabilidad Civil - Resbanc",
+      "Asistente Jurídico - Empresa Carbal"
+    ]
+  }
+}

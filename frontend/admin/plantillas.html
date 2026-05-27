@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantillas - Admin LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+            <nav class="sidebar-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="interface.html">🎨 Interfaz</a>
+                <a href="casos.html">📋 Casos</a>
+                <a href="testimonios.html">💬 Testimonios</a>
+                <a href="plantillas.html" class="active">📄 Plantillas</a>
+                <a href="menu.html">📑 Menú</a>
+                <a href="estadisticas.html">📈 Estadísticas</a>
+                <a href="configuracion.html">⚙️ Configuración</a>
+            </nav>
+            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="admin-header"><h1>Gestión de Plantillas</h1><button class="btn-primary" onclick="abrirModalNuevo()">➕ Nueva Plantilla</button></div>
+            <div class="table-container">
+                <table><thead><tr><th>ID</th><th>Nombre</th><th>Tipo de Caso</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                <tbody id="listaPlantillas"><tr><td colspan="5">Cargando...</td></tr></tbody></table>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalPlantilla" class="modal"><div class="modal-content" style="max-width:700px"><div class="modal-header"><h3 id="modalTitle">Agregar Plantilla</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div class="form-group"><label>Nombre</label><input type="text" id="nombre" placeholder="Ej: Solicitud de Audiencia"></div><div class="form-group"><label>Tipo de Caso</label><input type="text" id="tipoCaso" placeholder="Homicidio, Violación, Robo..."></div><div class="form-group"><label>Contenido</label><textarea id="contenido" rows="8" placeholder="Escribe aquí el contenido de la plantilla..."></textarea></div><button class="btn-primary" onclick="guardarPlantilla()">Guardar</button></div></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin');
+        let editandoId = null;
+
+        if (!token || isAdmin !== 'true') { window.location.href = '/login.html'; }
+
+        async function cargarPlantillas() {
+            const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const plantillas = await res.json();
+            const tbody = document.getElementById('listaPlantillas');
+            if (plantillas.length === 0) { tbody.innerHTML = '<tr><td colspan="5">No hay plantillas</td></tr>'; return; }
+            tbody.innerHTML = plantillas.map(p => `<tr><td>${p.id}</td><td>${p.nombre}</td><td>${p.tipo_caso}</td><td>${p.fecha_creacion}</td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="editarPlantilla(${p.id})">✏️</button> <button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️</button></td></tr>`).join('');
+        }
+
+        function abrirModalNuevo() { editandoId = null; document.getElementById('modalTitle').textContent = 'Agregar Plantilla'; document.getElementById('nombre').value = ''; document.getElementById('tipoCaso').value = ''; document.getElementById('contenido').value = ''; document.getElementById('modalPlantilla').style.display = 'flex'; }
+
+        async function editarPlantilla(id) {
+            const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const plantillas = await res.json();
+            const p = plantillas.find(p => p.id === id);
+            if (p) { editandoId = id; document.getElementById('modalTitle').textContent = 'Editar Plantilla'; document.getElementById('nombre').value = p.nombre; document.getElementById('tipoCaso').value = p.tipo_caso; document.getElementById('contenido').value = p.contenido; document.getElementById('modalPlantilla').style.display = 'flex'; }
+        }
+
+        async function guardarPlantilla() {
+            const nombre = document.getElementById('nombre').value;
+            const tipo_caso = document.getElementById('tipoCaso').value;
+            const contenido = document.getElementById('contenido').value;
+            if (!nombre || !contenido) { alert('Nombre y contenido son obligatorios'); return; }
+            let url = `${API_URL}/plantillas`, method = 'POST', body = { nombre, tipo_caso, contenido };
+            if (editandoId) { url = `${API_URL}/plantillas/${editandoId}`; method = 'PUT'; }
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+            if (res.ok) { cerrarModal(); cargarPlantillas(); } else alert('Error');
+        }
+
+        async function eliminarPlantilla(id) { if (confirm('¿Eliminar?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
+        function cerrarModal() { document.getElementById('modalPlantilla').style.display = 'none'; }
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        cargarPlantillas();
+    </script>
+</body>
+</html>

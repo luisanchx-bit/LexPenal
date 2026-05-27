@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz - Admin LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+            <nav class="sidebar-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="interface.html" class="active">🎨 Interfaz</a>
+                <a href="casos.html">📋 Casos</a>
+                <a href="testimonios.html">💬 Testimonios</a>
+                <a href="plantillas.html">📄 Plantillas</a>
+                <a href="menu.html">📑 Menú</a>
+                <a href="estadisticas.html">📈 Estadísticas</a>
+                <a href="configuracion.html">⚙️ Configuración</a>
+            </nav>
+            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="admin-header"><h1>Personalización de Interfaz</h1></div>
+            <div class="table-container" style="padding:1.5rem"><h3 style="margin-bottom:1rem">🎨 Colores</h3>
+                <div class="form-group"><label>Color Dorado</label><input type="color" id="colorDorado" class="form-control"></div>
+                <div class="form-group"><label>Color Azul</label><input type="color" id="colorAzul" class="form-control"></div>
+                <div class="form-group"><label>Color Fondo</label><input type="color" id="colorFondo" class="form-control"></div>
+                <button class="btn-primary" onclick="guardarColores()">Guardar Colores</button>
+            </div>
+            <div class="table-container" style="padding:1.5rem; margin-top:1.5rem"><h3 style="margin-bottom:1rem">📝 Textos</h3>
+                <div class="form-group"><label>Título Hero</label><input type="text" id="heroTitulo" class="form-control"></div>
+                <div class="form-group"><label>Subtítulo Hero</label><input type="text" id="heroSubtitulo" class="form-control"></div>
+                <button class="btn-primary" onclick="guardarTextos()">Guardar Textos</button>
+            </div>
+            <div class="table-container" style="padding:1.5rem; margin-top:1.5rem; background:#1a1a1a"><h3 style="margin-bottom:1rem">👁️ Vista Previa</h3>
+                <div style="padding:1rem; background:#000; border-radius:10px; text-align:center"><h2 style="color:#C8A951" id="previewTitulo">Defensa Penal Estratégica</h2><p style="color:#ccc" id="previewSubtitulo">Más de 6 años protegiendo tus derechos</p><button style="background:#C8A951; color:#000; border:none; padding:0.5rem 1rem; border-radius:30px">Comenzar ahora</button></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin');
+
+        if (!token || isAdmin !== 'true') { window.location.href = '/login.html'; }
+
+        async function cargarConfiguracion() {
+            const res = await fetch(`${API_URL}/admin/configuracion`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const config = await res.json();
+            document.getElementById('colorDorado').value = config.colores?.dorado || '#C8A951';
+            document.getElementById('colorAzul').value = config.colores?.azul || '#0A1628';
+            document.getElementById('colorFondo').value = config.colores?.fondo || '#000000';
+            document.getElementById('heroTitulo').value = config.textos?.hero_titulo || 'Defensa Penal Estratégica';
+            document.getElementById('heroSubtitulo').value = config.textos?.hero_subtitulo || 'Más de 6 años protegiendo tus derechos';
+            actualizarPreview();
+        }
+
+        function actualizarPreview() {
+            const dorado = document.getElementById('colorDorado').value;
+            document.getElementById('previewTitulo').style.color = dorado;
+            document.getElementById('previewTitulo').textContent = document.getElementById('heroTitulo').value || 'Defensa Penal Estratégica';
+            document.getElementById('previewSubtitulo').textContent = document.getElementById('heroSubtitulo').value || 'Más de 6 años protegiendo tus derechos';
+            const boton = document.querySelector('#previewTitulo').nextElementSibling.nextElementSibling;
+            if (boton) boton.style.background = dorado;
+        }
+
+        document.getElementById('colorDorado').addEventListener('input', actualizarPreview);
+        document.getElementById('heroTitulo').addEventListener('input', actualizarPreview);
+        document.getElementById('heroSubtitulo').addEventListener('input', actualizarPreview);
+
+        async function guardarColores() {
+            const data = { colores: { dorado: document.getElementById('colorDorado').value, azul: document.getElementById('colorAzul').value, fondo: document.getElementById('colorFondo').value } };
+            const res = await fetch(`${API_URL}/admin/configuracion`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+            alert(res.ok ? 'Colores guardados' : 'Error');
+        }
+
+        async function guardarTextos() {
+            const data = { textos: { hero_titulo: document.getElementById('heroTitulo').value, hero_subtitulo: document.getElementById('heroSubtitulo').value } };
+            const res = await fetch(`${API_URL}/admin/configuracion`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+            alert(res.ok ? 'Textos guardados' : 'Error');
+        }
+
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        cargarConfiguracion();
+    </script>
+</body>
+</html>

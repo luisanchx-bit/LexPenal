@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Casos - Admin LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+            <nav class="sidebar-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="interface.html">🎨 Interfaz</a>
+                <a href="casos.html" class="active">📋 Casos</a>
+                <a href="testimonios.html">💬 Testimonios</a>
+                <a href="plantillas.html">📄 Plantillas</a>
+                <a href="menu.html">📑 Menú</a>
+                <a href="estadisticas.html">📈 Estadísticas</a>
+                <a href="configuracion.html">⚙️ Configuración</a>
+            </nav>
+            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="admin-header"><h1>Gestión de Casos</h1><div class="user-info"><span class="user-name" id="nombreAdmin">Cargando...</span></div></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Cliente</th><th>Cédula</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th>Evidencias</th><th>Acciones</th></tr></thead>
+                    <tbody id="listaCasos"><tr><td colspan="8">Cargando casos...</td></tr></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalCaso" class="modal"><div class="modal-content"><div class="modal-header"><h3>Detalles del Caso</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div id="modalBody"></div></div></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin');
+
+        if (!token || isAdmin !== 'true') { window.location.href = '/login.html'; }
+
+        document.getElementById('nombreAdmin').textContent = localStorage.getItem('nombre') || 'Administrador';
+
+        async function cargarCasos() {
+            try {
+                const res = await fetch(`${API_URL}/casos/todos`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.status === 401) { cerrarSesion(); return; }
+                const casos = await res.json();
+                const tbody = document.getElementById('listaCasos');
+                if (casos.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No hay casos registrados</td></tr>'; return; }
+                tbody.innerHTML = casos.map(c => `<tr>
+                    <td>${c.id}</td>
+                    <td>${c.nombre_cliente || '-'}</td>
+                    <td>${c.cedula_cliente}</td>
+                    <td>${c.tipo_caso}</td>
+                    <td>${new Date(c.fecha_registro).toLocaleDateString()}</td>
+                    <td><select onchange="cambiarEstado(${c.id}, this.value)" style="background:transparent; border:1px solid #C8A951; border-radius:5px; padding:0.3rem;">
+                        <option value="pendiente" ${c.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="en_proceso" ${c.estado === 'en_proceso' ? 'selected' : ''}>En Proceso</option>
+                        <option value="resuelto" ${c.estado === 'resuelto' ? 'selected' : ''}>Resuelto</option>
+                    </select></td>
+                    <td>${c.evidencias_count || 0}</td>
+                    <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verCaso(${c.id})">Ver</button></td>
+                </tr>`).join('');
+            } catch (error) { console.error(error); }
+        }
+
+        async function cambiarEstado(id, estado) {
+            try {
+                const res = await fetch(`${API_URL}/casos/${id}/estado`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ estado })
+                });
+                if (res.ok) cargarCasos(); else alert('Error');
+            } catch (error) { alert('Error'); }
+        }
+
+        async function verCaso(id) {
+            try {
+                const res = await fetch(`${API_URL}/casos/todos`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const casos = await res.json();
+                const caso = casos.find(c => c.id === id);
+                if (caso) {
+                    document.getElementById('modalBody').innerHTML = `
+                        <div class="form-group"><label>Cliente:</label><p><strong>${caso.nombre_cliente || 'No especificado'}</strong><br>Cédula: ${caso.cedula_cliente}</p></div>
+                        <div class="form-group"><label>Tipo de Caso:</label><p>${caso.tipo_caso}</p></div>
+                        <div class="form-group"><label>Descripción:</label><p>${caso.descripcion}</p></div>
+                        <div class="form-group"><label>Fecha de Hechos:</label><p>${caso.fecha_hechos || 'No especificada'}</p></div>
+                        <div class="form-group"><label>Lugar de Hechos:</label><p>${caso.lugar_hechos || 'No especificado'}</p></div>
+                        <div class="form-group"><label>Evidencias:</label>${caso.evidencias && caso.evidencias.length > 0 ? caso.evidencias.map(ev => `<p>📎 ${ev.nombre} (${ev.tamaño})</p>`).join('') : '<p>No hay evidencias</p>'}</div>
+                        <div class="form-group"><label>Notas del Abogado:</label><textarea id="notasAdmin" rows="3" style="width:100%">${caso.notas_admin || ''}</textarea></div>
+                        <button class="btn-primary" onclick="guardarNotas(${caso.id})">Guardar Notas</button>
+                        <button class="btn-logout" style="margin-left:1rem;" onclick="contactarCliente('${caso.cedula_cliente}')">📱 Contactar Cliente</button>
+                    `;
+                    document.getElementById('modalCaso').style.display = 'flex';
+                }
+            } catch (error) { alert('Error'); }
+        }
+
+        async function guardarNotas(id) {
+            const notas = document.getElementById('notasAdmin').value;
+            const res = await fetch(`${API_URL}/casos/${id}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ notas_admin: notas })
+            });
+            if (res.ok) alert('Notas guardadas'); else alert('Error');
+        }
+
+        function contactarCliente(cedula) { window.open(`https://wa.me/573145879875?text=Hola,%20soy%20el%20Dr.%20Asmairo%20Conde%20Torres.%20Me%20comunico%20respecto%20a%20su%20caso%20(Cédula:%20${cedula}).`, '_blank'); }
+        function cerrarModal() { document.getElementById('modalCaso').style.display = 'none'; }
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        cargarCasos();
+    </script>
+</body>
+</html>

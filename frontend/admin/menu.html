@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú - Admin LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+            <nav class="sidebar-nav">
+                <a href="index.html">📊 Dashboard</a>
+                <a href="interface.html">🎨 Interfaz</a>
+                <a href="casos.html">📋 Casos</a>
+                <a href="testimonios.html">💬 Testimonios</a>
+                <a href="plantillas.html">📄 Plantillas</a>
+                <a href="menu.html" class="active">📑 Menú</a>
+                <a href="estadisticas.html">📈 Estadísticas</a>
+                <a href="configuracion.html">⚙️ Configuración</a>
+            </nav>
+            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="admin-header"><h1>Gestión del Menú</h1><button class="btn-primary" onclick="abrirModalNuevo()">➕ Agregar Tipo de Caso</button></div>
+            <div class="table-container">
+                <table><thead><tr><th>ID</th><th>Ícono</th><th>Nombre</th><th>Orden</th><th>Acciones</th></tr></thead>
+                <tbody id="listaTipos"><tr><td colspan="5">Cargando...</td></tr></tbody></table>
+            </div>
+            <p style="margin-top:1rem; color:#888;">💡 Los tipos de caso aparecen en el menú principal y en el formulario de clientes.</p>
+        </main>
+    </div>
+
+    <div id="modalTipo" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="modalTitle">Agregar Tipo de Caso</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div class="form-group"><label>Nombre</label><input type="text" id="nombre" placeholder="Ej: Estafa"></div><div class="form-group"><label>Ícono</label><input type="text" id="icono" placeholder="Ej: 💰"></div><div class="form-group"><label>Orden</label><input type="number" id="orden" placeholder="1, 2, 3..."></div><button class="btn-primary" onclick="guardarTipo()">Guardar</button></div></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin');
+        let editandoId = null;
+
+        if (!token || isAdmin !== 'true') { window.location.href = '/login.html'; }
+
+        async function cargarTipos() {
+            const res = await fetch(`${API_URL}/tipos-caso`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const tipos = await res.json();
+            const tbody = document.getElementById('listaTipos');
+            if (tipos.length === 0) { tbody.innerHTML = '<tr><td colspan="5">No hay tipos de caso</td></tr>'; return; }
+            tbody.innerHTML = tipos.map(t => `<tr><td>${t.id}</td><td style="font-size:1.5rem">${t.icono || '⚖️'}</td><td>${t.nombre}</td><td>${t.orden}</td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="editarTipo(${t.id})">✏️</button> <button class="btn-danger" onclick="eliminarTipo(${t.id})">🗑️</button></td></tr>`).join('');
+        }
+
+        function abrirModalNuevo() { editandoId = null; document.getElementById('modalTitle').textContent = 'Agregar Tipo de Caso'; document.getElementById('nombre').value = ''; document.getElementById('icono').value = '⚖️'; document.getElementById('orden').value = ''; document.getElementById('modalTipo').style.display = 'flex'; }
+
+        async function editarTipo(id) {
+            const res = await fetch(`${API_URL}/tipos-caso`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const tipos = await res.json();
+            const t = tipos.find(t => t.id === id);
+            if (t) { editandoId = id; document.getElementById('modalTitle').textContent = 'Editar Tipo de Caso'; document.getElementById('nombre').value = t.nombre; document.getElementById('icono').value = t.icono || '⚖️'; document.getElementById('orden').value = t.orden; document.getElementById('modalTipo').style.display = 'flex'; }
+        }
+
+        async function guardarTipo() {
+            const nombre = document.getElementById('nombre').value;
+            const icono = document.getElementById('icono').value;
+            const orden = parseInt(document.getElementById('orden').value) || 0;
+            if (!nombre) { alert('El nombre es obligatorio'); return; }
+            let url = `${API_URL}/tipos-caso`, method = 'POST', body = { nombre, icono, orden };
+            if (editandoId) { url = `${API_URL}/tipos-caso/${editandoId}`; method = 'PUT'; }
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+            if (res.ok) { cerrarModal(); cargarTipos(); } else alert('Error');
+        }
+
+        async function eliminarTipo(id) { if (confirm('¿Eliminar?')) { await fetch(`${API_URL}/tipos-caso/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarTipos(); } }
+        function cerrarModal() { document.getElementById('modalTipo').style.display = 'none'; }
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        cargarTipos();
+    </script>
+</body>
+</html>

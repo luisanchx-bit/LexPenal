@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Admin LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h2>⚖️ LexPenal</h2>
+                <p>Panel de Control</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="active">📊 Dashboard</a>
+                <a href="interface.html">🎨 Interfaz</a>
+                <a href="casos.html">📋 Casos</a>
+                <a href="testimonios.html">💬 Testimonios</a>
+                <a href="plantillas.html">📄 Plantillas</a>
+                <a href="menu.html">📑 Menú</a>
+                <a href="estadisticas.html">📈 Estadísticas</a>
+                <a href="configuracion.html">⚙️ Configuración</a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Dr. Asmairo Conde Torres</p>
+                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="admin-header">
+                <h1>Dashboard</h1>
+                <div class="user-info">
+                    <span class="user-name" id="nombreAdmin">Cargando...</span>
+                </div>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card"><h3>Total Casos</h3><div class="stat-number" id="totalCasos">-</div></div>
+                <div class="stat-card"><h3>Pendientes</h3><div class="stat-number" id="casosPendientes">-</div></div>
+                <div class="stat-card"><h3>En Proceso</h3><div class="stat-number" id="casosProceso">-</div></div>
+                <div class="stat-card"><h3>Resueltos</h3><div class="stat-number" id="casosResueltos">-</div></div>
+                <div class="stat-card"><h3>Testimonios</h3><div class="stat-number" id="testimoniosCount">-</div></div>
+                <div class="stat-card"><h3>Tipos de Caso</h3><div class="stat-number" id="tiposCasoCount">-</div></div>
+            </div>
+
+            <div class="table-container">
+                <h3 style="margin-bottom:1rem; color:#C8A951;">📋 Casos Recientes</h3>
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody id="casosRecientes">
+                        <tr><td colspan="6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin');
+
+        // VERIFICAR AUTENTICACIÓN
+        if (!token || isAdmin !== 'true') {
+            window.location.href = '/login.html';
+        }
+
+        document.getElementById('nombreAdmin').textContent = localStorage.getItem('nombre') || 'Administrador';
+
+        async function cargarDashboard() {
+            try {
+                const res = await fetch(`${API_URL}/admin/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.status === 401) { cerrarSesion(); return; }
+                const data = await res.json();
+                document.getElementById('totalCasos').textContent = data.total_casos || 0;
+                document.getElementById('casosPendientes').textContent = data.casos_pendientes || 0;
+                document.getElementById('casosProceso').textContent = data.casos_proceso || 0;
+                document.getElementById('casosResueltos').textContent = data.casos_resueltos || 0;
+                document.getElementById('testimoniosCount').textContent = data.testimonios_activos || 0;
+                document.getElementById('tiposCasoCount').textContent = data.tipos_caso_total || 0;
+            } catch (error) { console.error(error); }
+        }
+
+        async function cargarCasosRecientes() {
+            try {
+                const res = await fetch(`${API_URL}/casos/todos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.status === 401) { cerrarSesion(); return; }
+                const casos = await res.json();
+                const tbody = document.getElementById('casosRecientes');
+                if (casos.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay casos registrados</td></tr>'; return; }
+                const casosRecientes = casos.slice(0, 5);
+                tbody.innerHTML = casosRecientes.map(c => `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.nombre_cliente || c.cedula_cliente}</td>
+                        <td>${c.tipo_caso}</td>
+                        <td>${new Date(c.fecha_registro).toLocaleDateString()}</td>
+                        <td><span class="estado-${c.estado}">${c.estado}</span></td>
+                        <td><button class="btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="verCaso(${c.id})">Ver</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) { tbody.innerHTML = '<tr><td colspan="6">Error al cargar casos</td></tr>'; }
+        }
+
+        function verCaso(id) { window.location.href = `casos.html?id=${id}`; }
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        cargarDashboard();
+        cargarCasosRecientes();
+    </script>
+</body>
+</html>
