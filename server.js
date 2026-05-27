@@ -1,17 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Cargar variables de entorno
-dotenv.config();
-
-// FALLBACK: Si no hay JWT_SECRET, usar uno por defecto
-const JWT_SECRET = process.env.JWT_SECRET || 'lexpenal_secret_default_2026';
-console.log(`🔐 JWT_SECRET: ${JWT_SECRET === 'lexpenal_secret_default_2026' ? 'Usando valor por defecto' : 'Usando variable de entorno'}`);
+// JWT_SECRET FIJO (no depende de variables de entorno)
+const JWT_SECRET = 'lexpenal_seguro_2026_muy_secreto';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,7 +20,6 @@ app.use('/storage', express.static(path.join(__dirname, 'storage')));
 // ============ ARCHIVO DE DATOS LOCAL ============
 const DATA_FILE = path.join(__dirname, 'database.json');
 
-// Inicializar base de datos local si no existe
 function initDB() {
     if (!fs.existsSync(DATA_FILE)) {
         const adminHash = bcrypt.hashSync("ACT1018457093", 10);
@@ -100,7 +94,7 @@ function verificarAdmin(req, res, next) {
     next();
 }
 
-// ============ RUTAS ============
+// ============ RUTAS DE AUTENTICACIÓN ============
 app.post('/api/auth/registro', async (req, res) => {
     try {
         const { cedula, nombre_completo, contrasena } = req.body;
@@ -178,7 +172,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// ============ CASOS ============
+// ============ RUTAS DE CASOS ============
 app.get('/api/casos/tipos', (req, res) => {
     const db = readDB();
     res.json(db.tipos_caso.map(t => t.nombre));
@@ -241,7 +235,7 @@ app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     }
 });
 
-// ============ TESTIMONIOS ============
+// ============ RUTAS DE TESTIMONIOS ============
 app.get('/api/testimonios', (req, res) => {
     const db = readDB();
     res.json(db.testimonios.filter(t => t.aprobado));
@@ -288,7 +282,7 @@ app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) =>
     res.json({ success: true });
 });
 
-// ============ PLANTILLAS ============
+// ============ RUTAS DE PLANTILLAS ============
 app.get('/api/plantillas', (req, res) => {
     const db = readDB();
     res.json(db.plantillas || []);
@@ -335,7 +329,7 @@ app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => 
     res.json({ success: true });
 });
 
-// ============ TIPOS DE CASO ============
+// ============ RUTAS DE TIPOS DE CASO ============
 app.get('/api/tipos-caso', (req, res) => {
     const db = readDB();
     res.json(db.tipos_caso);
@@ -381,14 +375,14 @@ app.delete('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => 
     res.json({ success: true });
 });
 
-// ============ WHATSAPP ============
+// ============ RUTAS DE WHATSAPP ============
 app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
-    const numero = process.env.WHATSAPP_NUMBER || '573145879875';
+    const numero = '573145879875';
     const mensaje = `Hola, soy el cliente con cédula ${req.usuario.cedula}. Necesito continuar con mi proceso legal.`;
     res.json({ url: `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}` });
 });
 
-// ============ ADMIN ============
+// ============ RUTAS DE ADMIN ============
 app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
     const db = readDB();
     const casos = db.casos;
@@ -399,9 +393,7 @@ app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
         casos_proceso: casos.filter(c => c.estado === 'en_proceso').length,
         casos_resueltos: casos.filter(c => c.estado === 'resuelto').length,
         testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
-        tipos_caso_total: db.tipos_caso.length,
-        casos_por_mes: {},
-        tipos_caso_populares: {}
+        tipos_caso_total: db.tipos_caso.length
     });
 });
 
@@ -435,7 +427,7 @@ app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) =
     res.json({ success: true });
 });
 
-// ============ FRONTEND ============
+// ============ RUTAS FRONTEND ============
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
@@ -451,8 +443,6 @@ app.get('/admin/:page', (req, res) => {
 // ============ INICIAR SERVIDOR ============
 app.listen(PORT, () => {
     console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
-    console.log(`📱 WhatsApp: ${process.env.WHATSAPP_NUMBER || '573145879875'}`);
     console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
     console.log(`💾 Datos guardados en: ${DATA_FILE}`);
-    console.log(`🔐 JWT_SECRET: ${JWT_SECRET === 'lexpenal_secret_default_2026' ? 'Usando valor por defecto (OK)' : 'Usando variable de entorno'}`);
 });
