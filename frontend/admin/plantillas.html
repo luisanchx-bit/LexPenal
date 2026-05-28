@@ -7,41 +7,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
     <style>
-        .plantilla-preview {
+        .upload-area {
+            border: 2px dashed #C8A951;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            background: rgba(200, 169, 81, 0.1);
+        }
+        .campos-detectados {
             background: #0a0a0a;
             padding: 1rem;
             border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 0.5rem;
+            margin-top: 1rem;
         }
         .campo-tag {
             background: #C8A951;
             color: #000;
             padding: 0.2rem 0.5rem;
             border-radius: 5px;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             display: inline-block;
             margin: 0.2rem;
-        }
-        .campos-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        .campo-checkbox {
-            background: #1a1a1a;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        .campo-checkbox.selected {
-            background: #C8A951;
-            color: #000;
         }
     </style>
 </head>
@@ -71,13 +62,13 @@
         <main class="main-content">
             <div class="admin-header">
                 <h1>📄 Gestión de Plantillas</h1>
-                <button class="btn-primary" onclick="abrirModalNuevo()">➕ Nueva Plantilla</button>
+                <button class="btn-primary" onclick="abrirModalSubir()">📤 Subir Documento</button>
             </div>
 
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>ID</th><th>Nombre</th><th>Clave</th><th>Campos Editables</th><th>Fecha</th><th>Acciones</th></tr>
+                        <tr><th>ID</th><th>Nombre</th><th>Clave</th><th>Campos</th><th>Fecha</th><th>Acciones</th></tr>
                     </thead>
                     <tbody id="listaPlantillas">
                         <tr><td colspan="6">Cargando...</td></tr>
@@ -87,48 +78,33 @@
         </main>
     </div>
 
-    <!-- Modal para crear/editar plantilla -->
-    <div id="modalPlantilla" class="modal">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+    <!-- Modal para subir archivo -->
+    <div id="modalSubir" class="modal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Agregar Plantilla</h3>
-                <button class="close-modal" onclick="cerrarModal()">&times;</button>
+                <h3>Subir Plantilla</h3>
+                <button class="close-modal" onclick="cerrarModalSubir()">&times;</button>
+            </div>
+            <div class="upload-area" id="uploadArea">
+                <div style="font-size: 3rem;">📄</div>
+                <p>Arrastra un archivo PDF, DOCX o TXT</p>
+                <p style="font-size: 0.8rem; color:#888;">o haz clic para seleccionar</p>
+                <input type="file" id="archivoInput" accept=".pdf,.docx,.txt" style="display:none;">
             </div>
             <div class="form-group">
                 <label>Nombre de la plantilla *</label>
-                <input type="text" id="nombre" placeholder="Ej: Apelación de Multas">
+                <input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Multas">
             </div>
             <div class="form-group">
                 <label>Clave única *</label>
-                <input type="text" id="clave" placeholder="Ej: apelacion_multas_simple">
-                <small>Esta clave se usa para vincular con el menú (ej: apelacion_multas_simple)</small>
+                <input type="text" id="clavePlantilla" placeholder="Ej: apelacion_multas_simple">
+                <small>Se usará para vincular con el menú</small>
             </div>
-            <div class="form-group">
-                <label>Título del documento *</label>
-                <input type="text" id="titulo" placeholder="Ej: RECURSO DE APELACIÓN CONTRA MULTA">
+            <div id="previewCampos" class="campos-detectados" style="display:none;">
+                <strong>📌 Campos detectados en el documento:</strong>
+                <div id="camposLista"></div>
             </div>
-            <div class="form-group">
-                <label>Cuerpo de la plantilla *</label>
-                <textarea id="cuerpo" rows="12" placeholder="Escribe la plantilla con variables entre [CORCHETES]&#10;Ejemplo:&#10;[CIUDAD], [FECHA]&#10;&#10;Señor Juez...&#10;&#10;[NOMBRE_CLIENTE], identificado con..."></textarea>
-                <small>Variables disponibles: [NOMBRE_CLIENTE], [CEDULA_CLIENTE], [DESCRIPCION_HECHOS], [CIUDAD], [FECHA], [ENTIDAD], [NUMERO_RADICADO]</small>
-            </div>
-            <div class="form-group">
-                <label>Campos que el usuario puede editar</label>
-                <div class="campos-container" id="camposContainer">
-                    <div class="campo-checkbox" data-campo="NOMBRE_CLIENTE" onclick="toggleCampo(this)">📝 Nombre del Cliente</div>
-                    <div class="campo-checkbox" data-campo="CEDULA_CLIENTE" onclick="toggleCampo(this)">🆔 Cédula</div>
-                    <div class="campo-checkbox" data-campo="DESCRIPCION_HECHOS" onclick="toggleCampo(this)">📋 Hechos</div>
-                    <div class="campo-checkbox" data-campo="CIUDAD" onclick="toggleCampo(this)">🏙️ Ciudad</div>
-                    <div class="campo-checkbox" data-campo="FECHA" onclick="toggleCampo(this)">📅 Fecha</div>
-                    <div class="campo-checkbox" data-campo="ENTIDAD" onclick="toggleCampo(this)">🏛️ Entidad</div>
-                    <div class="campo-checkbox" data-campo="NUMERO_RADICADO" onclick="toggleCampo(this)">🔢 Número Radicado</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Vista previa del documento</label>
-                <div id="preview" class="plantilla-preview">Escribe algo para ver la vista previa...</div>
-            </div>
-            <button class="btn-primary" onclick="guardarPlantilla()">Guardar Plantilla</button>
+            <button class="btn-primary" id="btnSubir" onclick="subirPlantilla()" style="display:none;">Subir y Guardar</button>
         </div>
     </div>
 
@@ -136,183 +112,122 @@
         const API_URL = '/api';
         let token = localStorage.getItem('token');
         const isAdmin = localStorage.getItem('isAdmin');
-        let editandoId = null;
+        let archivoSeleccionado = null;
 
         if (!token || isAdmin !== 'true') {
             window.location.href = '/login.html';
         }
 
-        let camposSeleccionados = ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'];
-
-        function toggleCampo(elemento) {
-            const campo = elemento.getAttribute('data-campo');
-            if (camposSeleccionados.includes(campo)) {
-                camposSeleccionados = camposSeleccionados.filter(c => c !== campo);
-                elemento.classList.remove('selected');
-            } else {
-                camposSeleccionados.push(campo);
-                elemento.classList.add('selected');
-            }
-            actualizarPreview();
-        }
-
-        function actualizarPreview() {
-            const cuerpo = document.getElementById('cuerpo').value;
-            if (!cuerpo) {
-                document.getElementById('preview').innerHTML = 'Escribe algo para ver la vista previa...';
-                return;
-            }
-            let preview = cuerpo
-                .replace(/\[NOMBRE_CLIENTE\]/g, '[Juan Pérez]')
-                .replace(/\[CEDULA_CLIENTE\]/g, '[12345678]')
-                .replace(/\[DESCRIPCION_HECHOS\]/g, '[Descripción de los hechos aquí...]')
-                .replace(/\[CIUDAD\]/g, '[Bogotá]')
-                .replace(/\[FECHA\]/g, '[27/05/2026]')
-                .replace(/\[ENTIDAD\]/g, '[Entidad]')
-                .replace(/\[NUMERO_RADICADO\]/g, '[2026-00123]');
-            document.getElementById('preview').innerHTML = preview;
-        }
-
-        document.getElementById('cuerpo').addEventListener('input', actualizarPreview);
-        document.getElementById('titulo').addEventListener('input', actualizarPreview);
-        document.getElementById('nombre').addEventListener('input', actualizarPreview);
-
         async function cargarPlantillas() {
-            try {
-                const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const plantillas = await res.json();
-                const tbody = document.getElementById('listaPlantillas');
-                if (plantillas.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6">No hay plantillas creadas aún</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = plantillas.map(p => `
-                    <tr>
-                        <td>${p.id}</td>
-                        <td><strong>${p.nombre}</strong></td>
-                        <td><code>${p.clave}</code></td>
-                        <td>${p.campos_editables ? p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('') : '-'}</td>
-                        <td>${p.fecha_creacion}</td>
-                        <td>
-                            <button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="editarPlantilla(${p.id})">✏️</button>
-                            <button class="btn-danger" style="padding:0.3rem 0.6rem;" onclick="eliminarPlantilla(${p.id})">🗑️</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (error) {
-                console.error('Error:', error);
+            const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const plantillas = await res.json();
+            const tbody = document.getElementById('listaPlantillas');
+            if (plantillas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No hay plantillas. Sube tu primer documento!</td></tr>';
+                return;
             }
+            tbody.innerHTML = plantillas.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td><strong>${p.nombre}</strong></td>
+                    <td><code>${p.clave}</code></td>
+                    <td>${p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('')}</td>
+                    <td>${p.fecha_creacion}</td>
+                    <td>
+                        <button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        function abrirModalNuevo() {
-            editandoId = null;
-            document.getElementById('modalTitle').textContent = 'Agregar Plantilla';
-            document.getElementById('nombre').value = '';
-            document.getElementById('clave').value = '';
-            document.getElementById('titulo').value = '';
-            document.getElementById('cuerpo').value = '';
-            camposSeleccionados = ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'];
-            document.querySelectorAll('.campo-checkbox').forEach(cb => {
-                const campo = cb.getAttribute('data-campo');
-                if (camposSeleccionados.includes(campo)) {
-                    cb.classList.add('selected');
-                } else {
-                    cb.classList.remove('selected');
-                }
-            });
-            document.getElementById('modalPlantilla').style.display = 'flex';
+        function abrirModalSubir() {
+            document.getElementById('modalSubir').style.display = 'flex';
+            document.getElementById('nombrePlantilla').value = '';
+            document.getElementById('clavePlantilla').value = '';
+            document.getElementById('previewCampos').style.display = 'none';
+            document.getElementById('btnSubir').style.display = 'none';
+            archivoSeleccionado = null;
         }
 
-        async function editarPlantilla(id) {
-            try {
-                const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const plantillas = await res.json();
-                const p = plantillas.find(p => p.id === id);
-                if (p) {
-                    editandoId = id;
-                    document.getElementById('modalTitle').textContent = 'Editar Plantilla';
-                    document.getElementById('nombre').value = p.nombre;
-                    document.getElementById('clave').value = p.clave;
-                    document.getElementById('titulo').value = p.titulo;
-                    document.getElementById('cuerpo').value = p.cuerpo;
-                    camposSeleccionados = p.campos_editables || ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'];
-                    document.querySelectorAll('.campo-checkbox').forEach(cb => {
-                        const campo = cb.getAttribute('data-campo');
-                        if (camposSeleccionados.includes(campo)) {
-                            cb.classList.add('selected');
-                        } else {
-                            cb.classList.remove('selected');
-                        }
-                    });
-                    actualizarPreview();
-                    document.getElementById('modalPlantilla').style.display = 'flex';
-                }
-            } catch (error) {
-                alert('Error al cargar plantilla');
+        function cerrarModalSubir() {
+            document.getElementById('modalSubir').style.display = 'none';
+        }
+
+        // Configurar zona de arrastrar
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('archivoInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#fff';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#C8A951';
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#C8A951';
+            const file = e.dataTransfer.files[0];
+            if (file) procesarArchivo(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) procesarArchivo(e.target.files[0]);
+        });
+
+        function procesarArchivo(file) {
+            archivoSeleccionado = file;
+            uploadArea.innerHTML = `
+                <div style="font-size: 3rem;">✅</div>
+                <p>${file.name}</p>
+                <p style="font-size: 0.8rem;">${(file.size / 1024).toFixed(2)} KB</p>
+            `;
+            document.getElementById('btnSubir').style.display = 'block';
+        }
+
+        async function subirPlantilla() {
+            const nombre = document.getElementById('nombrePlantilla').value;
+            const clave = document.getElementById('clavePlantilla').value;
+            
+            if (!nombre || !clave) {
+                alert('Nombre y clave son obligatorios');
+                return;
             }
-        }
-
-        async function guardarPlantilla() {
-            const nombre = document.getElementById('nombre').value;
-            const clave = document.getElementById('clave').value;
-            const titulo = document.getElementById('titulo').value;
-            const cuerpo = document.getElementById('cuerpo').value;
-            const campos_editables = camposSeleccionados;
-
-            if (!nombre || !clave || !titulo || !cuerpo) {
-                alert('Todos los campos son obligatorios');
+            if (!archivoSeleccionado) {
+                alert('Selecciona un archivo primero');
                 return;
             }
 
-            try {
-                let url = `${API_URL}/plantillas`;
-                let method = 'POST';
-                let body = { nombre, clave, titulo, cuerpo, campos_editables };
+            const formData = new FormData();
+            formData.append('archivo', archivoSeleccionado);
+            formData.append('nombre', nombre);
+            formData.append('clave', clave);
 
-                if (editandoId) {
-                    url = `${API_URL}/plantillas/${editandoId}`;
-                    method = 'PUT';
-                }
+            const res = await fetch(`${API_URL}/plantillas/subir`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
 
-                const res = await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(body)
-                });
-
-                if (res.ok) {
-                    cerrarModal();
-                    cargarPlantillas();
-                    alert(editandoId ? 'Plantilla actualizada' : 'Plantilla creada');
-                } else {
-                    alert('Error al guardar plantilla');
-                }
-            } catch (error) {
-                alert('Error de conexión');
+            const data = await res.json();
+            if (data.success) {
+                alert(`Plantilla creada! Campos detectados: ${data.campos_detectados.join(', ')}`);
+                cerrarModalSubir();
+                cargarPlantillas();
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo procesar'));
             }
         }
 
         async function eliminarPlantilla(id) {
-            if (confirm('¿Eliminar esta plantilla permanentemente?')) {
-                try {
-                    const res = await fetch(`${API_URL}/plantillas/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        cargarPlantillas();
-                        alert('Plantilla eliminada');
-                    } else {
-                        alert('Error al eliminar');
-                    }
-                } catch (error) {
-                    alert('Error de conexión');
-                }
+            if (confirm('¿Eliminar esta plantilla?')) {
+                await fetch(`${API_URL}/plantillas/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                cargarPlantillas();
             }
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalPlantilla').style.display = 'none';
         }
 
         function cerrarSesion() {
@@ -323,4 +238,4 @@
         cargarPlantillas();
     </script>
 </body>
-    </html>
+</html>
