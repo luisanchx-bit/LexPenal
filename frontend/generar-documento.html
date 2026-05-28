@@ -18,6 +18,10 @@
             max-height: 400px;
             overflow-y: auto;
         }
+        .campo-obligatorio {
+            color: #C8A951;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -37,29 +41,19 @@
         <h1 style="color: #C8A951; text-align: center;">📄 Generar Documento Legal</h1>
         
         <div id="infoDelito" style="background: #0a0a0a; padding: 1rem; border-radius: 10px; margin: 2rem 0;">
-            <p><strong>Documento a generar:</strong> <span id="delitoSeleccionado" style="color:#C8A951;">-</span></p>
+            <p><strong>Documento a generar:</strong> <span id="delitoSeleccionado" style="color:#C8A951;">Cargando...</span></p>
         </div>
 
-        <form id="formDocumento">
-            <div class="input-group">
-                <label>Tu nombre completo</label>
-                <input type="text" id="nombreCliente" required>
-            </div>
-            <div class="input-group">
-                <label>Número de cédula</label>
-                <input type="text" id="cedulaCliente" required>
-            </div>
-            <div class="input-group">
-                <label>Descripción del caso / hechos</label>
-                <textarea id="descripcion" rows="6" placeholder="Describe detalladamente los hechos..." required></textarea>
-            </div>
-            <div class="input-group">
-                <label>Ciudad</label>
-                <input type="text" id="ciudad" value="Bogotá D.C.">
-            </div>
-            
-            <button type="submit" class="btn-enviar" style="width:100%;">📄 Generar Documento</button>
-        </form>
+        <div id="cargando" style="text-align: center; padding: 2rem;">
+            <p>Cargando plantilla...</p>
+        </div>
+
+        <div id="formContainer" style="display: none;">
+            <form id="formDocumento">
+                <div id="camposDinamicos"></div>
+                <button type="submit" class="btn-enviar" style="width:100%;">📄 Generar Documento</button>
+            </form>
+        </div>
 
         <div id="resultado" style="margin-top: 2rem; display: none;">
             <h3 style="color: #C8A951;">Documento Generado</h3>
@@ -72,169 +66,165 @@
     </div>
 
     <script>
+        const API_URL = '/api';
+        let plantillaActual = null;
+        let documentoGenerado = '';
+
         const delito = localStorage.getItem('delito') || 'general';
         const tipo = localStorage.getItem('tipo') || 'general';
-        
-        const delitoTexto = {
-            'homicidio_doloso': 'Homicidio Doloso',
-            'homicidio_culposo': 'Homicidio Culposo',
-            'homicidio_agravado': 'Homicidio Agravado',
-            'violacion_simple': 'Violación Simple',
-            'violacion_agravada': 'Violación Agravada',
-            'robo_simple': 'Robo Simple',
-            'robo_agravado': 'Robo Agravado',
-            'apelacion_multas_simple': 'Apelación de Multas',
-            'apelacion_sentencia_simple': 'Apelación de Sentencia',
-            'tutela_simple': 'Acción de Tutela',
-            'peticion_derecho': 'Derecho de Petición'
-        };
-        
-        let clave = `${delito}_${tipo}`;
-        let textoMostrar = delitoTexto[clave] || `${delito} - ${tipo}`;
-        document.getElementById('delitoSeleccionado').textContent = textoMostrar;
+        const clavePlantilla = `${delito}_${tipo}`;
 
-        function getPlantilla() {
-            const plantillas = {
-                'apelacion_multas_simple': {
-                    titulo: 'RECURSO DE APELACIÓN CONTRA MULTA',
-                    cuerpo: `[CIUDAD], [FECHA]
-
-Señores
-[JUZGADO/CONSEJO DE ESTADO]
-E. S. D.
-
-REF: Recurso de Apelación contra multa
-
-[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], actuando en nombre propio, presento recurso de apelación contra la multa impuesta.
-
-HECHOS:
-[DESCRIPCION_HECHOS]
-
-FUNDAMENTOS DE DERECHO:
-
-PETICIÓN:
-Solicito se revoque la multa impuesta.
-
-Atentamente,
-[NOMBRE_CLIENTE]
-C.C. [CEDULA_CLIENTE]`
-                },
-                'homicidio_doloso': {
-                    titulo: 'ESCRITO DE DEFENSA - HOMICIDIO DOLOSO',
-                    cuerpo: `[CIUDAD], [FECHA]
-
-Señor Juez de Conocimiento (Reparto)
-E. S. D.
-
-REF: Defensa técnica
-
-[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], presento escrito de defensa dentro del proceso penal por homicidio doloso.
-
-HECHOS:
-[DESCRIPCION_HECHOS]
-
-DEFENSA:
-
-CONCLUSIONES:
-Solicito se absuelva a mi representado.
-
-Atentamente,
-[NOMBRE_CLIENTE]`
-                },
-                'tutela_simple': {
-                    titulo: 'ACCIÓN DE TUTELA',
-                    cuerpo: `[CIUDAD], [FECHA]
-
-Señor Juez de Tutela (Reparto)
-E. S. D.
-
-ACCIONANTE: [NOMBRE_CLIENTE], identificado con C.C. [CEDULA_CLIENTE]
-ACCIONADO: [ENTIDAD_ACCIONADA]
-
-DERECHOS VULNERADOS:
-
-HECHOS:
-[DESCRIPCION_HECHOS]
-
-PRETENSIONES:
-
-Atentamente,
-[NOMBRE_CLIENTE]`
-                },
-                'peticion_derecho': {
-                    titulo: 'DERECHO DE PETICIÓN',
-                    cuerpo: `[CIUDAD], [FECHA]
-
-Señores
-[ENTIDAD_DESTINATARIA]
-E. S. D.
-
-[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], respetuosamente presento derecho de petición.
-
-SOLICITO:
-
-HECHOS:
-
-FUNDAMENTOS LEGALES:
-
-Atentamente,
-[NOMBRE_CLIENTE]`
+        async function cargarPlantilla() {
+            try {
+                const res = await fetch(`${API_URL}/plantillas/public/${clavePlantilla}`);
+                if (res.ok) {
+                    plantillaActual = await res.json();
+                    document.getElementById('delitoSeleccionado').textContent = plantillaActual.nombre;
+                    generarFormulario();
+                } else {
+                    document.getElementById('delitoSeleccionado').textContent = `Documento: ${delito} - ${tipo}`;
+                    generarFormularioGenerico();
                 }
-            };
+                document.getElementById('cargando').style.display = 'none';
+                document.getElementById('formContainer').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                generarFormularioGenerico();
+                document.getElementById('cargando').style.display = 'none';
+                document.getElementById('formContainer').style.display = 'block';
+            }
+        }
+
+        function generarFormulario() {
+            const container = document.getElementById('camposDinamicos');
+            const campos = plantillaActual.campos_editables || ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'];
             
-            return plantillas[clave] || {
-                titulo: `DOCUMENTO LEGAL: ${textoMostrar}`,
-                cuerpo: `[CIUDAD], [FECHA]
+            let html = '';
+            
+            campos.forEach(campo => {
+                switch(campo) {
+                    case 'NOMBRE_CLIENTE':
+                        html += `
+                            <div class="input-group">
+                                <label>Tu nombre completo *</label>
+                                <input type="text" id="NOMBRE_CLIENTE" required>
+                            </div>
+                        `;
+                        break;
+                    case 'CEDULA_CLIENTE':
+                        html += `
+                            <div class="input-group">
+                                <label>Número de cédula *</label>
+                                <input type="text" id="CEDULA_CLIENTE" required>
+                            </div>
+                        `;
+                        break;
+                    case 'DESCRIPCION_HECHOS':
+                        html += `
+                            <div class="input-group">
+                                <label>Descripción de los hechos *</label>
+                                <textarea id="DESCRIPCION_HECHOS" rows="6" placeholder="Describe detalladamente los hechos..." required></textarea>
+                            </div>
+                        `;
+                        break;
+                    case 'CIUDAD':
+                        html += `
+                            <div class="input-group">
+                                <label>Ciudad</label>
+                                <input type="text" id="CIUDAD" value="Bogotá D.C.">
+                            </div>
+                        `;
+                        break;
+                    case 'ENTIDAD':
+                        html += `
+                            <div class="input-group">
+                                <label>Entidad destinataria</label>
+                                <input type="text" id="ENTIDAD" placeholder="Ej: Juzgado 10 Penal Municipal">
+                            </div>
+                        `;
+                        break;
+                    case 'NUMERO_RADICADO':
+                        html += `
+                            <div class="input-group">
+                                <label>Número de radicado</label>
+                                <input type="text" id="NUMERO_RADICADO" placeholder="Ej: 2026-00123">
+                            </div>
+                        `;
+                        break;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
 
-[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], presenta ante esta autoridad:
-
-HECHOS:
-[DESCRIPCION_HECHOS]
-
-SOLICITO:
-
-Atentamente,
-[NOMBRE_CLIENTE]`
-            };
+        function generarFormularioGenerico() {
+            const container = document.getElementById('camposDinamicos');
+            container.innerHTML = `
+                <div class="input-group">
+                    <label>Tu nombre completo *</label>
+                    <input type="text" id="NOMBRE_CLIENTE" required>
+                </div>
+                <div class="input-group">
+                    <label>Número de cédula *</label>
+                    <input type="text" id="CEDULA_CLIENTE" required>
+                </div>
+                <div class="input-group">
+                    <label>Descripción de los hechos *</label>
+                    <textarea id="DESCRIPCION_HECHOS" rows="6" placeholder="Describe detalladamente los hechos..." required></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Ciudad</label>
+                    <input type="text" id="CIUDAD" value="Bogotá D.C.">
+                </div>
+            `;
         }
 
         document.getElementById('formDocumento').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const nombre = document.getElementById('nombreCliente').value;
-            const cedula = document.getElementById('cedulaCliente').value;
-            const descripcion = document.getElementById('descripcion').value;
-            const ciudad = document.getElementById('ciudad').value;
+            const nombre = document.getElementById('NOMBRE_CLIENTE')?.value || '';
+            const cedula = document.getElementById('CEDULA_CLIENTE')?.value || '';
+            const hechos = document.getElementById('DESCRIPCION_HECHOS')?.value || '';
+            const ciudad = document.getElementById('CIUDAD')?.value || 'Bogotá D.C.';
+            const entidad = document.getElementById('ENTIDAD')?.value || 'Autoridad Competente';
+            const numeroRadicado = document.getElementById('NUMERO_RADICADO')?.value || '';
             const fecha = new Date().toLocaleDateString('es-CO');
             
-            const plantilla = getPlantilla();
+            let documento = '';
             
-            let documento = plantilla.cuerpo
-                .replace(/\[CIUDAD\]/g, ciudad)
-                .replace(/\[FECHA\]/g, fecha)
-                .replace(/\[NOMBRE_CLIENTE\]/g, nombre)
-                .replace(/\[CEDULA_CLIENTE\]/g, cedula)
-                .replace(/\[DESCRIPCION_HECHOS\]/g, descripcion);
+            if (plantillaActual) {
+                documento = plantillaActual.cuerpo
+                    .replace(/\[NOMBRE_CLIENTE\]/g, nombre)
+                    .replace(/\[CEDULA_CLIENTE\]/g, cedula)
+                    .replace(/\[DESCRIPCION_HECHOS\]/g, hechos)
+                    .replace(/\[CIUDAD\]/g, ciudad)
+                    .replace(/\[FECHA\]/g, fecha)
+                    .replace(/\[ENTIDAD\]/g, entidad)
+                    .replace(/\[NUMERO_RADICADO\]/g, numeroRadicado);
+                
+                documento = `${plantillaActual.titulo}\n\n${documento}`;
+            } else {
+                documento = `DOCUMENTO LEGAL\n\n${ciudad}, ${fecha}\n\nYo, ${nombre}, identificado con cédula No. ${cedula}, manifiesto:\n\nHECHOS:\n${hechos}\n\nAtentamente,\n${nombre}`;
+            }
             
-            const documentoCompleto = `${plantilla.titulo}\n\n${documento}`;
-            
-            document.getElementById('documentoPreview').textContent = documentoCompleto;
+            document.getElementById('documentoPreview').textContent = documento;
             document.getElementById('resultado').style.display = 'block';
-            
-            window.documentoGenerado = documentoCompleto;
+            window.documentoGenerado = documento;
         });
         
         function descargarDocumento() {
             const blob = new Blob([window.documentoGenerado], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `documento_${Date.now()}.txt`;
+            link.download = `documento_legal_${Date.now()}.txt`;
             link.click();
         }
         
         function contactarAbogado() {
             window.open('https://wa.me/573145879875?text=Necesito%20revisi%C3%B3n%20de%20un%20documento%20legal', '_blank');
         }
+
+        cargarPlantilla();
     </script>
 </body>
-</html>
+                                                              </html>
