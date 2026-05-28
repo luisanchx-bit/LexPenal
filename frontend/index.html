@@ -3,121 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexPenal | Defensa Penal Estratégica</title>
-    <link rel="stylesheet" href="/css/estilo.css">
+    <title>LexPenal | Asesoría Legal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/estilo.css">
+    <style>
+        .menu-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .menu-card {
+            background: #0a0a0a;
+            border-radius: 15px;
+            border: 1px solid rgba(200, 169, 81, 0.3);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .menu-card:hover {
+            border-color: #C8A951;
+            transform: translateY(-5px);
+        }
+        .menu-header {
+            background: linear-gradient(135deg, #0a1628, #050505);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(200, 169, 81, 0.3);
+            cursor: pointer;
+        }
+        .menu-header h2 {
+            color: #C8A951;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .menu-header p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .menu-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            background: #050505;
+        }
+        .menu-items.active {
+            max-height: 600px;
+        }
+        .submenu {
+            padding: 0.5rem 0;
+        }
+        .submenu-item {
+            padding: 0.8rem 1.5rem;
+            color: #e8e8e8;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .submenu-item:hover {
+            background: rgba(200, 169, 81, 0.1);
+            border-left-color: #C8A951;
+            padding-left: 2rem;
+        }
+        .submenu-item .arrow {
+            color: #C8A951;
+            font-size: 0.8rem;
+        }
+        .sub-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding-left: 2rem;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .sub-submenu.active {
+            max-height: 300px;
+        }
+        .sub-submenu-item {
+            padding: 0.6rem 1rem;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .sub-submenu-item:hover {
+            color: #C8A951;
+            padding-left: 1.5rem;
+        }
+        .hero-mini {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #000, #0a1628);
+            margin-bottom: 2rem;
+            border-radius: 20px;
+        }
+        .hero-mini h1 {
+            font-size: 2.5rem;
+            color: #C8A951;
+        }
+        .hero-mini p {
+            color: #aaa;
+            margin-top: 1rem;
+        }
+        @media (max-width: 768px) {
+            .menu-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo" onclick="window.location.href='/'">
+            <div class="logo" style="cursor: pointer;" onclick="window.location.href='/'">
                 <h2>⚖️ LexPenal</h2>
             </div>
             <button class="menu-toggle" id="menuToggle">☰</button>
             <ul class="nav-menu" id="navMenu">
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#casos">Casos</a></li>
-                <li><a href="#portafolio">Abogado</a></li>
-                <li><a href="#testimonios">Testimonios</a></li>
-                <li><a href="/login.html" class="btn-login">Acceder</a></li>
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/login.html">Acceder</a></li>
             </ul>
         </div>
     </nav>
 
-    <section id="inicio" class="hero">
-        <div class="hero-content">
-            <h1>Defensa Penal <span class="dorado">Estratégica</span></h1>
-            <p>Más de 6 años protegiendo tus derechos con excelencia y compromiso</p>
-            <a href="/login.html" class="btn-principal">Comenzar ahora</a>
-        </div>
-    </section>
+    <div class="hero-mini">
+        <h1>Asesoría Legal <span class="dorado">Especializada</span></h1>
+        <p>Selecciona el área de tu interés para generar tu documento legal</p>
+    </div>
 
-    <section id="casos" class="tipos-casos">
-        <div class="container">
-            <h2>Áreas de <span class="dorado">Práctica</span></h2>
-            <div class="casos-grid">
-                <div class="caso-card"><div class="icono">⚖️</div><h3>Homicidio</h3><p>Defensa especializada en casos complejos</p></div>
-                <div class="caso-card"><div class="icono">🛡️</div><h3>Violación</h3><p>Protección integral a las víctimas</p></div>
-                <div class="caso-card"><div class="icono">🔒</div><h3>Robo</h3><p>Estrategias de defensa efectivas</p></div>
-                <div class="caso-card"><div class="icono">📄</div><h3>Apelaciones</h3><p>Recursos y apelaciones penales</p></div>
-                <div class="caso-card"><div class="icono">📅</div><h3>Citaciones</h3><p>Acompañamiento en citaciones judiciales</p></div>
-                <div class="caso-card"><div class="icono">📋</div><h3>Trámites Legales</h3><p>Gestión completa de documentos</p></div>
+    <div class="menu-container">
+        <div class="menu-grid">
+            <!-- CARD 1: DERECHO PENAL -->
+            <div class="menu-card">
+                <div class="menu-header" onclick="toggleMenu('penalMenu')">
+                    <h2>⚖️ Derecho Penal</h2>
+                    <p>Delitos, penas y defensa penal</p>
+                </div>
+                <div id="penalMenu" class="menu-items">
+                    <div class="submenu">
+                        <div class="submenu-item" onclick="toggleSubMenu('homicidioSub')">Homicidio <span class="arrow">▼</span></div>
+                        <div id="homicidioSub" class="sub-submenu">
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'doloso')">🔪 Doloso</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'culposo')">🚗 Culposo</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'agravado')">⚡ Agravado</div>
+                        </div>
+                        <div class="submenu-item" onclick="toggleSubMenu('violacionSub')">Violación <span class="arrow">▼</span></div>
+                        <div id="violacionSub" class="sub-submenu">
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('violacion', 'simple')">🔞 Simple</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('violacion', 'agravada')">⚡ Agravada</div>
+                        </div>
+                        <div class="submenu-item" onclick="toggleSubMenu('roboSub')">Robo <span class="arrow">▼</span></div>
+                        <div id="roboSub" class="sub-submenu">
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('robo', 'simple')">💰 Simple</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('robo', 'agravado')">⚡ Agravado</div>
+                        </div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('estafa', 'simple')">Estafa <span class="arrow">→</span></div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('hurto', 'simple')">Hurto <span class="arrow">→</span></div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </section>
 
-    <section id="portafolio" class="portafolio">
-        <div class="container">
-            <h2>Dr. <span class="dorado">Asmairo Conde Torres</span></h2>
-            <div class="portafolio-contenido">
-                <div class="portafolio-imagen"><div class="avatar-circle">⚖️</div></div>
-                <div class="portafolio-info">
-                    <div class="info-item"><span class="info-label">📜 Títulos:</span><p>Cursando Master en Ley</p><p>Curso actualización Derecho Privado - UDCA</p><p>Capacitación Prevención y Protección - Ministerio del Interior</p><p>Capacitación Plan de Contingencia para Víctimas</p></div>
-                    <div class="info-item"><span class="info-label">⭐ Experiencia:</span><p>Más de 6 años en derecho penal</p><p>Personería, Alcaldía, Gobernación de Cundinamarca</p><p>Asesor Jurídico - Resbanc, Asistente Jurídico - Carbal</p></div>
-                    <div class="info-item"><span class="info-label">📞 Contacto:</span><p>📱 WhatsApp: +57 3145879875</p><p>✉️ asmairo.conde.torres@hotmail.com</p></div>
+            <!-- CARD 2: DERECHO SOCIAL -->
+            <div class="menu-card">
+                <div class="menu-header" onclick="toggleMenu('socialMenu')">
+                    <h2>👥 Derecho Social</h2>
+                    <p>Laboral, seguridad social y más</p>
+                </div>
+                <div id="socialMenu" class="menu-items">
+                    <div class="submenu">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('demanda_laboral', 'simple')">Demandas Laborales <span class="arrow">→</span></div>
+                        <div class="submenu-item" onclick="toggleSubMenu('procesosEjecSub')">Procesos Ejecutivos <span class="arrow">▼</span></div>
+                        <div id="procesosEjecSub" class="sub-submenu">
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_prendario', 'simple')">Prendario</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_simple', 'simple')">Simple</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_hipotecario', 'simple')">Hipotecario</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3: TRÁMITES LEGALES -->
+            <div class="menu-card">
+                <div class="menu-header" onclick="toggleMenu('tramitesMenu')">
+                    <h2>📋 Trámites Legales</h2>
+                    <p>Peticiones, tutelas, apelaciones y más</p>
+                </div>
+                <div id="tramitesMenu" class="menu-items">
+                    <div class="submenu">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('peticion', 'derecho')">Peticiones <span class="arrow">→</span></div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('tutela', 'simple')">Tutelas <span class="arrow">→</span></div>
+                        <div class="submenu-item" onclick="toggleSubMenu('apelacionSub')">Apelaciones <span class="arrow">▼</span></div>
+                        <div id="apelacionSub" class="sub-submenu">
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_multas', 'simple')">💰 Apelación de Multas</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_sentencia', 'simple')">⚖️ Apelación de Sentencia</div>
+                        </div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_inmueble', 'simple')">Venta de Inmuebles <span class="arrow">→</span></div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_lote', 'simple')">Venta de Lotes <span class="arrow">→</span></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
-
-    <section id="testimonios" class="testimonios">
-        <div class="container">
-            <h2>Lo que dicen <span class="dorado">nuestros clientes</span></h2>
-            <div class="carrusel"><div class="testimonio-activo"><p>"Excelente profesional, me ayudó en un caso muy complicado. Totalmente recomendado."</p><h4>- Cliente anónimo</h4></div></div>
-        </div>
-    </section>
+    </div>
 
     <footer>
         <div class="container">
-            <p>© 2026 Asmairo Conde Torres - Derecho Penal Estratégico</p>
+            <p>© 2026 LexPenal - Asesoría Legal Profesional</p>
             <p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p>
-            <p>⚖️ Defensa Penal en todas sus áreas</p>
+            <p>⚖️ Dr. Asmairo Conde Torres - Defensa Penal en todas sus áreas</p>
         </div>
     </footer>
 
-    <script src="/js/carrusel.js"></script>
     <script>
+        function toggleMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            menu.classList.toggle('active');
+        }
+        function toggleSubMenu(submenuId) {
+            const submenu = document.getElementById(submenuId);
+            submenu.classList.toggle('active');
+        }
+        function irAGenerarDocumento(delito, tipo) {
+            localStorage.setItem('delito', delito);
+            localStorage.setItem('tipo', tipo);
+            window.location.href = '/generar-documento.html';
+        }
         // Menú responsive
         const menuToggle = document.getElementById('menuToggle');
         const navMenu = document.getElementById('navMenu');
-        
-        menuToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-        });
-
-        // Smooth scroll y active menu
-        const secciones = document.querySelectorAll('section');
-        const enlaces = document.querySelectorAll('.nav-menu a');
-        
-        window.addEventListener('scroll', () => {
-            let scroll = window.scrollY + 100;
-            secciones.forEach(sec => {
-                if (scroll >= sec.offsetTop && scroll < sec.offsetTop + sec.offsetHeight) {
-                    enlaces.forEach(enlace => {
-                        enlace.classList.remove('active');
-                        if (enlace.getAttribute('href') === `#${sec.id}` && !enlace.classList.contains('btn-login')) {
-                            enlace.classList.add('active');
-                        }
-                    });
-                }
-            });
-        });
-        
-        enlaces.forEach(enlace => {
-            enlace.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href && href.startsWith('#')) {
-                    e.preventDefault();
-                    document.querySelector(href).scrollIntoView({ behavior: 'smooth' });
-                    navMenu.classList.remove('active');
-                }
-            });
-        });
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+        }
     </script>
 
-    <!-- BOTÓN FLOTANTE DE LA CALCULADORA -->
+    <!-- BOTÓN FLOTANTE DE LA CALCULADORA (MÁS GRANDE) -->
     <div class="calculadora-btn" onclick="window.location.href='/calculadora.html'">
         <div class="btn-text-calc">⚖️ CALCULAR<br>PENA</div>
     </div>
 </body>
-                                                               </html>
+                </html>
