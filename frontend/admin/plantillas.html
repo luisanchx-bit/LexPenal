@@ -230,4 +230,6 @@
         async function eliminarPlantilla(id) { if (confirm('¿Eliminar esta plantilla?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
         cargarPlantillas();
-    </
+    </script>
+</body>
+                    </html>
