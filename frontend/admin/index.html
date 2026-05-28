@@ -10,7 +10,7 @@
 <body>
     <div class="admin-container">
         <aside class="sidebar">
-            <div class="sidebar-logo">
+            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'">
                 <h2>⚖️ LexPenal</h2>
                 <p>Panel de Control</p>
             </div>
@@ -62,7 +62,6 @@
     </div>
 
     <script>
-        // URL RELATIVA PARA RENDER
         const API_URL = '/api';
         let token = localStorage.getItem('token');
         const isAdmin = localStorage.getItem('isAdmin');
@@ -118,5 +117,10 @@
         cargarDashboard();
         cargarCasosRecientes();
     </script>
+
+    <!-- BOTÓN FLOTANTE DE LA CALCULADORA -->
+    <div class="calculadora-btn" onclick="window.location.href='/calculadora.html'">
+        <div class="btn-text-calc">⚖️ CALCULAR<br>PENA</div>
+    </div>
 </body>
-</html>
+                                                                                      </html>
