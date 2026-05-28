@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar Cita - LexPenal</title>
+    <link rel="stylesheet" href="/css/estilo.css">
+    <style>
+        .cita-container {
+            max-width: 800px;
+            margin: 100px auto 4rem;
+            padding: 2rem;
+            background: #0a0a0a;
+            border-radius: 20px;
+            border: 1px solid rgba(200, 169, 81, 0.3);
+        }
+        .calendario {
+            background: #111;
+            border-radius: 15px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+        .calendario-mes {
+            color: #C8A951;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .calendario-dias {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            gap: 0.5rem;
+        }
+        .dia-nombre {
+            color: #888;
+            font-size: 0.8rem;
+            padding: 0.5rem;
+        }
+        .dia {
+            padding: 0.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #1a1a1a;
+            text-align: center;
+        }
+        .dia:hover:not(.ocupado):not(.disabled) {
+            background: rgba(200, 169, 81, 0.2);
+        }
+        .dia.seleccionado {
+            background: #C8A951;
+            color: #000;
+        }
+        .dia.ocupado {
+            background: #2a1a1a;
+            color: #8B0000;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        .dia.disabled {
+            background: #0a0a0a;
+            color: #333;
+            cursor: not-allowed;
+        }
+        .btn-agendar {
+            background: #C8A951;
+            color: #000;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .info-cita {
+            background: #050505;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            text-align: center;
+            border-left: 3px solid #C8A951;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo" style="cursor:pointer" onclick="window.location.href='/'">
+                <h2>⚖️ LexPenal</h2>
+            </div>
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/login.html">Acceder</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="cita-container">
+        <div class="calculadora-title">
+            <h1 style="color:#C8A951;">📅 Agendar Cita</h1>
+            <p>Seleccione una fecha disponible para su consulta</p>
+        </div>
+
+        <form id="formCita">
+            <div class="input-group">
+                <label>Nombre completo *</label>
+                <input type="text" id="nombre" required>
+            </div>
+            <div class="input-group">
+                <label>Teléfono *</label>
+                <input type="tel" id="telefono" required>
+            </div>
+            <div class="input-group">
+                <label>Correo electrónico *</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="input-group">
+                <label>Motivo de la consulta *</label>
+                <textarea id="motivo" rows="3" required></textarea>
+            </div>
+
+            <div class="calendario" id="calendario">
+                <div class="calendario-header">
+                    <button type="button" id="prevMes" style="background:none; border:none; color:#C8A951; cursor:pointer;">◀</button>
+                    <span class="calendario-mes" id="mesActual"></span>
+                    <button type="button" id="nextMes" style="background:none; border:none; color:#C8A951; cursor:pointer;">▶</button>
+                </div>
+                <div class="calendario-dias" id="diasSemana"></div>
+                <div class="calendario-dias" id="diasMes"></div>
+            </div>
+
+            <div id="fechaSeleccionada" class="info-cita"></div>
+            <input type="hidden" id="fecha" required>
+            <button type="submit" class="btn-agendar">📅 Agendar Cita</button>
+        </form>
+    </div>
+
+    <script>
+        let fechaActual = new Date();
+        let citasOcupadas = [];
+        let fechaSeleccionada = null;
+
+        // Cargar citas ocupadas desde el servidor
+        async function cargarCitasOcupadas() {
+            try {
+                const res = await fetch('/api/citas/ocupadas');
+                const data = await res.json();
+                citasOcupadas = data;
+            } catch (error) {
+                console.error('Error al cargar citas:', error);
+            }
+        }
+
+        function esFechaOcupada(fecha) {
+            const fechaStr = fecha.toISOString().split('T')[0];
+            return citasOcupadas.includes(fechaStr);
+        }
+
+        function renderCalendario() {
+            const año = fechaActual.getFullYear();
+            const mes = fechaActual.getMonth();
+            
+            const primerDia = new Date(año, mes, 1);
+            const ultimoDia = new Date(año, mes + 1, 0);
+            const diasEnMes = ultimoDia.getDate();
+            const diaInicioSemana = primerDia.getDay();
+            
+            const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('mesActual').textContent = `${nombresMeses[mes]} ${año}`;
+            
+            const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            const diasSemanaDiv = document.getElementById('diasSemana');
+            diasSemanaDiv.innerHTML = diasSemana.map(d => `<div class="dia-nombre">${d}</div>`).join('');
+            
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            
+            let diasHtml = '';
+            for (let i = 0; i < diaInicioSemana; i++) {
+                diasHtml += `<div class="dia disabled"></div>`;
+            }
+            
+            for (let dia = 1; dia <= diasEnMes; dia++) {
+                const fecha = new Date(año, mes, dia);
+                const esOcupado = esFechaOcupada(fecha);
+                const esPasado = fecha < hoy;
+                const esSeleccionado = fechaSeleccionada && fecha.toDateString() === fechaSeleccionada.toDateString();
+                
+                let clase = 'dia';
+                if (esPasado) clase += ' disabled';
+                if (esOcupado) clase += ' ocupado';
+                if (esSeleccionado) clase += ' seleccionado';
+                
+                diasHtml += `<div class="${clase}" onclick="${!esPasado && !esOcupado ? `seleccionarFecha(${dia}, ${mes}, ${año})` : ''}">${dia}</div>`;
+            }
+            
+            document.getElementById('diasMes').innerHTML = diasHtml;
+        }
+        
+        function seleccionarFecha(dia, mes, año) {
+            fechaSeleccionada = new Date(año, mes, dia);
+            document.getElementById('fecha').value = fechaSeleccionada.toISOString().split('T')[0];
+            document.getElementById('fechaSeleccionada').innerHTML = `📅 Fecha seleccionada: ${dia} de ${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][mes]} de ${año}`;
+            renderCalendario();
+        }
+        
+        document.getElementById('prevMes').addEventListener('click', () => {
+            fechaActual.setMonth(fechaActual.getMonth() - 1);
+            renderCalendario();
+        });
+        
+        document.getElementById('nextMes').addEventListener('click', () => {
+            fechaActual.setMonth(fechaActual.getMonth() + 1);
+            renderCalendario();
+        });
+        
+        document.getElementById('formCita').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nombre = document.getElementById('nombre').value;
+            const telefono = document.getElementById('telefono').value;
+            const email = document.getElementById('email').value;
+            const motivo = document.getElementById('motivo').value;
+            const fecha = document.getElementById('fecha').value;
+            
+            if (!nombre || !telefono || !email || !motivo || !fecha) {
+                alert('Por favor complete todos los campos y seleccione una fecha');
+                return;
+            }
+            
+            const btn = document.querySelector('.btn-agendar');
+            btn.innerHTML = '⏳ Agendando...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api/citas/nueva', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, telefono, email, motivo, fecha, tipo: 'cita' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`✅ Cita agendada para el ${fecha}. Serás redirigido al WhatsApp del abogado.`);
+                    window.open(`https://wa.me/573145879875?text=Hola,%20soy%20${encodeURIComponent(nombre)}%20y%20acabo%20de%20agendar%20una%20cita%20para%20el%20${fecha}.`, '_blank');
+                    window.location.href = '/';
+                } else {
+                    alert('❌ Error: ' + data.error);
+                    btn.innerHTML = '📅 Agendar Cita';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert('❌ Error de conexión');
+                btn.innerHTML = '📅 Agendar Cita';
+                btn.disabled = false;
+            }
+        });
+        
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+        }
+        
+        cargarCitasOcupadas();
+        renderCalendario();
+    </script>
+</body>
+</html>
