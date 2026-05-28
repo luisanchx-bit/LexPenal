@@ -52,7 +52,7 @@
             background: #050505;
         }
         .menu-items.active {
-            max-height: 800px;
+            max-height: 300px;
         }
         .submenu {
             padding: 0.5rem 0;
@@ -75,27 +75,6 @@
         .submenu-item .arrow {
             color: #C8A951;
             font-size: 0.8rem;
-        }
-        .sub-submenu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            padding-left: 2rem;
-            background: rgba(0, 0, 0, 0.5);
-        }
-        .sub-submenu.active {
-            max-height: 300px;
-        }
-        .sub-submenu-item {
-            padding: 0.6rem 1rem;
-            color: #aaa;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-        .sub-submenu-item:hover {
-            color: #C8A951;
-            padding-left: 1.5rem;
         }
         .hero-mini {
             text-align: center;
@@ -136,38 +115,20 @@
 
     <div class="hero-mini">
         <h1>Asesoría Legal <span class="dorado">Especializada</span></h1>
-        <p>Selecciona el área de tu interés para generar tu documento legal o agendar una cita</p>
+        <p>Selecciona el área de tu interés para agendar una cita o hacer una consulta</p>
     </div>
 
     <div class="menu-container">
         <div class="menu-grid">
-            <!-- CARD 1: DERECHO PENAL -->
+            <!-- CARD 1: DERECHO PENAL (SOLO CONSULTAS Y CITAS) -->
             <div class="menu-card">
                 <div class="menu-header" onclick="toggleMenu('penalMenu')">
                     <h2>⚖️ Derecho Penal</h2>
-                    <p>Delitos, penas y defensa penal</p>
+                    <p>Consultas y agendamiento de citas</p>
                 </div>
                 <div id="penalMenu" class="menu-items">
                     <div class="submenu">
-                        <div class="submenu-item" onclick="toggleSubMenu('homicidioSub')">Homicidio <span class="arrow">▼</span></div>
-                        <div id="homicidioSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'doloso')">🔪 Doloso</div>
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'culposo')">🚗 Culposo</div>
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'agravado')">⚡ Agravado</div>
-                        </div>
-                        <div class="submenu-item" onclick="toggleSubMenu('violacionSub')">Violación <span class="arrow">▼</span></div>
-                        <div id="violacionSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('violacion', 'simple')">🔞 Simple</div>
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('violacion', 'agravada')">⚡ Agravada</div>
-                        </div>
-                        <div class="submenu-item" onclick="toggleSubMenu('roboSub')">Robo <span class="arrow">▼</span></div>
-                        <div id="roboSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('robo', 'simple')">💰 Simple</div>
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('robo', 'agravado')">⚡ Agravado</div>
-                        </div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('estafa', 'simple')">Estafa <span class="arrow">→</span></div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('hurto', 'simple')">Hurto <span class="arrow">→</span></div>
-                        <div class="submenu-item" style="border-top: 1px solid #222; margin-top: 0.5rem;" onclick="window.location.href='/consulta.html'">
+                        <div class="submenu-item" onclick="window.location.href='/consulta.html'">
                             📞 Consulta Legal <span class="arrow">→</span>
                         </div>
                         <div class="submenu-item" onclick="window.location.href='/agendar-cita.html'">
@@ -185,12 +146,16 @@
                 </div>
                 <div id="socialMenu" class="menu-items">
                     <div class="submenu">
-                        <div class="submenu-item" onclick="irAGenerarDocumento('demanda_laboral', 'simple')">Demandas Laborales <span class="arrow">→</span></div>
-                        <div class="submenu-item" onclick="toggleSubMenu('procesosEjecSub')">Procesos Ejecutivos <span class="arrow">▼</span></div>
-                        <div id="procesosEjecSub" class="sub-submenu">
+                        <div class="submenu-item" onclick="toggleSubMenu('procesosEjecSub')">
+                            Procesos Ejecutivos <span class="arrow">▼</span>
+                        </div>
+                        <div id="procesosEjecSub" class="sub-submenu" style="max-height:0; overflow:hidden; transition:max-height 0.3s ease; padding-left:2rem;">
                             <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_prendario', 'simple')">Prendario</div>
                             <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_simple', 'simple')">Simple</div>
                             <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_hipotecario', 'simple')">Hipotecario</div>
+                        </div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('demanda_laboral', 'simple')">
+                            Demandas Laborales <span class="arrow">→</span>
                         </div>
                     </div>
                 </div>
@@ -204,15 +169,25 @@
                 </div>
                 <div id="tramitesMenu" class="menu-items">
                     <div class="submenu">
-                        <div class="submenu-item" onclick="irAGenerarDocumento('peticion', 'derecho')">Peticiones <span class="arrow">→</span></div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('tutela', 'simple')">Tutelas <span class="arrow">→</span></div>
-                        <div class="submenu-item" onclick="toggleSubMenu('apelacionSub')">Apelaciones <span class="arrow">▼</span></div>
-                        <div id="apelacionSub" class="sub-submenu">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('peticion', 'derecho')">
+                            Peticiones <span class="arrow">→</span>
+                        </div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('tutela', 'simple')">
+                            Tutelas <span class="arrow">→</span>
+                        </div>
+                        <div class="submenu-item" onclick="toggleSubMenu('apelacionSub')">
+                            Apelaciones <span class="arrow">▼</span>
+                        </div>
+                        <div id="apelacionSub" class="sub-submenu" style="max-height:0; overflow:hidden; transition:max-height 0.3s ease; padding-left:2rem;">
                             <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_multas', 'simple')">💰 Apelación de Multas</div>
                             <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_sentencia', 'simple')">⚖️ Apelación de Sentencia</div>
                         </div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_inmueble', 'simple')">Venta de Inmuebles <span class="arrow">→</span></div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_lote', 'simple')">Venta de Lotes <span class="arrow">→</span></div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_inmueble', 'simple')">
+                            Venta de Inmuebles <span class="arrow">→</span>
+                        </div>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_lote', 'simple')">
+                            Venta de Lotes <span class="arrow">→</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -232,15 +207,22 @@
             const menu = document.getElementById(menuId);
             menu.classList.toggle('active');
         }
+        
         function toggleSubMenu(submenuId) {
             const submenu = document.getElementById(submenuId);
-            submenu.classList.toggle('active');
+            if (submenu.style.maxHeight === '0px' || submenu.style.maxHeight === '') {
+                submenu.style.maxHeight = '300px';
+            } else {
+                submenu.style.maxHeight = '0px';
+            }
         }
+        
         function irAGenerarDocumento(delito, tipo) {
             localStorage.setItem('delito', delito);
             localStorage.setItem('tipo', tipo);
             window.location.href = '/generar-documento.html';
         }
+        
         // Menú responsive
         const menuToggle = document.getElementById('menuToggle');
         const navMenu = document.getElementById('navMenu');
@@ -254,4 +236,4 @@
         <div class="btn-text-calc">⚖️ CALCULAR<br>PENA</div>
     </div>
 </body>
-                               </html>
+</html>
