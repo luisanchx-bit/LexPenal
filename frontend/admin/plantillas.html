@@ -34,6 +34,22 @@
             display: inline-block;
             margin: 0.2rem;
         }
+        .select-group {
+            margin-bottom: 1rem;
+        }
+        .select-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #C8A951;
+        }
+        .select-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -68,15 +84,15 @@
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>ID</th><th>Nombre</th><th>Clave</th><th>Campos</th><th>Fecha</th><th>Acciones</th></tr>
+                        <tr><th>ID</th><th>Nombre</th><th>Ubicación</th><th>Clave</th><th>Campos</th><th>Fecha</th><th>Acciones</th></tr>
                     </thead>
                     <tbody id="listaPlantillas">
-                        <tr><td colspan="6">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
+                        <tr><td colspan="7">Cargando...<\/td><\/tr>
+                    <\/tbody>
+                <\/table>
+            <\/div>
+        <\/main>
+    <\/div>
 
     <!-- Modal para subir archivo -->
     <div id="modalSubir" class="modal">
@@ -85,25 +101,47 @@
                 <h3>Subir Plantilla</h3>
                 <button class="close-modal" onclick="cerrarModalSubir()">&times;</button>
             </div>
+            
             <div class="upload-area" id="uploadArea">
                 <div style="font-size: 3rem;">📄</div>
                 <p>Arrastra un archivo PDF, DOCX o TXT</p>
                 <p style="font-size: 0.8rem; color:#888;">o haz clic para seleccionar</p>
                 <input type="file" id="archivoInput" accept=".pdf,.docx,.txt" style="display:none;">
             </div>
+
             <div class="form-group">
                 <label>Nombre de la plantilla *</label>
-                <input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Multas">
+                <input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Comparendo">
             </div>
+
             <div class="form-group">
                 <label>Clave única *</label>
-                <input type="text" id="clavePlantilla" placeholder="Ej: apelacion_multas_simple">
+                <input type="text" id="clavePlantilla" placeholder="Ej: apelacion_comparendo">
                 <small>Se usará para vincular con el menú</small>
             </div>
+
+            <div class="select-group">
+                <label>📂 ¿Dónde va esta plantilla?</label>
+                <select id="ubicacionPlantilla" onchange="cargarSububicaciones()">
+                    <option value="">Seleccione una categoría...</option>
+                    <option value="penal">⚖️ Derecho Penal</option>
+                    <option value="social">👥 Derecho Social</option>
+                    <option value="tramites">📋 Trámites Legales</option>
+                </select>
+            </div>
+
+            <div class="select-group" id="sububicacionGroup" style="display:none;">
+                <label>📌 Subcategoría</label>
+                <select id="sububicacionPlantilla">
+                    <option value="">Seleccione...</option>
+                </select>
+            </div>
+
             <div id="previewCampos" class="campos-detectados" style="display:none;">
                 <strong>📌 Campos detectados en el documento:</strong>
                 <div id="camposLista"></div>
             </div>
+
             <button class="btn-primary" id="btnSubir" onclick="subirPlantilla()" style="display:none;">Subir y Guardar</button>
         </div>
     </div>
@@ -118,25 +156,65 @@
             window.location.href = '/login.html';
         }
 
+        // Configuración de subcategorías por categoría
+        const subcategorias = {
+            penal: [
+                { value: 'homicidio', label: '🔪 Homicidio' },
+                { value: 'violacion', label: '🛡️ Violación' },
+                { value: 'robo', label: '💰 Robo' },
+                { value: 'estafa', label: '📝 Estafa' },
+                { value: 'hurto', label: '🏃 Hurto' }
+            ],
+            social: [
+                { value: 'demandas', label: '📋 Demandas Laborales' },
+                { value: 'ejecutivos', label: '⚖️ Procesos Ejecutivos' }
+            ],
+            tramites: [
+                { value: 'peticiones', label: '✍️ Peticiones' },
+                { value: 'tutelas', label: '🛡️ Tutelas' },
+                { value: 'apelaciones', label: '📄 Apelaciones' },
+                { value: 'multas', label: '💰 Apelación de Multas / Comparendos' },
+                { value: 'inmuebles', label: '🏠 Venta de Inmuebles' },
+                { value: 'lotes', label: '🌾 Venta de Lotes' }
+            ]
+        };
+
+        function cargarSububicaciones() {
+            const ubicacion = document.getElementById('ubicacionPlantilla').value;
+            const subGroup = document.getElementById('sububicacionGroup');
+            const subSelect = document.getElementById('sububicacionPlantilla');
+            
+            if (ubicacion && subcategorias[ubicacion]) {
+                subGroup.style.display = 'block';
+                subSelect.innerHTML = '<option value="">Seleccione una subcategoría...</option>';
+                subcategorias[ubicacion].forEach(sub => {
+                    subSelect.innerHTML += `<option value="${sub.value}">${sub.label}</option>`;
+                });
+            } else {
+                subGroup.style.display = 'none';
+            }
+        }
+
         async function cargarPlantillas() {
             const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
             const plantillas = await res.json();
             const tbody = document.getElementById('listaPlantillas');
             if (plantillas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">No hay plantillas. Sube tu primer documento!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7">No hay plantillas. Sube tu primer documento!<\/td><\/tr>';
                 return;
             }
             tbody.innerHTML = plantillas.map(p => `
                 <tr>
-                    <td>${p.id}</td>
-                    <td><strong>${p.nombre}</strong></td>
-                    <td><code>${p.clave}</code></td>
-                    <td>${p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('')}</td>
-                    <td>${p.fecha_creacion}</td>
+                    <td>${p.id}<\/td>
+                    <td><strong>${p.nombre}<\/strong><\/td>
+                    <td>${p.ubicacion ? (p.ubicacion === 'penal' ? '⚖️ Penal' : p.ubicacion === 'social' ? '👥 Social' : '📋 Trámites') : '-'} ${p.sububicacion ? `→ ${p.sububicacion}` : ''}<\/td>
+                    <td><code>${p.clave}<\/code><\/td>
+                    <td>${p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('')}<\/td>
+                    <td>${p.fecha_creacion}<\/td>
                     <td>
-                        <button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️</button>
-                    </td>
-                </tr>
+                        <button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️<\/button>
+                    <\/td>
+                <\/tr>
             `).join('');
         }
 
@@ -144,9 +222,22 @@
             document.getElementById('modalSubir').style.display = 'flex';
             document.getElementById('nombrePlantilla').value = '';
             document.getElementById('clavePlantilla').value = '';
+            document.getElementById('ubicacionPlantilla').value = '';
+            document.getElementById('sububicacionGroup').style.display = 'none';
             document.getElementById('previewCampos').style.display = 'none';
             document.getElementById('btnSubir').style.display = 'none';
             archivoSeleccionado = null;
+            
+            // Resetear zona de upload
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.innerHTML = `
+                <div style="font-size: 3rem;">📄<\/div>
+                <p>Arrastra un archivo PDF, DOCX o TXT<\/p>
+                <p style="font-size: 0.8rem; color:#888;">o haz clic para seleccionar<\/p>
+                <input type="file" id="archivoInput" accept=".pdf,.docx,.txt" style="display:none;">
+            `;
+            const fileInput = document.getElementById('archivoInput');
+            fileInput.value = '';
         }
 
         function cerrarModalSubir() {
@@ -157,7 +248,12 @@
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('archivoInput');
 
-        uploadArea.addEventListener('click', () => fileInput.click());
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#uploadArea')) {
+                document.getElementById('archivoInput').click();
+            }
+        });
+
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.style.borderColor = '#fff';
@@ -178,10 +274,11 @@
 
         function procesarArchivo(file) {
             archivoSeleccionado = file;
+            const uploadArea = document.getElementById('uploadArea');
             uploadArea.innerHTML = `
-                <div style="font-size: 3rem;">✅</div>
-                <p>${file.name}</p>
-                <p style="font-size: 0.8rem;">${(file.size / 1024).toFixed(2)} KB</p>
+                <div style="font-size: 3rem;">✅<\/div>
+                <p>${file.name}<\/p>
+                <p style="font-size: 0.8rem;">${(file.size / 1024).toFixed(2)} KB<\/p>
             `;
             document.getElementById('btnSubir').style.display = 'block';
         }
@@ -189,9 +286,11 @@
         async function subirPlantilla() {
             const nombre = document.getElementById('nombrePlantilla').value;
             const clave = document.getElementById('clavePlantilla').value;
+            const ubicacion = document.getElementById('ubicacionPlantilla').value;
+            const sububicacion = document.getElementById('sububicacionPlantilla').value;
             
-            if (!nombre || !clave) {
-                alert('Nombre y clave son obligatorios');
+            if (!nombre || !clave || !ubicacion) {
+                alert('Nombre, clave y ubicación son obligatorios');
                 return;
             }
             if (!archivoSeleccionado) {
@@ -203,6 +302,8 @@
             formData.append('archivo', archivoSeleccionado);
             formData.append('nombre', nombre);
             formData.append('clave', clave);
+            formData.append('ubicacion', ubicacion);
+            formData.append('sububicacion', sububicacion || '');
 
             const res = await fetch(`${API_URL}/plantillas/subir`, {
                 method: 'POST',
@@ -212,7 +313,7 @@
 
             const data = await res.json();
             if (data.success) {
-                alert(`Plantilla creada! Campos detectados: ${data.campos_detectados.join(', ')}`);
+                alert(`✅ Plantilla creada!\n📌 Ubicación: ${ubicacion}${sububicacion ? ' → ' + sububicacion : ''}\n📌 Campos detectados: ${data.campos_detectados.join(', ')}`);
                 cerrarModalSubir();
                 cargarPlantillas();
             } else {
@@ -238,4 +339,4 @@
         cargarPlantillas();
     </script>
 </body>
-</html>
+    </html>
