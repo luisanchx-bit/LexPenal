@@ -14,8 +14,8 @@
         .select-group label { display: block; margin-bottom: 0.5rem; color: #C8A951; }
         .select-group select, .form-group input { width: 100%; padding: 0.8rem; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #fff; }
         .modal-content { max-width: 600px; }
-        .btn-guardar { background: #C8A951; color: #000; border: none; padding: 0.8rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 1rem; font-size: 1rem; }
-        .btn-guardar:hover { background: #b8960c; }
+        .btn-guardar { background: #C8A951; color: #000; border: none; padding: 0.8rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 1rem; font-size: 1rem; transition: all 0.3s; }
+        .btn-guardar:hover { background: #b8960c; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -47,11 +47,11 @@
                     </thead>
                     <tbody id="listaPlantillas">
                         <tr><td colspan="6">Cargando...<\/td><\/tr>
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
+                    <\/tbody>
+                <\/table>
+            <\/div>
+        <\/main>
+    <\/div>
 
     <div id="modalSubir" class="modal">
         <div class="modal-content">
@@ -62,7 +62,6 @@
             <div class="upload-area" id="uploadArea">
                 <div style="font-size:3rem;">📄<\/div>
                 <p>Haz clic para seleccionar un archivo .txt<\/p>
-                <p style="font-size:0.8rem;color:#888;">Solo archivos .txt<\/p>
                 <input type="file" id="archivoInput" accept=".txt" style="display:none;">
             <\/div>
             <div class="form-group">
@@ -72,10 +71,9 @@
             <div class="form-group">
                 <label>Clave única *<\/label>
                 <input type="text" id="clavePlantilla" placeholder="Ej: apelacion_comparendo">
-                <small>Se usará para vincular con el menú<\/small>
             <\/div>
             <div class="select-group">
-                <label>📂 ¿Dónde va esta plantilla?<\/label>
+                <label>📂 Categoría<\/label>
                 <select id="ubicacionPlantilla">
                     <option value="">Seleccione...<\/option>
                     <option value="penal">⚖️ Derecho Penal<\/option>
@@ -89,7 +87,8 @@
                     <option value="">Seleccione...<\/option>
                 <\/select>
             <\/div>
-            <button class="btn-guardar" id="btnSubir" onclick="subirPlantilla()" style="display:none;">💾 Guardar Plantilla<\/button>
+            <!-- BOTÓN GUARDAR AGREGADO -->
+            <button class="btn-guardar" id="btnSubir" onclick="subirPlantilla()">💾 Guardar Plantilla<\/button>
         <\/div>
     <\/div>
 
@@ -126,9 +125,9 @@
             document.getElementById('clavePlantilla').value = '';
             document.getElementById('ubicacionPlantilla').value = '';
             document.getElementById('sububicacionGroup').style.display = 'none';
-            document.getElementById('btnSubir').style.display = 'none';
             archivoSeleccionado = null;
-            document.getElementById('uploadArea').innerHTML = '<div style="font-size:3rem;">📄<\/div><p>Haz clic para seleccionar un archivo .txt<\/p><p style="font-size:0.8rem;color:#888;">Solo archivos .txt<\/p><input type="file" id="archivoInput" accept=".txt" style="display:none;">';
+            document.getElementById('uploadArea').innerHTML = '<div style="font-size:3rem;">📄<\/div><p>Haz clic para seleccionar un archivo .txt<\/p><input type="file" id="archivoInput" accept=".txt" style="display:none;">';
+            document.getElementById('archivoInput').value = '';
         }
 
         function cerrarModalSubir() { document.getElementById('modalSubir').style.display = 'none'; }
@@ -150,7 +149,6 @@
             if (!file.name.endsWith('.txt')) { alert('Solo se aceptan archivos .txt'); return; }
             archivoSeleccionado = file;
             document.getElementById('uploadArea').innerHTML = `<div style="font-size:3rem;">✅<\/div><p>${file.name}<\/p><p>${(file.size / 1024).toFixed(2)} KB<\/p>`;
-            document.getElementById('btnSubir').style.display = 'block';
         }
 
         async function subirPlantilla() {
@@ -158,6 +156,7 @@
             const clave = document.getElementById('clavePlantilla').value;
             const ubicacion = document.getElementById('ubicacionPlantilla').value;
             const sububicacion = document.getElementById('sububicacionPlantilla').value;
+            
             if (!nombre || !clave || !ubicacion) { alert('Complete todos los campos'); return; }
             if (!archivoSeleccionado) { alert('Seleccione un archivo .txt'); return; }
 
@@ -172,26 +171,32 @@
             btn.innerHTML = '⏳ Guardando...';
             btn.disabled = true;
 
-            const res = await fetch(`${API_URL}/plantillas/subir`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-            const data = await res.json();
-            if (data.success) {
-                alert(`✅ Plantilla "${nombre}" guardada!\nCampos detectados: ${data.campos_detectados.join(', ')}`);
-                cerrarModalSubir();
-                cargarPlantillas();
-            } else {
-                alert('❌ Error: ' + data.error);
+            try {
+                const res = await fetch(`${API_URL}/plantillas/subir`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`✅ Plantilla "${nombre}" guardada correctamente!\n📌 Campos detectados: ${data.campos_detectados.join(', ')}`);
+                    cerrarModalSubir();
+                    cargarPlantillas();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                    btn.innerHTML = '💾 Guardar Plantilla';
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                alert('❌ Error de conexión');
                 btn.innerHTML = '💾 Guardar Plantilla';
                 btn.disabled = false;
             }
         }
 
-        async function eliminarPlantilla(id) { if (confirm('¿Eliminar?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
+        async function eliminarPlantilla(id) { if (confirm('¿Eliminar esta plantilla?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
         cargarPlantillas();
-    <\/script>
+    </script>
 </body>
-    </html>a
+                </html>
