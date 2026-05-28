@@ -36,7 +36,7 @@ function initDB() {
             abogado: { nombre: "Asmairo Conde Torres", telefono: "573145879875", email: "asmairo.conde.torres@hotmail.com" }
         };
         fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2));
-        console.log('Base de datos inicializada');
+        console.log('✅ Base de datos inicializada');
     }
 }
 
@@ -58,7 +58,7 @@ function verificarAdmin(req, res, next) {
     next();
 }
 
-// ============ RUTAS DE AUTENTICACIÓN ============
+// ==================== RUTAS DE AUTENTICACIÓN ====================
 app.post('/api/auth/registro', async (req, res) => {
     try {
         const { cedula, nombre_completo, contrasena } = req.body;
@@ -86,15 +86,20 @@ app.post('/api/auth/login', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
 });
 
-// ============ RUTAS DE PLANTILLAS ============
-app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.plantillas || []); });
+// ==================== RUTAS DE PLANTILLAS ====================
+app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { 
+    const db = readDB(); 
+    res.json(db.plantillas || []); 
+});
 
 app.get('/api/plantillas/public/:clave', (req, res) => {
     const db = readDB();
     const plantilla = db.plantillas.find(p => p.clave === req.params.clave);
     if (plantilla) {
-        res.json({ id: plantilla.id, nombre: plantilla.nombre, titulo: plantilla.titulo, cuerpo: plantilla.cuerpo, campos_editables: plantilla.campos_editables });
-    } else { res.status(404).json({ error: 'Plantilla no encontrada' }); }
+        res.json(plantilla);
+    } else { 
+        res.status(404).json({ error: 'Plantilla no encontrada' }); 
+    }
 });
 
 app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
@@ -107,17 +112,18 @@ app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single(
         
         if (!archivo) return res.status(400).json({ error: 'No se subió ningún archivo' });
         
-        let texto = '';
         const filePath = archivo.path;
         const extension = archivo.originalname.split('.').pop().toLowerCase();
         
+        // SOLO ACEPTAR TXT
         if (extension !== 'txt') {
             fs.unlinkSync(filePath);
-            return res.status(400).json({ error: 'SOLO se aceptan archivos .txt' });
+            return res.status(400).json({ error: 'Solo se aceptan archivos .txt' });
         }
         
-        texto = fs.readFileSync(filePath, 'utf8');
+        const texto = fs.readFileSync(filePath, 'utf8');
         
+        // Detectar variables entre [CORCHETES]
         const regex = /\[([A-Z_]+)\]/g;
         const camposEncontrados = [];
         let match;
@@ -133,19 +139,21 @@ app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single(
             clave: clave,
             ubicacion: ubicacion,
             sububicacion: sububicacion,
-            titulo: `Documento: ${nombrePlantilla}`,
+            titulo: nombrePlantilla,
             cuerpo: texto,
             campos_editables: camposEditables,
             fecha_creacion: new Date().toISOString().split('T')[0]
         };
         db.plantillas.push(nuevaPlantilla);
         writeDB(db);
+        
+        // Limpiar archivo temporal
         fs.unlinkSync(filePath);
         
         res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: camposEditables });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error al procesar el archivo' });
+        res.status(500).json({ error: 'Error al procesar el archivo: ' + error.message });
     }
 });
 
@@ -157,13 +165,26 @@ app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => 
     res.json({ success: true });
 });
 
-// ============ RUTAS DE CASOS ============
+// ==================== RUTAS DE CASOS ====================
 app.get('/api/casos/tipos', (req, res) => { const db = readDB(); res.json(db.tipos_caso.map(t => t.nombre)); });
 app.post('/api/casos/nuevo', verificarToken, (req, res) => {
     try {
         const { tipo_caso, descripcion, fecha_hechos, lugar_hechos } = req.body;
         const db = readDB();
-        const nuevoCaso = { id: db.casos.length + 1, id_cliente: req.usuario.id, nombre_cliente: req.usuario.nombre, cedula_cliente: req.usuario.cedula, tipo_caso, descripcion, fecha_hechos: fecha_hechos || null, lugar_hechos: lugar_hechos || null, fecha_registro: new Date().toISOString(), estado: 'pendiente', evidencias: [], notas_admin: null };
+        const nuevoCaso = { 
+            id: db.casos.length + 1, 
+            id_cliente: req.usuario.id, 
+            nombre_cliente: req.usuario.nombre, 
+            cedula_cliente: req.usuario.cedula, 
+            tipo_caso, 
+            descripcion, 
+            fecha_hechos: fecha_hechos || null, 
+            lugar_hechos: lugar_hechos || null, 
+            fecha_registro: new Date().toISOString(), 
+            estado: 'pendiente', 
+            evidencias: [], 
+            notas_admin: null 
+        };
         db.casos.push(nuevoCaso);
         writeDB(db);
         res.json({ success: true, mensaje: 'Caso creado exitosamente', caso: nuevoCaso });
@@ -184,7 +205,7 @@ app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     } else { res.status(404).json({ error: 'Caso no encontrado' }); }
 });
 
-// ============ RUTAS DE TESTIMONIOS ============
+// ==================== RUTAS DE TESTIMONIOS ====================
 app.get('/api/testimonios', (req, res) => { const db = readDB(); res.json(db.testimonios.filter(t => t.aprobado)); });
 app.post('/api/testimonios', verificarToken, verificarAdmin, (req, res) => {
     const { cliente, texto, aprobado } = req.body;
@@ -213,27 +234,35 @@ app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) =>
     res.json({ success: true });
 });
 
-// ============ WHATSAPP ============
+// ==================== WHATSAPP ====================
 app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
     res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20el%20cliente%20con%20cédula%20${req.usuario.cedula}.` });
 });
 
-// ============ ADMIN DASHBOARD ============
+// ==================== ADMIN DASHBOARD ====================
 app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
     const db = readDB();
-    res.json({ total_casos: db.casos.length, casos_pendientes: db.casos.filter(c => c.estado === 'pendiente').length, casos_proceso: db.casos.filter(c => c.estado === 'en_proceso').length, casos_resueltos: db.casos.filter(c => c.estado === 'resuelto').length, testimonios_activos: db.testimonios.filter(t => t.aprobado).length, tipos_caso_total: db.tipos_caso.length });
+    res.json({ 
+        total_casos: db.casos.length, 
+        casos_pendientes: db.casos.filter(c => c.estado === 'pendiente').length, 
+        casos_proceso: db.casos.filter(c => c.estado === 'en_proceso').length, 
+        casos_resueltos: db.casos.filter(c => c.estado === 'resuelto').length, 
+        testimonios_activos: db.testimonios.filter(t => t.aprobado).length, 
+        tipos_caso_total: db.tipos_caso.length 
+    });
 });
 app.get('/api/admin/abogado', (req, res) => { const db = readDB(); res.json(db.abogado); });
 app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.abogado = { ...db.abogado, ...req.body }; writeDB(db); res.json({ success: true }); });
 app.get('/api/admin/configuracion', (req, res) => { const db = readDB(); res.json(db.configuracion); });
 app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion = { ...db.configuracion, ...req.body }; writeDB(db); res.json({ success: true }); });
 
-// ============ FRONTEND ============
+// ==================== FRONTEND ====================
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'index.html')); });
 app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'index.html')); });
 app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', `${req.params.page}.html`)); });
 
 app.listen(PORT, () => {
-    console.log(`Servidor LexPenal corriendo en http://localhost:${PORT}`);
-    console.log(`Admin: cedula 1018457093 / password ACT1018457093`);
+    console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
+    console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
+    console.log(`📂 Subir plantillas SOLO en formato .txt`);
 });
