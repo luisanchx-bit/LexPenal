@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Documento - LexPenal</title>
+    <link rel="stylesheet" href="/css/estilo.css">
+    <style>
+        .documento-preview {
+            background: #0a0a0a;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #C8A951;
+            margin-top: 2rem;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo" style="cursor: pointer;" onclick="window.location.href='/'">
+                <h2>⚖️ LexPenal</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/login.html">Acceder</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 800px; margin: 4rem auto;">
+        <h1 style="color: #C8A951; text-align: center;">📄 Generar Documento Legal</h1>
+        
+        <div id="infoDelito" style="background: #0a0a0a; padding: 1rem; border-radius: 10px; margin: 2rem 0;">
+            <p><strong>Documento a generar:</strong> <span id="delitoSeleccionado" style="color:#C8A951;">-</span></p>
+        </div>
+
+        <form id="formDocumento">
+            <div class="input-group">
+                <label>Tu nombre completo</label>
+                <input type="text" id="nombreCliente" required>
+            </div>
+            <div class="input-group">
+                <label>Número de cédula</label>
+                <input type="text" id="cedulaCliente" required>
+            </div>
+            <div class="input-group">
+                <label>Descripción del caso / hechos</label>
+                <textarea id="descripcion" rows="6" placeholder="Describe detalladamente los hechos..." required></textarea>
+            </div>
+            <div class="input-group">
+                <label>Ciudad</label>
+                <input type="text" id="ciudad" value="Bogotá D.C.">
+            </div>
+            
+            <button type="submit" class="btn-enviar" style="width:100%;">📄 Generar Documento</button>
+        </form>
+
+        <div id="resultado" style="margin-top: 2rem; display: none;">
+            <h3 style="color: #C8A951;">Documento Generado</h3>
+            <div id="documentoPreview" class="documento-preview"></div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button class="btn-principal" onclick="descargarDocumento()">💾 Descargar Documento</button>
+                <button class="btn-logout" onclick="contactarAbogado()">📱 Enviar al Abogado</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const delito = localStorage.getItem('delito') || 'general';
+        const tipo = localStorage.getItem('tipo') || 'general';
+        
+        const delitoTexto = {
+            'homicidio_doloso': 'Homicidio Doloso',
+            'homicidio_culposo': 'Homicidio Culposo',
+            'homicidio_agravado': 'Homicidio Agravado',
+            'violacion_simple': 'Violación Simple',
+            'violacion_agravada': 'Violación Agravada',
+            'robo_simple': 'Robo Simple',
+            'robo_agravado': 'Robo Agravado',
+            'apelacion_multas_simple': 'Apelación de Multas',
+            'apelacion_sentencia_simple': 'Apelación de Sentencia',
+            'tutela_simple': 'Acción de Tutela',
+            'peticion_derecho': 'Derecho de Petición'
+        };
+        
+        let clave = `${delito}_${tipo}`;
+        let textoMostrar = delitoTexto[clave] || `${delito} - ${tipo}`;
+        document.getElementById('delitoSeleccionado').textContent = textoMostrar;
+
+        function getPlantilla() {
+            const plantillas = {
+                'apelacion_multas_simple': {
+                    titulo: 'RECURSO DE APELACIÓN CONTRA MULTA',
+                    cuerpo: `[CIUDAD], [FECHA]
+
+Señores
+[JUZGADO/CONSEJO DE ESTADO]
+E. S. D.
+
+REF: Recurso de Apelación contra multa
+
+[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], actuando en nombre propio, presento recurso de apelación contra la multa impuesta.
+
+HECHOS:
+[DESCRIPCION_HECHOS]
+
+FUNDAMENTOS DE DERECHO:
+
+PETICIÓN:
+Solicito se revoque la multa impuesta.
+
+Atentamente,
+[NOMBRE_CLIENTE]
+C.C. [CEDULA_CLIENTE]`
+                },
+                'homicidio_doloso': {
+                    titulo: 'ESCRITO DE DEFENSA - HOMICIDIO DOLOSO',
+                    cuerpo: `[CIUDAD], [FECHA]
+
+Señor Juez de Conocimiento (Reparto)
+E. S. D.
+
+REF: Defensa técnica
+
+[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], presento escrito de defensa dentro del proceso penal por homicidio doloso.
+
+HECHOS:
+[DESCRIPCION_HECHOS]
+
+DEFENSA:
+
+CONCLUSIONES:
+Solicito se absuelva a mi representado.
+
+Atentamente,
+[NOMBRE_CLIENTE]`
+                },
+                'tutela_simple': {
+                    titulo: 'ACCIÓN DE TUTELA',
+                    cuerpo: `[CIUDAD], [FECHA]
+
+Señor Juez de Tutela (Reparto)
+E. S. D.
+
+ACCIONANTE: [NOMBRE_CLIENTE], identificado con C.C. [CEDULA_CLIENTE]
+ACCIONADO: [ENTIDAD_ACCIONADA]
+
+DERECHOS VULNERADOS:
+
+HECHOS:
+[DESCRIPCION_HECHOS]
+
+PRETENSIONES:
+
+Atentamente,
+[NOMBRE_CLIENTE]`
+                },
+                'peticion_derecho': {
+                    titulo: 'DERECHO DE PETICIÓN',
+                    cuerpo: `[CIUDAD], [FECHA]
+
+Señores
+[ENTIDAD_DESTINATARIA]
+E. S. D.
+
+[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], respetuosamente presento derecho de petición.
+
+SOLICITO:
+
+HECHOS:
+
+FUNDAMENTOS LEGALES:
+
+Atentamente,
+[NOMBRE_CLIENTE]`
+                }
+            };
+            
+            return plantillas[clave] || {
+                titulo: `DOCUMENTO LEGAL: ${textoMostrar}`,
+                cuerpo: `[CIUDAD], [FECHA]
+
+[NOMBRE_CLIENTE], identificado con cédula No. [CEDULA_CLIENTE], presenta ante esta autoridad:
+
+HECHOS:
+[DESCRIPCION_HECHOS]
+
+SOLICITO:
+
+Atentamente,
+[NOMBRE_CLIENTE]`
+            };
+        }
+
+        document.getElementById('formDocumento').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nombre = document.getElementById('nombreCliente').value;
+            const cedula = document.getElementById('cedulaCliente').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const ciudad = document.getElementById('ciudad').value;
+            const fecha = new Date().toLocaleDateString('es-CO');
+            
+            const plantilla = getPlantilla();
+            
+            let documento = plantilla.cuerpo
+                .replace(/\[CIUDAD\]/g, ciudad)
+                .replace(/\[FECHA\]/g, fecha)
+                .replace(/\[NOMBRE_CLIENTE\]/g, nombre)
+                .replace(/\[CEDULA_CLIENTE\]/g, cedula)
+                .replace(/\[DESCRIPCION_HECHOS\]/g, descripcion);
+            
+            const documentoCompleto = `${plantilla.titulo}\n\n${documento}`;
+            
+            document.getElementById('documentoPreview').textContent = documentoCompleto;
+            document.getElementById('resultado').style.display = 'block';
+            
+            window.documentoGenerado = documentoCompleto;
+        });
+        
+        function descargarDocumento() {
+            const blob = new Blob([window.documentoGenerado], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `documento_${Date.now()}.txt`;
+            link.click();
+        }
+        
+        function contactarAbogado() {
+            window.open('https://wa.me/573145879875?text=Necesito%20revisi%C3%B3n%20de%20un%20documento%20legal', '_blank');
+        }
+    </script>
+</body>
+</html>
