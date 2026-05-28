@@ -3,177 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexPenal - Acceso</title>
+    <title>LexPenal - Acceso Administrador</title>
     <link rel="stylesheet" href="/css/estilo.css">
 </head>
 <body class="login-body">
     <div class="login-container">
         <div class="login-card">
-            <div class="login-header">
+            <div class="login-header" onclick="window.location.href='/'">
                 <h2>⚖️ LexPenal</h2>
-                <h3>Acceso al sistema</h3>
+                <h3>Acceso Administrador</h3>
             </div>
-            <div class="login-tabs">
-                <button class="tab-btn active" onclick="mostrarTab('login')">Iniciar Sesión</button>
-                <button class="tab-btn" onclick="mostrarTab('registro')">Registrarse</button>
-            </div>
-            <div id="loginForm" class="tab-content active">
-                <form onsubmit="event.preventDefault(); iniciarSesion();">
-                    <div class="input-group">
-                        <label>Número de cédula</label>
-                        <input type="text" id="loginCedula" placeholder="Ej: 12345678" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Contraseña</label>
-                        <input type="password" id="loginPassword" placeholder="••••••" required>
-                    </div>
-                    <button type="submit" class="btn-login-submit">Ingresar</button>
-                </form>
-            </div>
-            <div id="registroForm" class="tab-content">
-                <form onsubmit="event.preventDefault(); registrarse();">
-                    <div class="input-group">
-                        <label>Número de cédula</label>
-                        <input type="text" id="regCedula" placeholder="Ej: 12345678" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Nombre completo</label>
-                        <input type="text" id="regNombre" placeholder="Ej: Juan Pérez García" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Contraseña</label>
-                        <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Confirmar contraseña</label>
-                        <input type="password" id="regConfirmPassword" placeholder="Repite tu contraseña" required>
-                    </div>
-                    <button type="submit" class="btn-login-submit">Crear cuenta</button>
-                </form>
-            </div>
+            <form onsubmit="event.preventDefault(); iniciarSesion();">
+                <div class="input-group">
+                    <label>Cédula</label>
+                    <input type="text" id="cedula" placeholder="1018457093" required>
+                </div>
+                <div class="input-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-login-submit">Ingresar al Panel</button>
+            </form>
             <div id="mensaje" class="mensaje"></div>
         </div>
     </div>
 
     <script>
-        // URL RELATIVA PARA RENDER - NO USAR LOCALHOST
         const API_URL = '/api/auth';
-        
-        function mostrarTab(tab) {
-            const loginContent = document.getElementById('loginForm');
-            const registroContent = document.getElementById('registroForm');
-            const tabs = document.querySelectorAll('.tab-btn');
-            
-            if (tab === 'login') {
-                loginContent.classList.add('active');
-                registroContent.classList.remove('active');
-                tabs[0].classList.add('active');
-                tabs[1].classList.remove('active');
-            } else {
-                loginContent.classList.remove('active');
-                registroContent.classList.add('active');
-                tabs[0].classList.remove('active');
-                tabs[1].classList.add('active');
-            }
-        }
-        
+
         async function iniciarSesion() {
-            const cedula = document.getElementById('loginCedula').value;
-            const contrasena = document.getElementById('loginPassword').value;
+            const cedula = document.getElementById('cedula').value;
+            const contrasena = document.getElementById('password').value;
             const mensajeDiv = document.getElementById('mensaje');
-            
+
             if (!cedula || !contrasena) {
-                mostrarMensaje('Por favor complete todos los campos', 'error');
+                mostrarMensaje('Complete todos los campos', 'error');
                 return;
             }
-            
+
             try {
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cedula, contrasena })
                 });
-                
+
                 const data = await response.json();
-                
-                if (data.success) {
+
+                if (data.success && data.isAdmin) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('nombre', data.nombre);
                     localStorage.setItem('cedula', data.cedula);
-                    localStorage.setItem('isAdmin', data.isAdmin || false);
-                    
-                    mostrarMensaje('¡Bienvenido! Redirigiendo...', 'exito');
-                    
+                    localStorage.setItem('isAdmin', true);
+                    mostrarMensaje('¡Bienvenido Administrador!', 'exito');
                     setTimeout(() => {
-                        if (data.isAdmin || cedula === '1018457093') {
-                            window.location.href = '/admin/index.html';
-                        } else {
-                            window.location.href = '/cliente.html';
-                        }
-                    }, 1500);
+                        window.location.href = '/admin/index.html';
+                    }, 1000);
                 } else {
-                    mostrarMensaje(data.error || 'Error al iniciar sesión', 'error');
+                    mostrarMensaje('Credenciales incorrectas o no tienes permisos de administrador', 'error');
                 }
             } catch (error) {
-                console.error('Error:', error);
                 mostrarMensaje('Error de conexión con el servidor', 'error');
             }
         }
-        
-        async function registrarse() {
-            const cedula = document.getElementById('regCedula').value;
-            const nombre = document.getElementById('regNombre').value;
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
-            if (!cedula || !nombre || !password || !confirmPassword) {
-                mostrarMensaje('Por favor complete todos los campos', 'error');
-                return;
-            }
-            
-            if (cedula.length < 6) {
-                mostrarMensaje('La cédula debe tener al menos 6 dígitos', 'error');
-                return;
-            }
-            
-            if (password.length < 6) {
-                mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                mostrarMensaje('Las contraseñas no coinciden', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_URL}/registro`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cedula, nombre_completo: nombre, contrasena: password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('nombre', data.nombre);
-                    localStorage.setItem('cedula', data.cedula);
-                    localStorage.setItem('isAdmin', false);
-                    
-                    mostrarMensaje('¡Registro exitoso! Redirigiendo...', 'exito');
-                    setTimeout(() => {
-                        window.location.href = '/cliente.html';
-                    }, 1500);
-                } else {
-                    mostrarMensaje(data.error || 'Error en el registro', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarMensaje('Error de conexión con el servidor', 'error');
-            }
-        }
-        
+
         function mostrarMensaje(texto, tipo) {
             const mensajeDiv = document.getElementById('mensaje');
             mensajeDiv.textContent = texto;
@@ -184,16 +77,12 @@
             }, 3000);
         }
 
-        // Verificar si ya hay sesión activa
+        // Si ya hay sesión activa, redirigir
         const token = localStorage.getItem('token');
         const isAdmin = localStorage.getItem('isAdmin');
-        if (token) {
-            if (isAdmin === 'true') {
-                window.location.href = '/admin/index.html';
-            } else {
-                window.location.href = '/cliente.html';
-            }
+        if (token && isAdmin === 'true') {
+            window.location.href = '/admin/index.html';
         }
     </script>
 </body>
-</html>
+    </html>
