@@ -80,6 +80,10 @@
             cursor: pointer;
             margin-top: 1rem;
         }
+        .btn-agendar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .info-cita {
             background: #050505;
             padding: 1rem;
@@ -149,14 +153,15 @@
         let citasOcupadas = [];
         let fechaSeleccionada = null;
 
-        // Cargar citas ocupadas desde el servidor
         async function cargarCitasOcupadas() {
             try {
                 const res = await fetch('/api/citas/ocupadas');
                 const data = await res.json();
                 citasOcupadas = data;
+                renderCalendario();
             } catch (error) {
                 console.error('Error al cargar citas:', error);
+                renderCalendario();
             }
         }
 
@@ -172,12 +177,13 @@
             const primerDia = new Date(año, mes, 1);
             const ultimoDia = new Date(año, mes + 1, 0);
             const diasEnMes = ultimoDia.getDate();
-            const diaInicioSemana = primerDia.getDay();
+            let diaInicioSemana = primerDia.getDay();
+            diaInicioSemana = diaInicioSemana === 0 ? 6 : diaInicioSemana - 1;
             
             const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
             document.getElementById('mesActual').textContent = `${nombresMeses[mes]} ${año}`;
             
-            const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
             const diasSemanaDiv = document.getElementById('diasSemana');
             diasSemanaDiv.innerHTML = diasSemana.map(d => `<div class="dia-nombre">${d}</div>`).join('');
             
@@ -271,7 +277,6 @@
         }
         
         cargarCitasOcupadas();
-        renderCalendario();
     </script>
 </body>
 </html>
