@@ -7,13 +7,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
     <style>
-        .upload-area { border: 2px dashed #C8A951; border-radius: 15px; padding: 2rem; text-align: center; cursor: pointer; margin-bottom: 1.5rem; }
+        .upload-area { border: 2px dashed #C8A951; border-radius: 15px; padding: 2rem; text-align: center; cursor: pointer; margin-bottom: 1.5rem; transition: all 0.3s; }
         .upload-area:hover { background: rgba(200, 169, 81, 0.1); }
+        .upload-area.drag-over { border-color: #fff; background: rgba(200, 169, 81, 0.2); }
         .campo-tag { background: #C8A951; color: #000; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.8rem; display: inline-block; margin: 0.2rem; }
         .select-group { margin-bottom: 1rem; }
         .select-group label { display: block; margin-bottom: 0.5rem; color: #C8A951; }
         .select-group select, .form-group input { width: 100%; padding: 0.8rem; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #fff; }
         .modal-content { max-width: 600px; }
+        .formatos-soportados { font-size: 0.7rem; color: #888; margin-top: 0.5rem; text-align: center; }
+        .btn-guardar { background: #C8A951; color: #000; border: none; padding: 0.8rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 1rem; }
+        .btn-guardar:hover { background: #b8960c; }
     </style>
 </head>
 <body>
@@ -34,33 +38,76 @@
         </aside>
 
         <main class="main-content">
-            <div class="admin-header"><h1>📄 Gestión de Plantillas</h1><button class="btn-primary" onclick="abrirModalSubir()">📤 Subir Documento (.txt)</button></div>
-            <div class="table-container">
-                <table><thead><tr><th>ID</th><th>Nombre</th><th>Ubicación</th><th>Clave</th><th>Campos</th><th>Acciones</th></tr></thead>
-                <tbody id="listaPlantillas"><tr><td colspan="6">Cargando...</td></tr></tbody>
-                </table>
+            <div class="admin-header">
+                <h1>📄 Gestión de Plantillas</h1>
+                <button class="btn-primary" onclick="abrirModalSubir()">📤 Subir Documento</button>
             </div>
-        </main>
-    </div>
 
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Nombre</th><th>Ubicación</th><th>Clave</th><th>Campos</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody id="listaPlantillas">
+                        <tr><td colspan="6">Cargando...<\/td><\/tr>
+                    <\/tbody>
+                <\/table>
+            <\/div>
+        <\/main>
+    <\/div>
+
+    <!-- Modal para subir archivo -->
     <div id="modalSubir" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>Subir Plantilla (.txt)</h3><button class="close-modal" onclick="cerrarModalSubir()">&times;</button></div>
-            <div class="upload-area" id="uploadArea"><div style="font-size:3rem;">📄</div><p>Arrastra un archivo .txt o haz clic</p><input type="file" id="archivoInput" accept=".txt" style="display:none;"></div>
-            <div class="form-group"><label>Nombre de la plantilla *</label><input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Comparendo"></div>
-            <div class="form-group"><label>Clave única *</label><input type="text" id="clavePlantilla" placeholder="Ej: apelacion_comparendo"></div>
-            <div class="select-group"><label>📂 ¿Dónde va?</label>
+            <div class="modal-header">
+                <h3>Subir Plantilla</h3>
+                <button class="close-modal" onclick="cerrarModalSubir()">&times;<\/button>
+            <\/div>
+            
+            <div class="upload-area" id="uploadArea">
+                <div style="font-size: 3rem;">📄<\/div>
+                <p>Arrastra un archivo o haz clic para seleccionar<\/p>
+                <p style="font-size: 0.8rem; color:#888;">PDF, Word, Excel, TXT, Imágenes<\/p>
+                <input type="file" id="archivoInput" accept=".pdf,.docx,.doc,.txt,.xlsx,.xls,.jpg,.jpeg,.png,.gif,.bmp,.tiff" style="display:none;">
+            <\/div>
+
+            <div class="form-group">
+                <label>Nombre de la plantilla *<\/label>
+                <input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Comparendo">
+            <\/div>
+
+            <div class="form-group">
+                <label>Clave única *<\/label>
+                <input type="text" id="clavePlantilla" placeholder="Ej: apelacion_comparendo">
+                <small>Se usará para vincular con el menú<\/small>
+            <\/div>
+
+            <div class="select-group">
+                <label>📂 ¿Dónde va esta plantilla?<\/label>
                 <select id="ubicacionPlantilla">
-                    <option value="">Seleccione...</option>
-                    <option value="penal">⚖️ Derecho Penal</option>
-                    <option value="social">👥 Derecho Social</option>
-                    <option value="tramites">📋 Trámites Legales</option>
-                </select>
-            </div>
-            <div class="select-group" id="sububicacionGroup" style="display:none;"><label>📌 Subcategoría</label><select id="sububicacionPlantilla"><option value="">Seleccione...</option></select></div>
-            <button class="btn-primary" id="btnSubir" onclick="subirPlantilla()" style="display:none;">Subir y Guardar</button>
-        </div>
-    </div>
+                    <option value="">Seleccione...<\/option>
+                    <option value="penal">⚖️ Derecho Penal<\/option>
+                    <option value="social">👥 Derecho Social<\/option>
+                    <option value="tramites">📋 Trámites Legales<\/option>
+                <\/select>
+            <\/div>
+
+            <div class="select-group" id="sububicacionGroup" style="display:none;">
+                <label>📌 Subcategoría<\/label>
+                <select id="sububicacionPlantilla">
+                    <option value="">Seleccione...<\/option>
+                <\/select>
+            <\/div>
+
+            <div id="previewCampos" class="campos-detectados" style="display:none; margin-top:1rem;">
+                <strong>📌 Campos detectados:<\/strong>
+                <div id="camposLista"><\/div>
+            <\/div>
+
+            <button class="btn-guardar" id="btnSubir" onclick="subirPlantilla()" style="display:none;">💾 Guardar Plantilla<\/button>
+            <div class="formatos-soportados">Formatos soportados: PDF, DOCX, DOC, TXT, XLSX, XLS, JPG, PNG, GIF, BMP, TIFF<\/div>
+        <\/div>
+    <\/div>
 
     <script>
         const API_URL = '/api';
@@ -69,8 +116,8 @@
         if (!token) window.location.href = '/login.html';
 
         const subcategorias = {
-            penal: [{ value: 'homicidio', label: '🔪 Homicidio' }, { value: 'violacion', label: '🛡️ Violación' }, { value: 'robo', label: '💰 Robo' }],
-            social: [{ value: 'demandas', label: '📋 Demandas Laborales' }, { value: 'ejecutivos', label: '⚖️ Procesos Ejecutivos' }],
+            penal: [{ value: 'homicidio', label: '🔪 Homicidio' }, { value: 'violacion', label: '🛡️ Violación' }, { value: 'robo', label: '💰 Robo' }, { value: 'estafa', label: '📝 Estafa' }, { value: 'hurto', label: '🏃 Hurto' }],
+            social: [{ value: 'demandas', label: '📋 Demandas Laborales' }, { value: 'ejecutivos', label: '⚖️ Procesos Ejecutivos' }, { value: 'seguridad_social', label: '🛡️ Seguridad Social' }],
             tramites: [{ value: 'peticiones', label: '✍️ Peticiones' }, { value: 'tutelas', label: '🛡️ Tutelas' }, { value: 'apelaciones', label: '📄 Apelaciones' }, { value: 'multas', label: '💰 Multas/Comparendos' }, { value: 'inmuebles', label: '🏠 Venta de Inmuebles' }, { value: 'lotes', label: '🌾 Venta de Lotes' }]
         };
 
@@ -78,8 +125,15 @@
             const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
             const plantillas = await res.json();
             const tbody = document.getElementById('listaPlantillas');
-            if (plantillas.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay plantillas. Sube tu primer archivo .txt!</td></tr>'; return; }
-            tbody.innerHTML = plantillas.map(p => `<tr><td>${p.id}</td><td><strong>${p.nombre}</strong></td><td>${p.ubicacion || '-'} ${p.sububicacion ? `→ ${p.sububicacion}` : ''}</td><td><code>${p.clave}</code></td><td>${p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('')}</td><td><button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️</button></td></tr>`).join('');
+            if (plantillas.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay plantillas. Sube tu primer documento!<\/td><\/tr>'; return; }
+            tbody.innerHTML = plantillas.map(p => `<tr>
+                <td>${p.id}<\/td>
+                <td><strong>${p.nombre}<\/strong><\/td>
+                <td>${p.ubicacion || '-'} ${p.sububicacion ? `→ ${p.sububicacion}` : ''}<\/td>
+                <td><code>${p.clave}<\/code><\/td>
+                <td>${p.campos_editables.map(c => `<span class="campo-tag">${c}<\/span>`).join('')}<\/td>
+                <td><button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️<\/button><\/td>
+            </tr>`).join('');
         }
 
         function abrirModalSubir() {
@@ -89,8 +143,12 @@
             document.getElementById('ubicacionPlantilla').value = '';
             document.getElementById('sububicacionGroup').style.display = 'none';
             document.getElementById('btnSubir').style.display = 'none';
+            document.getElementById('previewCampos').style.display = 'none';
             archivoSeleccionado = null;
-            document.getElementById('uploadArea').innerHTML = '<div style="font-size:3rem;">📄</div><p>Arrastra un archivo .txt o haz clic</p><input type="file" id="archivoInput" accept=".txt" style="display:none;">';
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.innerHTML = '<div style="font-size:3rem;">📄<\/div><p>Arrastra un archivo o haz clic para seleccionar<\/p><p style="font-size:0.8rem;color:#888;">PDF, Word, Excel, TXT, Imágenes<\/p><input type="file" id="archivoInput" accept=".pdf,.docx,.doc,.txt,.xlsx,.xls,.jpg,.jpeg,.png,.gif,.bmp,.tiff" style="display:none;">';
+            const fileInput = document.getElementById('archivoInput');
+            fileInput.value = '';
         }
 
         function cerrarModalSubir() { document.getElementById('modalSubir').style.display = 'none'; }
@@ -101,18 +159,34 @@
             const subSelect = document.getElementById('sububicacionPlantilla');
             if (ubicacion && subcategorias[ubicacion]) {
                 subGroup.style.display = 'block';
-                subSelect.innerHTML = '<option value="">Seleccione...</option>' + subcategorias[ubicacion].map(sub => `<option value="${sub.value}">${sub.label}</option>`).join('');
+                subSelect.innerHTML = '<option value="">Seleccione...<\/option>' + subcategorias[ubicacion].map(sub => `<option value="${sub.value}">${sub.label}<\/option>`).join('');
             } else { subGroup.style.display = 'none'; }
         });
 
-        document.getElementById('uploadArea').addEventListener('click', () => document.getElementById('archivoInput').click());
-        document.getElementById('archivoInput').addEventListener('change', e => { if (e.target.files[0]) procesarArchivo(e.target.files[0]); });
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('click', () => document.getElementById('archivoInput').click());
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('drag-over'); });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            if (e.dataTransfer.files[0]) procesarArchivo(e.dataTransfer.files[0]);
+        });
+
+        document.getElementById('archivoInput').addEventListener('change', (e) => { if (e.target.files[0]) procesarArchivo(e.target.files[0]); });
 
         function procesarArchivo(file) {
-            if (!file.name.endsWith('.txt')) { alert('Solo se aceptan archivos .txt'); return; }
             archivoSeleccionado = file;
-            document.getElementById('uploadArea').innerHTML = `<div style="font-size:3rem;">✅</div><p>${file.name}</p><p>${(file.size / 1024).toFixed(2)} KB</p>`;
+            const extension = file.name.split('.').pop().toLowerCase();
+            const icono = {
+                pdf: '📕', docx: '📘', doc: '📘', txt: '📄', xlsx: '📊', xls: '📊',
+                jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', bmp: '🖼️', tiff: '🖼️'
+            }[extension] || '📎';
+            
+            document.getElementById('uploadArea').innerHTML = `<div style="font-size:3rem;">${icono}<\/div><p>${file.name}<\/p><p>${(file.size / 1024).toFixed(2)} KB<\/p><p style="font-size:0.8rem;color:#888;">Procesando...<\/p>`;
             document.getElementById('btnSubir').style.display = 'block';
+            document.getElementById('previewCampos').style.display = 'block';
+            document.getElementById('camposLista').innerHTML = '<span class="campo-tag">Cargando campos...</span>';
         }
 
         async function subirPlantilla() {
@@ -120,23 +194,40 @@
             const clave = document.getElementById('clavePlantilla').value;
             const ubicacion = document.getElementById('ubicacionPlantilla').value;
             const sububicacion = document.getElementById('sububicacionPlantilla').value;
+            
             if (!nombre || !clave || !ubicacion) { alert('Complete todos los campos'); return; }
-            if (!archivoSeleccionado) { alert('Seleccione un archivo .txt'); return; }
+            if (!archivoSeleccionado) { alert('Seleccione un archivo'); return; }
+
             const formData = new FormData();
             formData.append('archivo', archivoSeleccionado);
             formData.append('nombre', nombre);
             formData.append('clave', clave);
             formData.append('ubicacion', ubicacion);
             formData.append('sububicacion', sububicacion);
-            const res = await fetch(`${API_URL}/plantillas/subir`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+
+            document.getElementById('btnSubir').innerHTML = '⏳ Procesando...';
+            document.getElementById('btnSubir').disabled = true;
+
+            const res = await fetch(`${API_URL}/plantillas/subir`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
             const data = await res.json();
-            if (data.success) { alert(`✅ Plantilla creada!\nCampos: ${data.campos_detectados.join(', ')}`); cerrarModalSubir(); cargarPlantillas(); }
-            else { alert('Error: ' + (data.error || 'No se pudo procesar')); }
+            if (data.success) {
+                document.getElementById('camposLista').innerHTML = data.campos_detectados.map(c => `<span class="campo-tag">${c}</span>`).join('');
+                alert(`✅ Plantilla "${nombre}" creada exitosamente!\n📌 Campos detectados: ${data.campos_detectados.join(', ')}`);
+                cerrarModalSubir();
+                cargarPlantillas();
+            } else {
+                alert('❌ Error: ' + (data.error || 'No se pudo procesar el archivo'));
+                document.getElementById('btnSubir').innerHTML = '💾 Guardar Plantilla';
+                document.getElementById('btnSubir').disabled = false;
+            }
         }
 
-        async function eliminarPlantilla(id) { if (confirm('¿Eliminar?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
+        async function eliminarPlantilla(id) { if (confirm('¿Eliminar esta plantilla?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
         cargarPlantillas();
-    </script>
-</body>
-                </html>
+    </
