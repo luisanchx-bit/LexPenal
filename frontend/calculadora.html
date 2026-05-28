@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Penas - LexPenal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/estilo.css">
     <style>
         .calculadora-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 100px auto 4rem;
             padding: 2rem;
             background: #0a0a0a;
@@ -21,21 +21,23 @@
         }
         .calculadora-title h1 {
             color: #C8A951;
-            font-size: 2rem;
+            font-size: 1.8rem;
         }
         .calculadora-title p {
             color: #888;
             margin-top: 0.5rem;
+            font-size: 0.9rem;
         }
         .paso-indicador {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 0.5rem;
             margin-bottom: 2rem;
-            padding: 0 1rem;
+            flex-wrap: wrap;
         }
         .paso {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             background: #1a1a1a;
             border: 2px solid #333;
@@ -44,6 +46,7 @@
             justify-content: center;
             color: #666;
             font-weight: bold;
+            font-size: 0.9rem;
         }
         .paso.activo {
             border-color: #C8A951;
@@ -64,9 +67,16 @@
         .pregunta-titulo {
             color: #C8A951;
             font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+        }
+        .pregunta-subtitulo {
+            text-align: center;
+            color: #666;
+            font-size: 0.8rem;
             margin-bottom: 1.5rem;
-            border-left: 3px solid #C8A951;
-            padding-left: 1rem;
+            font-style: italic;
         }
         .opciones {
             display: flex;
@@ -89,16 +99,27 @@
             border-color: #C8A951;
             background: rgba(200, 169, 81, 0.2);
         }
+        .opcion-texto-simple {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.2rem;
+        }
+        .opcion-texto-tecnico {
+            font-size: 0.7rem;
+            color: #888;
+            font-family: monospace;
+        }
         .botones-navegacion {
             display: flex;
             justify-content: space-between;
             gap: 1rem;
+            margin-top: 1rem;
         }
         .btn-nav {
             background: transparent;
             border: 1px solid #C8A951;
             color: #C8A951;
-            padding: 0.8rem 1.5rem;
+            padding: 0.7rem 1.5rem;
             border-radius: 40px;
             cursor: pointer;
             transition: all 0.3s;
@@ -107,33 +128,16 @@
             background: #C8A951;
             color: #000;
         }
-        .resultado-card {
-            background: linear-gradient(135deg, #0a1628, #050505);
+        .sentencia-completa {
+            background: linear-gradient(145deg, #0a0a0a, #050505);
             padding: 2rem;
             border-radius: 15px;
-            border-left: 4px solid #C8A951;
-        }
-        .resultado-pena {
-            font-size: 2.5rem;
-            color: #C8A951;
-            text-align: center;
-            margin: 1rem 0;
-        }
-        .resultado-articulo {
-            background: #0a0a0a;
-            padding: 1rem;
-            border-radius: 10px;
-            font-family: monospace;
-            margin: 1rem 0;
-        }
-        .sentencia-texto {
-            background: #0a0a0a;
-            padding: 1.5rem;
-            border-radius: 10px;
-            font-style: italic;
+            border: 1px solid #C8A95133;
+            margin-top: 1rem;
+            font-family: 'Inter', monospace;
             line-height: 1.8;
-            margin: 1rem 0;
-            border-left: 3px solid #C8A951;
+            font-size: 0.85rem;
+            white-space: pre-line;
         }
         .btn-whatsapp {
             background: #25D366;
@@ -174,16 +178,33 @@
             border-color: #C8A951;
             transform: translateY(-3px);
         }
-        .delito-card.seleccionado {
-            border-color: #C8A951;
-            background: rgba(200, 169, 81, 0.1);
-        }
         .delito-icono {
             font-size: 2rem;
             margin-bottom: 0.5rem;
         }
         .hidden {
             display: none;
+        }
+        .nombre-imputado {
+            margin-bottom: 1.5rem;
+        }
+        .nombre-imputado input {
+            width: 100%;
+            padding: 0.8rem;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .nombre-imputado label {
+            color: #C8A951;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .calculadora-container { padding: 1.5rem; margin-top: 80px; }
+            .pregunta-titulo { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -202,16 +223,28 @@
     </nav>
 
     <div class="calculadora-container" id="calculadoraApp">
-        <!-- Pantalla 1: Selección de delito -->
         <div id="pantallaDelitos">
             <div class="calculadora-title">
-                <h1>⚖️ Calculadora de Penas</h1>
-                <p>Código Penal Colombiano - Ley 599 de 2000</p>
+                <h1>⚖️ SIMULADOR DE SENTENCIA</h1>
+                <p>Sistema de consulta jurisprudencial - Ley 599 de 2000</p>
             </div>
             <div class="delito-grid" id="delitosGrid"></div>
         </div>
 
-        <!-- Pantalla 2: Preguntas -->
+        <div id="pantallaNombre" class="hidden">
+            <div class="calculadora-title">
+                <h1>⚖️ DATOS DEL PROCESO</h1>
+                <p>Ingrese el nombre del imputado</p>
+            </div>
+            <div class="pregunta-card">
+                <div class="nombre-imputado">
+                    <label>👤 Nombre completo del acusado</label>
+                    <input type="text" id="nombreImputado" placeholder="Ej: Juan Pérez González">
+                </div>
+                <button class="btn-nav" id="btnContinuarNombre" style="width:100%; margin-top:1rem;">Continuar ▶</button>
+            </div>
+        </div>
+
         <div id="pantallaPreguntas" class="hidden">
             <div class="paso-indicador" id="pasosIndicador"></div>
             <div class="pregunta-card" id="preguntaCard"></div>
@@ -221,119 +254,64 @@
             </div>
         </div>
 
-        <!-- Pantalla 3: Resultado -->
         <div id="pantallaResultado" class="hidden">
             <div class="calculadora-title">
-                <h1>⚖️ Resultado del Cálculo</h1>
-                <p>Análisis según el Código Penal Colombiano</p>
+                <h1>⚖️ PROVIDENCIA JUDICIAL</h1>
+                <p>Juzgado Penal del Circuito - Reparto</p>
             </div>
-            <div class="resultado-card" id="resultadoCard"></div>
-            <button class="btn-whatsapp" id="btnWhatsApp">📱 Enviar al Abogado por WhatsApp</button>
-            <button class="btn-reiniciar" id="btnReiniciar">🔄 Calcular otro delito</button>
+            <div class="sentencia-completa" id="sentenciaCompleta"></div>
+            <button class="btn-whatsapp" id="btnWhatsApp">📱 Enviar Sentencia al Abogado</button>
+            <button class="btn-reiniciar" id="btnReiniciar">🔄 Nueva Consulta</button>
         </div>
     </div>
 
     <footer style="margin-top: 2rem;">
         <div class="container">
-            <p>© 2026 LexPenal - Asesoría Legal Profesional</p>
-            <p>⚖️ Código Penal Colombiano - Ley 599 de 2000</p>
+            <p>© 2026 LexPenal - Simulador de Sentencias</p>
+            <p>⚖️ Basado en el Código Penal Colombiano - Ley 599 de 2000</p>
         </div>
     </footer>
 
     <script>
-        // ============ BASE DE DATOS DE DELITOS ============
         const delitos = {
             homicidio: {
                 nombre: "Homicidio",
                 icono: "🔪",
                 articulo: "103",
-                texto_articulo: "Artículo 103. Homicidio. El que matare a otro, incurrirá en prisión de trece (13) a veinticinco (25) años.",
+                texto_articulo: "El que matare a otro, incurrirá en prisión de trece (13) a veinticinco (25) años.",
                 pena_min_base: 13,
                 pena_max_base: 25,
                 preguntas: [
                     {
                         id: "modalidad",
-                        texto: "¿Cómo ocurrió el homicidio?",
+                        texto: "¿Cómo ocurrió el hecho?",
                         opciones: [
-                            { valor: "doloso", texto: "Doloso (con intención de matar)", articulo: "103", pena_min: 13, pena_max: 25 },
-                            { valor: "culposo", texto: "Culposo (accidental, sin intención)", articulo: "106", pena_min: 2, pena_max: 6 }
+                            { valor: "doloso", texto_simple: "👊 La persona QUISO matar", texto_tecnico: "(Homicidio Doloso - Art. 103)", articulo: "103", pena_min: 13, pena_max: 25, descripcion: "actuó con el propósito de causar la muerte" },
+                            { valor: "culposo", texto_simple: "🚗 Fue un ACCIDENTE", texto_tecnico: "(Homicidio Culposo - Art. 106)", articulo: "106", pena_min: 2, pena_max: 6, descripcion: "obró sin la intención de causar el resultado" }
                         ]
                     },
                     {
                         id: "consumacion",
-                        texto: "¿El hecho fue consumado o tentativa?",
+                        texto: "¿Cuál fue el resultado?",
                         opciones: [
-                            { valor: "consumado", texto: "Consumado (se completó el acto)", factor: 1 },
-                            { valor: "tentativa", texto: "Tentativa (no se completó)", factor: 0.5 }
+                            { valor: "consumado", texto_simple: "💀 La persona MURIÓ", texto_tecnico: "(Delito consumado)", factor: 1, descripcion: "el resultado típico se perfeccionó" },
+                            { valor: "tentativa", texto_simple: "🏥 La persona solo se LESIONÓ", texto_tecnico: "(Tentativa - Art. 27)", factor: 0.5, descripcion: "el hecho no se consumó por circunstancias ajenas" }
                         ]
                     },
                     {
                         id: "agravantes",
-                        texto: "¿Concurren circunstancias de agravación?",
+                        texto: "¿Hay cosas que hacen el delito MÁS GRAVE?",
                         opciones: [
-                            { valor: "si", texto: "Sí (parentesco, precio, etc.)", aumento: 10 },
-                            { valor: "no", texto: "No", aumento: 0 }
+                            { valor: "si", texto_simple: "⚠️ SÍ (familiar, odio, ensañamiento, etc.)", texto_tecnico: "(Circunstancias de agravación punitiva)", aumento: 10, descripcion: "concurren circunstancias de mayor punibilidad" },
+                            { valor: "no", texto_simple: "✅ NO", texto_tecnico: "(Sin agravantes)", aumento: 0, descripcion: "no concurren circunstancias de agravación" }
                         ]
                     },
                     {
                         id: "atenuantes",
-                        texto: "¿Concurren circunstancias de atenuación?",
+                        texto: "¿Hay cosas que hacen el delito MENOS GRAVE?",
                         opciones: [
-                            { valor: "si", texto: "Sí (arrojo, estado de ira, confesión)", reduccion: 5 },
-                            { valor: "no", texto: "No", reduccion: 0 }
-                        ]
-                    }
-                ]
-            },
-            violacion: {
-                nombre: "Violación",
-                icono: "🛡️",
-                articulo: "205",
-                texto_articulo: "Artículo 205. Acceso carnal violento. El que realice acceso carnal mediante violencia, incurrirá en prisión de doce (12) a veinte (20) años.",
-                pena_min_base: 12,
-                pena_max_base: 20,
-                preguntas: [
-                    {
-                        id: "menor",
-                        texto: "¿La víctima es menor de edad?",
-                        opciones: [
-                            { valor: "si", texto: "Sí", aumento: 8 },
-                            { valor: "no", texto: "No", aumento: 0 }
-                        ]
-                    },
-                    {
-                        id: "parentesco",
-                        texto: "¿Existe parentesco con la víctima?",
-                        opciones: [
-                            { valor: "si", texto: "Sí", aumento: 5 },
-                            { valor: "no", texto: "No", aumento: 0 }
-                        ]
-                    }
-                ]
-            },
-            robo: {
-                nombre: "Robo",
-                icono: "🔫",
-                articulo: "239",
-                texto_articulo: "Artículo 239. Robo. El que se apodere de una cosa mueble ajena mediante violencia, incurrirá en prisión de seis (6) a doce (12) años.",
-                pena_min_base: 6,
-                pena_max_base: 12,
-                preguntas: [
-                    {
-                        id: "arma",
-                        texto: "¿Se utilizó arma?",
-                        opciones: [
-                            { valor: "fuego", texto: "Arma de fuego", aumento: 6 },
-                            { valor: "blanca", texto: "Arma blanca", aumento: 4 },
-                            { valor: "ninguna", texto: "Sin arma", aumento: 0 }
-                        ]
-                    },
-                    {
-                        id: "violencia",
-                        texto: "¿Hubo violencia contra la víctima?",
-                        opciones: [
-                            { valor: "si", texto: "Sí", aumento: 3 },
-                            { valor: "no", texto: "No", aumento: 0 }
+                            { valor: "si", texto_simple: "✨ SÍ (confesó, actuó con ira, fue sin querer)", texto_tecnico: "(Circunstancias de atenuación punitiva)", reduccion: 5, descripcion: "concurren circunstancias de menor punibilidad" },
+                            { valor: "no", texto_simple: "✅ NO", texto_tecnico: "(Sin atenuantes)", reduccion: 0, descripcion: "no concurren circunstancias de atenuación" }
                         ]
                     }
                 ]
@@ -341,6 +319,7 @@
         };
 
         let delitoSeleccionado = null;
+        let nombreImputado = "";
         let respuestas = {};
         let pasoActual = 0;
 
@@ -362,22 +341,27 @@
             delitoSeleccionado = key;
             respuestas = {};
             pasoActual = 0;
-            iniciarPreguntas();
+            document.getElementById('pantallaDelitos').classList.add('hidden');
+            document.getElementById('pantallaNombre').classList.remove('hidden');
         }
 
-        function iniciarPreguntas() {
-            document.getElementById('pantallaDelitos').classList.add('hidden');
+        document.getElementById('btnContinuarNombre').addEventListener('click', () => {
+            const nombre = document.getElementById('nombreImputado').value.trim();
+            if (!nombre) {
+                alert('Por favor ingrese el nombre del acusado');
+                return;
+            }
+            nombreImputado = nombre;
+            document.getElementById('pantallaNombre').classList.add('hidden');
             document.getElementById('pantallaPreguntas').classList.remove('hidden');
-            document.getElementById('pantallaResultado').classList.add('hidden');
             actualizarPregunta();
-        }
+        });
 
         function actualizarPregunta() {
             const delito = delitos[delitoSeleccionado];
             const preguntas = delito.preguntas;
             const pregunta = preguntas[pasoActual];
             
-            // Actualizar pasos
             const pasosIndicador = document.getElementById('pasosIndicador');
             pasosIndicador.innerHTML = '';
             for (let i = 0; i < preguntas.length; i++) {
@@ -387,20 +371,21 @@
                 pasosIndicador.innerHTML += `<div class="${clase}">${i + 1}</div>`;
             }
             
-            // Mostrar pregunta
             const preguntaCard = document.getElementById('preguntaCard');
             let opcionesHtml = '';
             pregunta.opciones.forEach(op => {
                 const isSelected = respuestas[pregunta.id] === op.valor;
                 opcionesHtml += `
                     <div class="opcion ${isSelected ? 'seleccionada' : ''}" onclick="seleccionarOpcion('${pregunta.id}', '${op.valor}')">
-                        ${op.texto}
+                        <div class="opcion-texto-simple">${op.texto_simple}</div>
+                        <div class="opcion-texto-tecnico">${op.texto_tecnico}</div>
                     </div>
                 `;
             });
             
             preguntaCard.innerHTML = `
                 <div class="pregunta-titulo">${pregunta.texto}</div>
+                <div class="pregunta-subtitulo">Seleccione una opción</div>
                 <div class="opciones">${opcionesHtml}</div>
             `;
         }
@@ -414,15 +399,14 @@
             const delito = delitos[delitoSeleccionado];
             const pregunta = delito.preguntas[pasoActual];
             if (!respuestas[pregunta.id]) {
-                alert('Por favor selecciona una opción antes de continuar');
+                alert('Por favor seleccione una opción');
                 return;
             }
-            
             if (pasoActual < delito.preguntas.length - 1) {
                 pasoActual++;
                 actualizarPregunta();
             } else {
-                calcularResultado();
+                generarSentencia();
             }
         });
 
@@ -433,85 +417,121 @@
             }
         });
 
-        function calcularResultado() {
+        function numeroALetras(num) {
+            if (num === 0) return 'CERO';
+            const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+            const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+            const decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+            if (num <= 9) return unidades[num];
+            if (num <= 19) return especiales[num - 10];
+            const decena = Math.floor(num / 10);
+            const unidad = num % 10;
+            if (unidad === 0) return decenas[decena];
+            return `${decenas[decena]} Y ${unidades[unidad]}`;
+        }
+
+        function generarSentencia() {
             const delito = delitos[delitoSeleccionado];
             let penaMin = delito.pena_min_base;
             let penaMax = delito.pena_max_base;
             let articuloAplicado = delito.articulo;
-            let factores = [];
-            
-            // Procesar respuestas
+            let circunstancias = [];
+            let modalidadTexto = "";
+            let fundamentos = [];
+
             for (const pregunta of delito.preguntas) {
                 const respuesta = respuestas[pregunta.id];
                 const opcion = pregunta.opciones.find(o => o.valor === respuesta);
-                
                 if (opcion) {
                     if (opcion.articulo) articuloAplicado = opcion.articulo;
-                    if (opcion.pena_min) penaMin = opcion.pena_min;
-                    if (opcion.pena_max) penaMax = opcion.pena_max;
+                    if (opcion.pena_min) { penaMin = opcion.pena_min; }
+                    if (opcion.pena_max) { penaMax = opcion.pena_max; }
                     if (opcion.factor) {
                         penaMin = Math.floor(penaMin * opcion.factor);
                         penaMax = Math.floor(penaMax * opcion.factor);
-                        factores.push(`Tentativa: reducción del 50%`);
+                        circunstancias.push(opcion.descripcion);
                     }
                     if (opcion.aumento) {
                         penaMin += opcion.aumento;
                         penaMax += opcion.aumento;
-                        factores.push(`Circunstancia agravante: +${opcion.aumento} años`);
+                        circunstancias.push(opcion.descripcion);
                     }
                     if (opcion.reduccion) {
                         penaMin -= opcion.reduccion;
                         penaMax -= opcion.reduccion;
-                        factores.push(`Circunstancia atenuante: -${opcion.reduccion} años`);
+                        circunstancias.push(opcion.descripcion);
                     }
+                    if (opcion.valor === 'doloso') modalidadTexto = "doloso";
+                    if (opcion.valor === 'culposo') modalidadTexto = "culposo";
+                    fundamentos.push(opcion.descripcion);
                 }
             }
-            
-            // Asegurar penas no negativas
+
             penaMin = Math.max(0, penaMin);
             penaMax = Math.max(0, penaMax);
-            
             const penaMedia = Math.floor((penaMin + penaMax) / 2);
             
-            // Construir sentencia
-            const sentencia = `
-                <div class="resultado-pena">⚖️ ${penaMin} a ${penaMax} AÑOS de prisión</div>
-                <div class="resultado-articulo">
-                    <strong>📜 Fundamento Legal:</strong><br>
-                    Artículo ${articuloAplicado} de la Ley 599 de 2000 (Código Penal Colombiano)
-                </div>
-                <div class="sentencia-texto">
-                    <strong>⚖️ SENTENCIA ESTIMADA:</strong><br><br>
-                    "De conformidad con el artículo ${articuloAplicado} de la Ley 599 de 2000, el delito de ${delito.nombre} tiene una pena prevista de ${penaMin} a ${penaMax} años de prisión.
-                    ${factores.length > 0 ? ` Se valoraron las siguientes circunstancias: ${factores.join(', ')}.` : ''}
-                    En este caso, se impone una pena de ${penaMedia} años de prisión, al no existir circunstancias que modifiquen la punibilidad dentro del rango establecido por el legislador."
-                </div>
-                <div class="resultado-articulo">
-                    <strong>📋 Nota:</strong> Este cálculo es una estimación basada en la información proporcionada. La pena definitiva será determinada por un juez de la República.
-                </div>
-            `;
+            const fecha = new Date();
+            const fechaTexto = `${fecha.getDate()} de ${fecha.toLocaleString('es', { month: 'long' })} de ${fecha.getFullYear()}`;
             
-            document.getElementById('resultadoCard').innerHTML = sentencia;
-            window.resultadoSentencia = sentencia;
+            const circunstanciasTexto = circunstancias.length > 0 
+                ? `Se valoraron las siguientes circunstancias: ${circunstancias.join(', ')}.` 
+                : "No concurren circunstancias de agravación ni atenuación.";
+            
+            const sentencia = `REPÚBLICA DE COLOMBIA
+JUZGADO PENAL DEL CIRCUITO
+
+SENTENCIA No. ${fecha.getFullYear()}-00${Math.floor(Math.random() * 100) + 1}
+
+VISTOS:
+Se pronuncia el despacho dentro del proceso penal radicado bajo el número ${fecha.getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}, seguido en contra del señor(a) ${nombreImputado.toUpperCase()}, por el delito de ${delito.nombre.toUpperCase()} en la modalidad ${modalidadTexto.toUpperCase()}.
+
+RESULTANDO:
+Que el día de los hechos, el imputado, ${fundamentos[0]}, configurándose así la conducta punible prevista en el Artículo ${articuloAplicado} de la Ley 599 de 2000 (Código Penal Colombiano), el cual establece: "${delito.texto_articulo}"
+
+CONSIDERANDO:
+Que la pena principal para esta conducta es de ${penaMin} a ${penaMax} años de prisión. ${circunstanciasTexto}
+En aplicación de los criterios de dosificación punitiva establecidos en el artículo 61 del Código Penal, se impone la pena media de ${penaMedia} años de prisión.
+
+RESUELVE:
+PRIMERO: CONDENAR al señor(a) ${nombreImputado.toUpperCase()} a la pena principal de ${penaMedia} (${numeroALetras(penaMedia)}) AÑOS DE PRISIÓN, como autor responsable del delito de ${delito.nombre} en la modalidad ${modalidadTexto}.
+
+SEGUNDO: NEGAR la suspensión condicional de la ejecución de la pena al no cumplirse con los requisitos exigidos por la ley.
+
+TERCERO: ORDENAR la captura inmediata del sentenciado para el cumplimiento de la pena impuesta.
+
+NOTIFÍQUESE Y CÚMPLASE.
+
+Dada en Bogotá D.C., a los ${fechaTexto}.
+
+EL JUEZ,
+
+______________________
+JUEZ PENAL DEL CIRCUITO
+
+Firma Digital`;
+
+            document.getElementById('sentenciaCompleta').innerHTML = `<pre style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem;">${sentencia}</pre>`;
+            window.sentenciaActual = sentencia;
             
             document.getElementById('pantallaPreguntas').classList.add('hidden');
             document.getElementById('pantallaResultado').classList.remove('hidden');
         }
 
         document.getElementById('btnWhatsApp').addEventListener('click', () => {
-            const mensaje = encodeURIComponent(`📋 *CALCULADORA DE PENAS - LEXPENAL* 📋\n\n${window.resultadoSentencia.replace(/<[^>]*>/g, '')}\n\nConsulta realizada a través de LexPenal.`);
+            const mensaje = encodeURIComponent(`📜 *SENTENCIA JUDICIAL - LEXPENAL* 📜\n\n${window.sentenciaActual}\n\nConsulta realizada a través de LexPenal.`);
             window.open(`https://wa.me/573145879875?text=${mensaje}`, '_blank');
         });
 
         document.getElementById('btnReiniciar').addEventListener('click', () => {
             delitoSeleccionado = null;
+            nombreImputado = "";
             respuestas = {};
             pasoActual = 0;
             document.getElementById('pantallaResultado').classList.add('hidden');
             document.getElementById('pantallaDelitos').classList.remove('hidden');
         });
 
-        // Menú responsive
         const menuToggle = document.getElementById('menuToggle');
         const navMenu = document.getElementById('navMenu');
         if (menuToggle) {
