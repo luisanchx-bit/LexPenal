@@ -96,11 +96,14 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ==================== RUTAS DE PLANTILLAS ====================
+
+// Obtener todas las plantillas (para el admin)
 app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { 
     const db = readDB(); 
     res.json(db.plantillas || []); 
 });
 
+// Obtener plantilla pública por clave (para los clientes)
 app.get('/api/plantillas/public/:clave', (req, res) => {
     const db = readDB();
     const plantilla = db.plantillas.find(p => p.clave === req.params.clave);
@@ -111,53 +114,73 @@ app.get('/api/plantillas/public/:clave', (req, res) => {
     }
 });
 
+// Subir y guardar plantilla
 app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
     try {
         const archivo = req.file;
         const { nombre, clave, ubicacion, sububicacion } = req.body;
         
-        if (!archivo) return res.status(400).json({ error: 'No se subió ningún archivo' });
+        if (!archivo) {
+            return res.status(400).json({ error: 'No se subió ningún archivo' });
+        }
         
         const filePath = archivo.path;
         const extension = archivo.originalname.split('.').pop().toLowerCase();
         
+        // Solo aceptar .txt
         if (extension !== 'txt') {
             fs.unlinkSync(filePath);
             return res.status(400).json({ error: 'Solo se aceptan archivos .txt' });
         }
         
+        // Leer el contenido del archivo
         const texto = fs.readFileSync(filePath, 'utf8');
         
+        // Detectar campos entre [CORCHETES]
         const regex = /\[([A-Z_]+)\]/g;
-        const campos = [];
+        const camposEncontrados = [];
         let match;
         while ((match = regex.exec(texto)) !== null) {
-            if (!campos.includes(match[1])) campos.push(match[1]);
+            if (!camposEncontrados.includes(match[1])) {
+                camposEncontrados.push(match[1]);
+            }
         }
         
+        const camposEditables = camposEncontrados.length > 0 ? camposEncontrados : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'];
+        
+        // Guardar en la base de datos
         const db = readDB();
         const nuevaPlantilla = {
             id: db.plantillas.length + 1,
-            nombre,
-            clave,
+            nombre: nombre,
+            clave: clave,
             ubicacion: ubicacion || 'tramites',
             sububicacion: sububicacion || '',
             titulo: nombre,
             cuerpo: texto,
-            campos_editables: campos.length > 0 ? campos : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'],
+            campos_editables: camposEditables,
             fecha_creacion: new Date().toISOString().split('T')[0]
         };
+        
         db.plantillas.push(nuevaPlantilla);
         writeDB(db);
         
+        // Eliminar archivo temporal
         fs.unlinkSync(filePath);
         
-        res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
+        res.json({ 
+            success: true, 
+            plantilla: nuevaPlantilla, 
+            campos_detectados: camposEditables 
+        });
+        
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Error al procesar el archivo: ' + error.message });
     }
 });
 
+// Eliminar plantilla
 app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => {
     const { id } = req.params;
     const db = readDB();
