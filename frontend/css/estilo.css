@@ -454,6 +454,83 @@ footer {
     cursor: pointer;
 }
 
+/* ============================================
+   BOTÓN FLOTANTE DE LA CALCULADORA
+   ============================================ */
+.calculadora-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+    border: 2px solid #C8A951;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(200, 169, 81, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.calculadora-btn::before {
+    content: "⚖️";
+    font-size: 2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+.calculadora-btn:hover::before {
+    top: 30%;
+    font-size: 1.8rem;
+}
+
+.calculadora-btn:hover {
+    transform: scale(1.1);
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(200, 169, 81, 0.8);
+}
+
+.btn-text-calc {
+    position: absolute;
+    bottom: -30px;
+    color: #C8A951;
+    font-size: 0.65rem;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s ease;
+    opacity: 0;
+    width: 100%;
+}
+
+.calculadora-btn:hover .btn-text-calc {
+    bottom: 12px;
+    opacity: 1;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .calculadora-btn {
+        width: 60px;
+        height: 60px;
+        bottom: 20px;
+        right: 20px;
+    }
+    .calculadora-btn::before {
+        font-size: 1.5rem;
+    }
+    .btn-text-calc {
+        font-size: 0.55rem;
+    }
+}
+
 @media (max-width: 768px) {
     .cliente-container {
         grid-template-columns: 1fr;
@@ -466,67 +543,5 @@ footer {
     }
     .nav-menu {
         display: none;
-    }
-}
-/* ============================================
-   BOTÓN FLOTANTE DE HIGURUMA (CALCULADORA)
-   ============================================ */
-.calculadora-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-image: url('https://i.imgur.com/6LQ9Z0M.png'); /* Link temporal, necesitas subir la imagen real */
-    background-size: cover;
-    background-position: center;
-    border: 3px solid #C8A951;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(200, 169, 81, 0.3);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.calculadora-btn:hover {
-    transform: scale(1.1);
-    border-color: #fff;
-    box-shadow: 0 0 20px rgba(200, 169, 81, 0.8);
-}
-
-.btn-text {
-    position: absolute;
-    bottom: -25px;
-    background: #000;
-    color: #C8A951;
-    font-size: 0.7rem;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 20px;
-    white-space: nowrap;
-    border: 1px solid #C8A951;
-    transition: all 0.3s ease;
-    opacity: 0;
-}
-
-.calculadora-btn:hover .btn-text {
-    bottom: 5px;
-    opacity: 1;
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
-    .calculadora-btn {
-        width: 60px;
-        height: 60px;
-        bottom: 20px;
-        right: 20px;
-    }
-    .btn-text {
-        font-size: 0.6rem;
     }
     }
