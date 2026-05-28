@@ -25,12 +25,15 @@ function initDB() {
         const initialData = {
             usuarios: [{ id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }],
             casos: [],
-            testimonios: [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: "2026-01-15" }],
+            testimonios: [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: new Date().toISOString().split('T')[0] }],
             plantillas: [],
             tipos_caso: [
                 { id: 1, nombre: "Homicidio", icono: "⚖️", orden: 1 },
                 { id: 2, nombre: "Violación", icono: "🛡️", orden: 2 },
-                { id: 3, nombre: "Robo", icono: "🔒", orden: 3 }
+                { id: 3, nombre: "Robo", icono: "🔒", orden: 3 },
+                { id: 4, nombre: "Apelaciones", icono: "📄", orden: 4 },
+                { id: 5, nombre: "Citaciones", icono: "📅", orden: 5 },
+                { id: 6, nombre: "Trámites Legales", icono: "📋", orden: 6 }
             ],
             configuracion: { colores: { dorado: "#C8A951", azul: "#0A1628", fondo: "#000000" }, textos: { hero_titulo: "Defensa Penal Estratégica", hero_subtitulo: "Más de 6 años protegiendo tus derechos" } },
             abogado: { nombre: "Asmairo Conde Torres", telefono: "573145879875", email: "asmairo.conde.torres@hotmail.com" }
@@ -63,12 +66,17 @@ app.post('/api/auth/registro', async (req, res) => {
     try {
         const { cedula, nombre_completo, contrasena } = req.body;
         if (!cedula || !nombre_completo || !contrasena) return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        if (cedula.length < 6) return res.status(400).json({ error: 'La cédula debe tener al menos 6 dígitos' });
+        if (contrasena.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+        
         const db = readDB();
-        if (db.usuarios.find(u => u.cedula === cedula)) return res.status(400).json({ error: 'Cédula ya registrada' });
+        if (db.usuarios.find(u => u.cedula === cedula)) return res.status(400).json({ error: 'Esta cédula ya está registrada' });
+        
         const hashedPassword = await bcrypt.hash(contrasena, 10);
         const nuevoUsuario = { id: db.usuarios.length + 1, cedula, nombre_completo, contrasena_hash: hashedPassword, rol: 'cliente', fecha_registro: new Date().toISOString() };
         db.usuarios.push(nuevoUsuario);
         writeDB(db);
+        
         const token = jwt.sign({ id: nuevoUsuario.id, cedula, nombre: nombre_completo, rol: 'cliente' }, JWT_SECRET, { expiresIn: '7d' });
         res.json({ success: true, token, nombre: nombre_completo, cedula, isAdmin: false });
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
@@ -81,6 +89,7 @@ app.post('/api/auth/login', async (req, res) => {
         const usuario = db.usuarios.find(u => u.cedula === cedula);
         if (!usuario) return res.status(401).json({ error: 'Cédula no registrada' });
         if (!await bcrypt.compare(contrasena, usuario.contrasena_hash)) return res.status(401).json({ error: 'Contraseña incorrecta' });
+        
         const token = jwt.sign({ id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol }, JWT_SECRET, { expiresIn: '7d' });
         res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, isAdmin: usuario.rol === 'super_admin' });
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
@@ -105,17 +114,13 @@ app.get('/api/plantillas/public/:clave', (req, res) => {
 app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
     try {
         const archivo = req.file;
-        const nombrePlantilla = req.body.nombre;
-        const clave = req.body.clave;
-        const ubicacion = req.body.ubicacion;
-        const sububicacion = req.body.sububicacion;
+        const { nombre, clave, ubicacion, sububicacion } = req.body;
         
         if (!archivo) return res.status(400).json({ error: 'No se subió ningún archivo' });
         
         const filePath = archivo.path;
         const extension = archivo.originalname.split('.').pop().toLowerCase();
         
-        // SOLO ACEPTAR TXT
         if (extension !== 'txt') {
             fs.unlinkSync(filePath);
             return res.status(400).json({ error: 'Solo se aceptan archivos .txt' });
@@ -123,36 +128,32 @@ app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single(
         
         const texto = fs.readFileSync(filePath, 'utf8');
         
-        // Detectar variables entre [CORCHETES]
         const regex = /\[([A-Z_]+)\]/g;
-        const camposEncontrados = [];
+        const campos = [];
         let match;
         while ((match = regex.exec(texto)) !== null) {
-            if (!camposEncontrados.includes(match[1])) camposEncontrados.push(match[1]);
+            if (!campos.includes(match[1])) campos.push(match[1]);
         }
-        const camposEditables = camposEncontrados.length > 0 ? camposEncontrados : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'];
         
         const db = readDB();
         const nuevaPlantilla = {
             id: db.plantillas.length + 1,
-            nombre: nombrePlantilla,
-            clave: clave,
-            ubicacion: ubicacion,
-            sububicacion: sububicacion,
-            titulo: nombrePlantilla,
+            nombre,
+            clave,
+            ubicacion: ubicacion || 'tramites',
+            sububicacion: sububicacion || '',
+            titulo: nombre,
             cuerpo: texto,
-            campos_editables: camposEditables,
+            campos_editables: campos.length > 0 ? campos : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'],
             fecha_creacion: new Date().toISOString().split('T')[0]
         };
         db.plantillas.push(nuevaPlantilla);
         writeDB(db);
         
-        // Limpiar archivo temporal
         fs.unlinkSync(filePath);
         
-        res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: camposEditables });
+        res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Error al procesar el archivo: ' + error.message });
     }
 });
@@ -167,6 +168,7 @@ app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => 
 
 // ==================== RUTAS DE CASOS ====================
 app.get('/api/casos/tipos', (req, res) => { const db = readDB(); res.json(db.tipos_caso.map(t => t.nombre)); });
+
 app.post('/api/casos/nuevo', verificarToken, (req, res) => {
     try {
         const { tipo_caso, descripcion, fecha_hechos, lugar_hechos } = req.body;
@@ -190,8 +192,17 @@ app.post('/api/casos/nuevo', verificarToken, (req, res) => {
         res.json({ success: true, mensaje: 'Caso creado exitosamente', caso: nuevoCaso });
     } catch (error) { res.status(500).json({ error: 'Error al crear caso' }); }
 });
-app.get('/api/casos/mis-casos', verificarToken, (req, res) => { const db = readDB(); res.json(db.casos.filter(c => c.id_cliente === req.usuario.id)); });
-app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.casos); });
+
+app.get('/api/casos/mis-casos', verificarToken, (req, res) => { 
+    const db = readDB(); 
+    res.json(db.casos.filter(c => c.id_cliente === req.usuario.id)); 
+});
+
+app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => { 
+    const db = readDB(); 
+    res.json(db.casos); 
+});
+
 app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     const { id } = req.params;
     const { estado, notas_admin } = req.body;
@@ -202,19 +213,32 @@ app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
         if (notas_admin !== undefined) caso.notas_admin = notas_admin;
         writeDB(db);
         res.json({ success: true });
-    } else { res.status(404).json({ error: 'Caso no encontrado' }); }
+    } else { 
+        res.status(404).json({ error: 'Caso no encontrado' }); 
+    }
 });
 
 // ==================== RUTAS DE TESTIMONIOS ====================
-app.get('/api/testimonios', (req, res) => { const db = readDB(); res.json(db.testimonios.filter(t => t.aprobado)); });
+app.get('/api/testimonios', (req, res) => { 
+    const db = readDB(); 
+    res.json(db.testimonios.filter(t => t.aprobado)); 
+});
+
 app.post('/api/testimonios', verificarToken, verificarAdmin, (req, res) => {
     const { cliente, texto, aprobado } = req.body;
     const db = readDB();
-    const nuevoTestimonio = { id: db.testimonios.length + 1, cliente: cliente || 'Cliente anónimo', texto, aprobado: aprobado !== undefined ? aprobado : true, fecha: new Date().toISOString().split('T')[0] };
+    const nuevoTestimonio = { 
+        id: db.testimonios.length + 1, 
+        cliente: cliente || 'Cliente anónimo', 
+        texto, 
+        aprobado: aprobado !== undefined ? aprobado : true, 
+        fecha: new Date().toISOString().split('T')[0] 
+    };
     db.testimonios.push(nuevoTestimonio);
     writeDB(db);
     res.json({ success: true, testimonio: nuevoTestimonio });
 });
+
 app.put('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) => {
     const { id } = req.params;
     const { cliente, texto, aprobado } = req.body;
@@ -224,8 +248,11 @@ app.put('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) => {
         db.testimonios[index] = { ...db.testimonios[index], cliente, texto, aprobado };
         writeDB(db);
         res.json({ success: true });
-    } else { res.status(404).json({ error: 'Testimonio no encontrado' }); }
+    } else { 
+        res.status(404).json({ error: 'Testimonio no encontrado' }); 
+    }
 });
+
 app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) => {
     const { id } = req.params;
     const db = readDB();
@@ -236,7 +263,7 @@ app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) =>
 
 // ==================== WHATSAPP ====================
 app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
-    res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20el%20cliente%20con%20cédula%20${req.usuario.cedula}.` });
+    res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20el%20cliente%20con%20cédula%20${req.usuario.cedula}` });
 });
 
 // ==================== ADMIN DASHBOARD ====================
@@ -251,10 +278,72 @@ app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
         tipos_caso_total: db.tipos_caso.length 
     });
 });
-app.get('/api/admin/abogado', (req, res) => { const db = readDB(); res.json(db.abogado); });
-app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.abogado = { ...db.abogado, ...req.body }; writeDB(db); res.json({ success: true }); });
-app.get('/api/admin/configuracion', (req, res) => { const db = readDB(); res.json(db.configuracion); });
-app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion = { ...db.configuracion, ...req.body }; writeDB(db); res.json({ success: true }); });
+
+app.get('/api/admin/abogado', (req, res) => { 
+    const db = readDB(); 
+    res.json(db.abogado); 
+});
+
+app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { 
+    const db = readDB(); 
+    db.abogado = { ...db.abogado, ...req.body }; 
+    writeDB(db); 
+    res.json({ success: true }); 
+});
+
+app.get('/api/admin/configuracion', (req, res) => { 
+    const db = readDB(); 
+    res.json(db.configuracion); 
+});
+
+app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { 
+    const db = readDB(); 
+    db.configuracion = { ...db.configuracion, ...req.body }; 
+    writeDB(db); 
+    res.json({ success: true }); 
+});
+
+// ==================== RUTAS DE TIPOS DE CASO ====================
+app.get('/api/tipos-caso', (req, res) => { 
+    const db = readDB(); 
+    res.json(db.tipos_caso); 
+});
+
+app.post('/api/tipos-caso', verificarToken, verificarAdmin, (req, res) => {
+    const { nombre, icono, orden } = req.body;
+    const db = readDB();
+    const nuevoTipo = { 
+        id: db.tipos_caso.length + 1, 
+        nombre, 
+        icono: icono || '⚖️', 
+        orden: orden || db.tipos_caso.length + 1 
+    };
+    db.tipos_caso.push(nuevoTipo);
+    writeDB(db);
+    res.json({ success: true, tipo: nuevoTipo });
+});
+
+app.put('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const { nombre, icono, orden } = req.body;
+    const db = readDB();
+    const index = db.tipos_caso.findIndex(t => t.id === parseInt(id));
+    if (index !== -1) {
+        db.tipos_caso[index] = { ...db.tipos_caso[index], nombre, icono, orden };
+        writeDB(db);
+        res.json({ success: true });
+    } else { 
+        res.status(404).json({ error: 'Tipo no encontrado' }); 
+    }
+});
+
+app.delete('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const db = readDB();
+    db.tipos_caso = db.tipos_caso.filter(t => t.id !== parseInt(id));
+    writeDB(db);
+    res.json({ success: true });
+});
 
 // ==================== FRONTEND ====================
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'index.html')); });
@@ -264,5 +353,5 @@ app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'front
 app.listen(PORT, () => {
     console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
     console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
-    console.log(`📂 Subir plantillas SOLO en formato .txt`);
+    console.log(`📂 Sube plantillas en /admin/plantillas.html`);
 });
