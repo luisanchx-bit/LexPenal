@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Legal - LexPenal</title>
+    <link rel="stylesheet" href="/css/estilo.css">
+    <style>
+        .consulta-container {
+            max-width: 700px;
+            margin: 100px auto 4rem;
+            padding: 2rem;
+            background: #0a0a0a;
+            border-radius: 20px;
+            border: 1px solid rgba(200, 169, 81, 0.3);
+        }
+        .upload-area {
+            border: 2px dashed #C8A951;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            background: rgba(200, 169, 81, 0.1);
+        }
+        .file-list {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .file-tag {
+            background: #1a1a1a;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .file-tag button {
+            background: none;
+            border: none;
+            color: #8B0000;
+            cursor: pointer;
+        }
+        .btn-enviar {
+            background: #C8A951;
+            color: #000;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .btn-enviar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo" style="cursor:pointer" onclick="window.location.href='/'">
+                <h2>⚖️ LexPenal</h2>
+            </div>
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/login.html">Acceder</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="consulta-container">
+        <div class="calculadora-title">
+            <h1 style="color:#C8A951;">📞 Consulta Legal</h1>
+            <p>Complete el formulario y un abogado lo contactará</p>
+        </div>
+
+        <form id="formConsulta">
+            <div class="input-group">
+                <label>Nombre completo *</label>
+                <input type="text" id="nombre" required>
+            </div>
+            <div class="input-group">
+                <label>Teléfono *</label>
+                <input type="tel" id="telefono" required>
+            </div>
+            <div class="input-group">
+                <label>Correo electrónico *</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="input-group">
+                <label>Describa los hechos de su caso *</label>
+                <textarea id="hechos" rows="5" required></textarea>
+            </div>
+            <div class="input-group">
+                <label>📎 Adjuntar evidencias (fotos, videos, audios)</label>
+                <div class="upload-area" id="uploadArea">
+                    <div style="font-size: 2rem;">📁</div>
+                    <p>Arrastra archivos o haz clic para seleccionar</p>
+                    <input type="file" id="archivosInput" multiple accept="image/*,video/*,audio/*,application/pdf">
+                </div>
+                <div id="fileList" class="file-list"></div>
+            </div>
+            <button type="submit" class="btn-enviar">📤 Enviar Consulta</button>
+        </form>
+    </div>
+
+    <script>
+        let archivosSeleccionados = [];
+
+        const uploadArea = document.getElementById('uploadArea');
+        const archivosInput = document.getElementById('archivosInput');
+
+        uploadArea.addEventListener('click', () => archivosInput.click());
+        uploadArea.addEventListener('dragover', e => e.preventDefault());
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            agregarArchivos(Array.from(e.dataTransfer.files));
+        });
+        archivosInput.addEventListener('change', e => agregarArchivos(Array.from(e.target.files)));
+
+        function agregarArchivos(archivos) {
+            archivos.forEach(archivo => {
+                archivosSeleccionados.push(archivo);
+            });
+            actualizarLista();
+            archivosInput.value = '';
+        }
+
+        function eliminarArchivo(index) {
+            archivosSeleccionados.splice(index, 1);
+            actualizarLista();
+        }
+
+        function actualizarLista() {
+            const container = document.getElementById('fileList');
+            if (archivosSeleccionados.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = archivosSeleccionados.map((f, i) => `
+                <div class="file-tag">
+                    ${f.name} (${(f.size / 1024).toFixed(1)} KB)
+                    <button onclick="eliminarArchivo(${i})">✖</button>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('formConsulta').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nombre = document.getElementById('nombre').value;
+            const telefono = document.getElementById('telefono').value;
+            const email = document.getElementById('email').value;
+            const hechos = document.getElementById('hechos').value;
+            
+            if (!nombre || !telefono || !email || !hechos) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('telefono', telefono);
+            formData.append('email', email);
+            formData.append('hechos', hechos);
+            formData.append('tipo', 'consulta');
+            
+            archivosSeleccionados.forEach((archivo, i) => {
+                formData.append(`archivo_${i}`, archivo);
+            });
+            
+            const btn = document.querySelector('.btn-enviar');
+            btn.innerHTML = '⏳ Enviando...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api/consultas/nueva', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ Consulta enviada exitosamente. Serás redirigido al WhatsApp del abogado para continuar con la facturación.');
+                    window.open(`https://wa.me/573145879875?text=Hola,%20soy%20${encodeURIComponent(nombre)}%20y%20acabo%20de%20enviar%20una%20consulta%20legal.`, '_blank');
+                    window.location.href = '/';
+                } else {
+                    alert('❌ Error: ' + data.error);
+                    btn.innerHTML = '📤 Enviar Consulta';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert('❌ Error de conexión');
+                btn.innerHTML = '📤 Enviar Consulta';
+                btn.disabled = false;
+            }
+        });
+
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+        }
+    </script>
+</body>
+</html>
