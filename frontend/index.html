@@ -16,7 +16,7 @@
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
             margin-top: 2rem;
         }
@@ -61,7 +61,7 @@
         }
 
         .menu-items.active {
-            max-height: 500px;
+            max-height: 600px;
         }
 
         .submenu {
@@ -155,7 +155,7 @@
 
     <div class="hero-mini">
         <h1>Asesoría Legal <span class="dorado">Especializada</span></h1>
-        <p>Selecciona el área de tu interés para comenzar</p>
+        <p>Selecciona el área de tu interés para generar tu documento legal</p>
     </div>
 
     <div class="menu-container">
@@ -172,32 +172,32 @@
                             Homicidio <span class="arrow">▼</span>
                         </div>
                         <div id="homicidioSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irACalculadora('homicidio', 'doloso')">🔪 Doloso</div>
-                            <div class="sub-submenu-item" onclick="irACalculadora('homicidio', 'culposo')">🚗 Culposo</div>
-                            <div class="sub-submenu-item" onclick="irACalculadora('homicidio', 'agravado')">⚡ Agravado</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'doloso')">🔪 Doloso</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'culposo')">🚗 Culposo</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('homicidio', 'agravado')">⚡ Agravado</div>
                         </div>
 
                         <div class="submenu-item" onclick="toggleSubMenu('violacionSub')">
                             Violación <span class="arrow">▼</span>
                         </div>
                         <div id="violacionSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irACalculadora('violacion', 'simple')">🔞 Simple</div>
-                            <div class="sub-submenu-item" onclick="irACalculadora('violacion', 'agravada')">⚡ Agravada</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('violacion', 'simple')">🔞 Simple</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('violacion', 'agravada')">⚡ Agravada</div>
                         </div>
 
                         <div class="submenu-item" onclick="toggleSubMenu('roboSub')">
                             Robo <span class="arrow">▼</span>
                         </div>
                         <div id="roboSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irACalculadora('robo', 'simple')">💰 Simple</div>
-                            <div class="sub-submenu-item" onclick="irACalculadora('robo', 'agravado')">⚡ Agravado</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('robo', 'simple')">💰 Simple</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('robo', 'agravado')">⚡ Agravado</div>
                         </div>
 
-                        <div class="submenu-item" onclick="irACalculadora('estafa', 'simple')">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('estafa', 'simple')">
                             Estafa <span class="arrow">→</span>
                         </div>
 
-                        <div class="submenu-item" onclick="irACalculadora('hurto', 'simple')">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('hurto', 'simple')">
                             Hurto <span class="arrow">→</span>
                         </div>
                     </div>
@@ -212,16 +212,16 @@
                 </div>
                 <div id="socialMenu" class="menu-items">
                     <div class="submenu">
-                        <div class="submenu-item" onclick="irACalculadora('demanda_laboral', 'simple')">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('demanda_laboral', 'simple')">
                             Demandas Laborales <span class="arrow">→</span>
                         </div>
                         <div class="submenu-item" onclick="toggleSubMenu('procesosEjecSub')">
                             Procesos Ejecutivos <span class="arrow">▼</span>
                         </div>
                         <div id="procesosEjecSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irACalculadora('ejecutivo_prendario', 'simple')">Prendario</div>
-                            <div class="sub-submenu-item" onclick="irACalculadora('ejecutivo_simple', 'simple')">Simple</div>
-                            <div class="sub-submenu-item" onclick="irACalculadora('ejecutivo_hipotecario', 'simple')">Hipotecario</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_prendario', 'simple')">Prendario</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_simple', 'simple')">Simple</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_hipotecario', 'simple')">Hipotecario</div>
                         </div>
                     </div>
                 </div>
@@ -235,23 +235,23 @@
                 </div>
                 <div id="tramitesMenu" class="menu-items">
                     <div class="submenu">
-                        <div class="submenu-item" onclick="irACalculadora('peticion', 'derecho')">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('peticion', 'derecho')">
                             Peticiones <span class="arrow">→</span>
                         </div>
-                        <div class="submenu-item" onclick="irACalculadora('tutela', 'simple')">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('tutela', 'simple')">
                             Tutelas <span class="arrow">→</span>
                         </div>
                         <div class="submenu-item" onclick="toggleSubMenu('apelacionSub')">
                             Apelaciones <span class="arrow">▼</span>
                         </div>
                         <div id="apelacionSub" class="sub-submenu">
-                            <div class="sub-submenu-item" onclick="irACalculadora('apelacion_multas', 'simple')">Apelación de Multas</div>
-                            <div class="sub-submenu-item" onclick="irACalculadora('apelacion_sentencia', 'simple')">Apelación de Sentencia</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_multas', 'simple')">💰 Apelación de Multas</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_sentencia', 'simple')">⚖️ Apelación de Sentencia</div>
                         </div>
-                        <div class="submenu-item" onclick="irACalculadora('venta_inmueble', 'simple')">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_inmueble', 'simple')">
                             Venta de Inmuebles <span class="arrow">→</span>
                         </div>
-                        <div class="submenu-item" onclick="irACalculadora('venta_lote', 'simple')">
+                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_lote', 'simple')">
                             Venta de Lotes <span class="arrow">→</span>
                         </div>
                     </div>
@@ -264,6 +264,7 @@
         <div class="container">
             <p>© 2026 LexPenal - Asesoría Legal Profesional</p>
             <p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p>
+            <p>⚖️ Dr. Asmairo Conde Torres - Defensa Penal en todas sus áreas</p>
         </div>
     </footer>
 
@@ -280,13 +281,11 @@
             submenu.classList.toggle('active');
         }
 
-        // Función para ir a la calculadora con los parámetros
-        function irACalculadora(delito, tipo) {
-            // Guardar datos en localStorage temporalmente
+        // Función para ir a generar documento con los parámetros
+        function irAGenerarDocumento(delito, tipo) {
             localStorage.setItem('delito', delito);
             localStorage.setItem('tipo', tipo);
-            // Redirigir a la página de calculadora
-            window.location.href = '/calculadora.html';
+            window.location.href = '/generar-documento.html';
         }
 
         // Mantener el navbar fijo
@@ -300,4 +299,4 @@
         });
     </script>
 </body>
-</html>
+                                </html>
