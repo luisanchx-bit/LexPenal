@@ -152,6 +152,31 @@
         let fechaActual = new Date();
         let citasOcupadas = [];
         let fechaSeleccionada = null;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const tipoRama = urlParams.get('tipo') || 'general';
+
+        function getSaludo() {
+            const hora = new Date().getHours();
+            if (hora >= 6 && hora < 12) return "Buenos días";
+            if (hora >= 12 && hora < 19) return "Buenas tardes";
+            return "Buenas noches";
+        }
+
+        function generarCodigoUnico() {
+            const fecha = new Date();
+            const año = fecha.getFullYear();
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            const aleatorio = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `CIT-${año}${mes}${dia}-${aleatorio}`;
+        }
+
+        function formatearFecha(fecha) {
+            const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            return `${diasSemana[fecha.getDay()]} ${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+        }
 
         async function cargarCitasOcupadas() {
             try {
@@ -243,6 +268,12 @@
                 return;
             }
             
+            const codigoUnico = generarCodigoUnico();
+            const saludo = getSaludo();
+            const ramaTexto = tipoRama === 'penal' ? 'Derecho Penal' : 'Derecho Civil';
+            const fechaObj = new Date(fecha);
+            const fechaFormateada = formatearFecha(fechaObj);
+            
             const btn = document.querySelector('.btn-agendar');
             btn.innerHTML = '⏳ Agendando...';
             btn.disabled = true;
@@ -251,12 +282,13 @@
                 const res = await fetch('/api/citas/nueva', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, telefono, email, motivo, fecha, tipo: 'cita' })
+                    body: JSON.stringify({ nombre, telefono, email, motivo, fecha, tipo: 'cita', rama: ramaTexto, codigo: codigoUnico })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert(`✅ Cita agendada para el ${fecha}. Serás redirigido al WhatsApp del abogado.`);
-                    window.open(`https://wa.me/573145879875?text=Hola,%20soy%20${encodeURIComponent(nombre)}%20y%20acabo%20de%20agendar%20una%20cita%20para%20el%20${fecha}.`, '_blank');
+                    const mensajeWhatsApp = `${saludo}, soy ${nombre}. Mi cita en ${ramaTexto} ha sido agendada para el día ${fechaFormateada} con el código: ${codigoUnico}. Quedo atento a su confirmación.`;
+                    alert(`✅ Cita agendada para el ${fecha}.`);
+                    window.open(`https://wa.me/573145879875?text=${encodeURIComponent(mensajeWhatsApp)}`, '_blank');
                     window.location.href = '/';
                 } else {
                     alert('❌ Error: ' + data.error);
@@ -279,4 +311,4 @@
         cargarCitasOcupadas();
     </script>
 </body>
-</html>
+    </html>
