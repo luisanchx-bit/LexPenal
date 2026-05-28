@@ -120,7 +120,7 @@
 
     <div class="menu-container">
         <div class="menu-grid">
-            <!-- CARD 1: DERECHO PENAL (SOLO CONSULTAS Y CITAS) -->
+            <!-- CARD 1: DERECHO PENAL -->
             <div class="menu-card">
                 <div class="menu-header" onclick="toggleMenu('penalMenu')">
                     <h2>⚖️ Derecho Penal</h2>
@@ -128,34 +128,29 @@
                 </div>
                 <div id="penalMenu" class="menu-items">
                     <div class="submenu">
-                        <div class="submenu-item" onclick="window.location.href='/consulta.html'">
+                        <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=penal'">
                             📞 Consulta Legal <span class="arrow">→</span>
                         </div>
-                        <div class="submenu-item" onclick="window.location.href='/agendar-cita.html'">
+                        <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=penal'">
                             📅 Agendar Cita <span class="arrow">→</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CARD 2: DERECHO SOCIAL -->
+            <!-- CARD 2: DERECHO CIVIL -->
             <div class="menu-card">
-                <div class="menu-header" onclick="toggleMenu('socialMenu')">
-                    <h2>👥 Derecho Social</h2>
-                    <p>Laboral, seguridad social y más</p>
+                <div class="menu-header" onclick="toggleMenu('civilMenu')">
+                    <h2>📜 Derecho Civil</h2>
+                    <p>Consultas y agendamiento de citas</p>
                 </div>
-                <div id="socialMenu" class="menu-items">
+                <div id="civilMenu" class="menu-items">
                     <div class="submenu">
-                        <div class="submenu-item" onclick="toggleSubMenu('procesosEjecSub')">
-                            Procesos Ejecutivos <span class="arrow">▼</span>
+                        <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=civil'">
+                            📞 Consulta Legal <span class="arrow">→</span>
                         </div>
-                        <div id="procesosEjecSub" class="sub-submenu" style="max-height:0; overflow:hidden; transition:max-height 0.3s ease; padding-left:2rem;">
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_prendario', 'simple')">Prendario</div>
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_simple', 'simple')">Simple</div>
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('ejecutivo_hipotecario', 'simple')">Hipotecario</div>
-                        </div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('demanda_laboral', 'simple')">
-                            Demandas Laborales <span class="arrow">→</span>
+                        <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=civil'">
+                            📅 Agendar Cita <span class="arrow">→</span>
                         </div>
                     </div>
                 </div>
@@ -236,4 +231,4 @@
         <div class="btn-text-calc">⚖️ CALCULAR<br>PENA</div>
     </div>
 </body>
-</html>
+                    </html>
