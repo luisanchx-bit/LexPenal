@@ -52,7 +52,7 @@
             background: #050505;
         }
         .menu-items.active {
-            max-height: 600px;
+            max-height: 800px;
         }
         .submenu {
             padding: 0.5rem 0;
@@ -103,6 +103,7 @@
             background: linear-gradient(135deg, #000, #0a1628);
             margin-bottom: 2rem;
             border-radius: 20px;
+            margin-top: 70px;
         }
         .hero-mini h1 {
             font-size: 2.5rem;
@@ -114,6 +115,8 @@
         }
         @media (max-width: 768px) {
             .menu-grid { grid-template-columns: 1fr; }
+            .hero-mini { margin-top: 60px; padding: 2rem 1rem; }
+            .hero-mini h1 { font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -133,7 +136,7 @@
 
     <div class="hero-mini">
         <h1>Asesoría Legal <span class="dorado">Especializada</span></h1>
-        <p>Selecciona el área de tu interés para generar tu documento legal</p>
+        <p>Selecciona el área de tu interés para generar tu documento legal o agendar una cita</p>
     </div>
 
     <div class="menu-container">
@@ -164,6 +167,12 @@
                         </div>
                         <div class="submenu-item" onclick="irAGenerarDocumento('estafa', 'simple')">Estafa <span class="arrow">→</span></div>
                         <div class="submenu-item" onclick="irAGenerarDocumento('hurto', 'simple')">Hurto <span class="arrow">→</span></div>
+                        <div class="submenu-item" style="border-top: 1px solid #222; margin-top: 0.5rem;" onclick="window.location.href='/consulta.html'">
+                            📞 Consulta Legal <span class="arrow">→</span>
+                        </div>
+                        <div class="submenu-item" onclick="window.location.href='/agendar-cita.html'">
+                            📅 Agendar Cita <span class="arrow">→</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -240,9 +249,9 @@
         }
     </script>
 
-    <!-- BOTÓN FLOTANTE DE LA CALCULADORA (MÁS GRANDE) -->
+    <!-- BOTÓN FLOTANTE DE LA CALCULADORA -->
     <div class="calculadora-btn" onclick="window.location.href='/calculadora.html'">
         <div class="btn-text-calc">⚖️ CALCULAR<br>PENA</div>
     </div>
 </body>
-</html>
+                               </html>
