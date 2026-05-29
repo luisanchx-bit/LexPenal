@@ -7,238 +7,155 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
     <style>
-        .sidebar {
-            transition: transform 0.3s ease;
-        }
+        .sidebar { transition: transform 0.3s ease; }
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 1001;
-                width: 260px;
-            }
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0 !important;
-                padding: 1rem;
-                margin-top: 60px;
-            }
-            .menu-toggle-btn {
-                display: block !important;
-                position: fixed;
-                top: 15px;
-                left: 15px;
-                z-index: 1002;
-                background: #C8A951;
-                border: none;
-                color: #000;
-                font-size: 1.5rem;
-                padding: 0.5rem 0.8rem;
-                border-radius: 8px;
-                cursor: pointer;
-            }
-            .table-container {
-                overflow-x: auto;
-            }
-            table {
-                font-size: 0.8rem;
-            }
-            th, td {
-                padding: 0.5rem !important;
-            }
+            .sidebar { transform: translateX(-100%); position: fixed; z-index: 1001; width: 260px; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; padding: 1rem; margin-top: 60px; }
+            .menu-toggle-btn { display: block !important; position: fixed; top: 15px; left: 15px; z-index: 1002; background: #C8A951; border: none; color: #000; font-size: 1.5rem; padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; }
+            .table-container { overflow-x: auto; }
         }
-        @media (min-width: 769px) {
-            .menu-toggle-btn {
-                display: none;
-            }
-            .main-content {
-                margin-left: 280px;
-            }
-        }
-        .menu-toggle-btn {
-            display: none;
-        }
-        .upload-area {
-            border: 2px dashed #C8A951;
-            border-radius: 15px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 1rem;
-            transition: all 0.3s;
-        }
-        .upload-area:hover {
-            background: rgba(200, 169, 81, 0.1);
-        }
-        .campo-tag {
-            background: #C8A951;
-            color: #000;
-            padding: 0.2rem 0.5rem;
-            border-radius: 5px;
-            font-size: 0.7rem;
-            display: inline-block;
-            margin: 0.2rem;
-        }
+        @media (min-width: 769px) { .menu-toggle-btn { display: none; } .main-content { margin-left: 280px; } }
+        .menu-toggle-btn { display: none; }
+        .upload-area { border: 2px dashed #C8A951; border-radius: 15px; padding: 1.5rem; text-align: center; cursor: pointer; margin-bottom: 1rem; transition: all 0.3s; }
+        .upload-area:hover { background: rgba(200, 169, 81, 0.1); }
+        .campo-tag { background: #C8A951; color: #000; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.7rem; display: inline-block; margin: 0.2rem; }
+        .preview-container { background: #050505; padding: 1rem; border-radius: 10px; margin-top: 1rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.8rem; }
     </style>
 </head>
 <body>
     <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
-    
     <div class="admin-container">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'">
-                <h2>⚖️ LexPenal</h2>
-                <p>Panel de Control</p>
-            </div>
+            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
             <nav class="sidebar-nav">
                 <a href="/admin/index.html">📊 Dashboard</a>
                 <a href="/admin/citas.html">📅 Citas y Consultas</a>
                 <a href="/admin/plantillas.html" class="active">📄 Plantillas</a>
                 <a href="/admin/configuracion.html">⚙️ Configuración</a>
-                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
+                <a href="/faq.html">❓ FAQ</a>
+                <a href="/calculadora.html" target="_blank" style="border-top:1px solid rgba(200,169,81,0.3); margin-top:1rem; padding-top:1rem;">⚖️ Calculadora de Penas</a>
             </nav>
-            <div class="sidebar-footer">
-                <p>Dr. Asmairo Conde Torres</p>
-                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
-            </div>
+            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
         </aside>
-
         <main class="main-content">
-            <div class="admin-header">
-                <h1>📄 Gestión de Plantillas</h1>
-                <button class="btn-primary" onclick="abrirModalSubir()">📤 Subir Plantilla (.txt)</button>
-            </div>
-
+            <div class="admin-header"><h1>📄 Gestión de Plantillas</h1><button class="btn-primary" onclick="abrirModalSubir()">📤 Subir Plantilla (.txt)</button></div>
             <div class="table-container">
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>Nombre</th><th>Clave</th><th>Campos</th><th>Fecha</th><th>Acciones</th></tr>
-                    </thead>
-                    <tbody id="listaPlantillas">
-                        <tr><td colspan="6">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+                <table><thead><tr><th>ID</th><th>Nombre</th><th>Clave</th><th>Campos</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                <tbody id="listaPlantillas"><tr><td colspan="6">Cargando...</td></tr></tbody>
+            </table>
         </main>
     </div>
 
-    <div id="modalSubir" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>Subir Plantilla (.txt)</h3>
-                <button class="close-modal" onclick="cerrarModalSubir()">&times;</button>
-            </div>
-            <div class="upload-area" id="uploadArea">
-                <div style="font-size: 2rem;">📄</div>
-                <p>Haz clic para seleccionar un archivo .txt</p>
-                <input type="file" id="archivoInput" accept=".txt" style="display:none;">
-            </div>
-            <div class="form-group">
-                <label>Nombre *</label>
-                <input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Comparendo">
-            </div>
-            <div class="form-group">
-                <label>Clave única *</label>
-                <input type="text" id="clavePlantilla" placeholder="Ej: apelacion_comparendo">
-            </div>
-            <button class="btn-primary" id="btnSubir" onclick="subirPlantilla()" style="width:100%;">💾 Guardar Plantilla</button>
-        </div>
-    </div>
+    <div id="modalSubir" class="modal"><div class="modal-content" style="max-width:600px;"><div class="modal-header"><h3>Subir/Editar Plantilla</h3><button class="close-modal" onclick="cerrarModalSubir()">&times;</button></div>
+        <div class="upload-area" id="uploadArea"><div style="font-size:2rem;">📄</div><p>Haz clic para seleccionar un archivo .txt</p><input type="file" id="archivoInput" accept=".txt" style="display:none;"></div>
+        <div class="form-group"><label>Nombre *</label><input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Comparendo"></div>
+        <div class="form-group"><label>Clave única *</label><input type="text" id="clavePlantilla" placeholder="Ej: apelacion_comparendo"></div>
+        <div class="form-group"><label>Contenido *</label><textarea id="cuerpoPlantilla" rows="8" style="width:100%; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:8px; padding:0.5rem;"></textarea></div>
+        <div class="form-group"><label>Campos editables</label><div id="camposEditables" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div></div>
+        <div class="preview-container" id="previewContainer"></div>
+        <button class="btn-primary" id="btnSubir" onclick="guardarPlantilla()" style="width:100%; margin-top:1rem;">💾 Guardar Plantilla</button>
+    </div></div>
 
     <script>
-        const API_URL = '/api';
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
         let token = localStorage.getItem('token');
-        let archivoSeleccionado = null;
+        let editandoId = null;
 
         if (!token) window.location.href = '/login.html';
 
-        // Menú responsive
         const menuToggleBtn = document.getElementById('menuToggleBtn');
         const sidebar = document.getElementById('sidebar');
-        menuToggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('mobile-open');
-        });
-        document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                sidebar.classList.remove('mobile-open');
-            });
-        });
+        menuToggleBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+        document.querySelectorAll('.sidebar-nav a').forEach(link => { link.addEventListener('click', () => sidebar.classList.remove('mobile-open')); });
+
+        function actualizarPreview() {
+            const cuerpo = document.getElementById('cuerpoPlantilla').value;
+            const preview = document.getElementById('previewContainer');
+            if (!cuerpo) { preview.innerHTML = '<small>Vista previa aparecerá aquí...</small>'; return; }
+            let previewText = cuerpo.replace(/\[([A-Z_]+)\]/g, '<span style="color:#C8A951;">[$1]</span>');
+            preview.innerHTML = `<div style="margin-bottom:0.5rem;"><strong>📄 Vista previa:</strong></div><div style="white-space:pre-wrap;">${previewText}</div>`;
+            
+            const regex = /\[([A-Z_]+)\]/g;
+            const campos = [...new Set([...cuerpo.matchAll(regex)].map(m => m[1]))];
+            const camposDiv = document.getElementById('camposEditables');
+            camposDiv.innerHTML = campos.map(c => `<span class="campo-tag" style="cursor:pointer;" onclick="toggleCampo(this)">${c}</span>`).join('');
+        }
+
+        document.getElementById('cuerpoPlantilla').addEventListener('input', actualizarPreview);
 
         async function cargarPlantillas() {
-            const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(API_URL + '/plantillas', { headers: { 'Authorization': `Bearer ${token}` } });
             const plantillas = await res.json();
             const tbody = document.getElementById('listaPlantillas');
-            if (plantillas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">No hay plantillas. Sube tu primer archivo .txt!</td></tr>';
-                return;
-            }
-            tbody.innerHTML = plantillas.map(p => `
-                <tr>
-                    <td>${p.id}</td>
-                    <td><strong>${p.nombre}</strong></td>
-                    <td><code>${p.clave}</code></td>
-                    <td>${p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('')}</td>
-                    <td>${p.fecha_creacion}</td>
-                    <td><button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️</button></td>
-                </tr>
-            `).join('');
+            if (plantillas.length === 0) { tbody.innerHTML = '<td><td colspan="6">No hay plantillas. Sube tu primer archivo .txt!</td></tr>'; return; }
+            tbody.innerHTML = plantillas.map(p => `<tr><td>${p.id}</td><td><strong>${p.nombre}</strong></td><td><code>${p.clave}</code></td><td>${p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('')}</td><td>${p.fecha_creacion}</td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="editarPlantilla(${p.id})">✏️</button> <button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️</button></td></tr>`).join('');
         }
 
         function abrirModalSubir() {
-            document.getElementById('modalSubir').style.display = 'flex';
+            editandoId = null;
             document.getElementById('nombrePlantilla').value = '';
             document.getElementById('clavePlantilla').value = '';
-            archivoSeleccionado = null;
+            document.getElementById('cuerpoPlantilla').value = '';
             document.getElementById('uploadArea').innerHTML = '<div style="font-size:2rem;">📄</div><p>Haz clic para seleccionar un archivo .txt</p><input type="file" id="archivoInput" accept=".txt" style="display:none;">';
+            document.getElementById('modalSubir').style.display = 'flex';
         }
 
-        function cerrarModalSubir() { document.getElementById('modalSubir').style.display = 'none'; }
-
-        document.getElementById('uploadArea').addEventListener('click', () => document.getElementById('archivoInput').click());
-        document.getElementById('archivoInput').addEventListener('change', (e) => { if (e.target.files[0]) procesarArchivo(e.target.files[0]); });
-
-        function procesarArchivo(file) {
-            if (!file.name.endsWith('.txt')) { alert('Solo se aceptan archivos .txt'); return; }
-            archivoSeleccionado = file;
-            document.getElementById('uploadArea').innerHTML = `<div style="font-size:2rem;">✅</div><p>${file.name}</p><p>${(file.size / 1024).toFixed(2)} KB</p>`;
-        }
-
-        async function subirPlantilla() {
-            const nombre = document.getElementById('nombrePlantilla').value;
-            const clave = document.getElementById('clavePlantilla').value;
-            if (!nombre || !clave) { alert('Complete todos los campos'); return; }
-            if (!archivoSeleccionado) { alert('Seleccione un archivo .txt'); return; }
-
-            const formData = new FormData();
-            formData.append('archivo', archivoSeleccionado);
-            formData.append('nombre', nombre);
-            formData.append('clave', clave);
-
-            const btn = document.getElementById('btnSubir');
-            btn.innerHTML = '⏳ Guardando...';
-            btn.disabled = true;
-
-            const res = await fetch(`${API_URL}/plantillas/subir`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-            const data = await res.json();
-            if (data.success) {
-                alert(`✅ Plantilla "${nombre}" guardada!\nCampos: ${data.campos_detectados.join(', ')}`);
-                cerrarModalSubir();
-                cargarPlantillas();
-            } else {
-                alert('❌ Error: ' + data.error);
-                btn.innerHTML = '💾 Guardar Plantilla';
-                btn.disabled = false;
+        async function editarPlantilla(id) {
+            const res = await fetch(API_URL + '/plantillas', { headers: { 'Authorization': `Bearer ${token}` } });
+            const plantillas = await res.json();
+            const p = plantillas.find(p => p.id === id);
+            if (p) {
+                editandoId = id;
+                document.getElementById('nombrePlantilla').value = p.nombre;
+                document.getElementById('clavePlantilla').value = p.clave;
+                document.getElementById('cuerpoPlantilla').value = p.cuerpo;
+                actualizarPreview();
+                document.getElementById('modalSubir').style.display = 'flex';
             }
         }
 
-        async function eliminarPlantilla(id) { if (confirm('¿Eliminar?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
+        async function guardarPlantilla() {
+            const nombre = document.getElementById('nombrePlantilla').value;
+            const clave = document.getElementById('clavePlantilla').value;
+            const cuerpo = document.getElementById('cuerpoPlantilla').value;
+            if (!nombre || !clave || !cuerpo) { alert('Complete todos los campos'); return; }
+            
+            const btn = document.getElementById('btnSubir');
+            btn.innerHTML = '⏳ Guardando...';
+            btn.disabled = true;
+            
+            let url = API_URL + '/plantillas';
+            let method = 'POST';
+            let body = { nombre, clave, cuerpo, ubicacion: 'tramites', campos_editables: [] };
+            if (editandoId) { url = API_URL + '/plantillas/' + editandoId; method = 'PUT'; }
+            
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+            const data = await res.json();
+            if (data.success) {
+                alert('Plantilla guardada');
+                cerrarModalSubir();
+                cargarPlantillas();
+            } else { alert('Error: ' + data.error); }
+            btn.innerHTML = '💾 Guardar Plantilla';
+            btn.disabled = false;
+        }
+
+        async function eliminarPlantilla(id) { if (confirm('¿Eliminar?')) { await fetch(API_URL + '/plantillas/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
+        function cerrarModalSubir() { document.getElementById('modalSubir').style.display = 'none'; }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+
+        document.getElementById('uploadArea').addEventListener('click', () => document.getElementById('archivoInput').click());
+        document.getElementById('archivoInput').addEventListener('change', async (e) => {
+            if (!e.target.files[0]) return;
+            const file = e.target.files[0];
+            if (!file.name.endsWith('.txt')) { alert('Solo .txt'); return; }
+            const text = await file.text();
+            document.getElementById('cuerpoPlantilla').value = text;
+            actualizarPreview();
+        });
+
         cargarPlantillas();
     </script>
 </body>
