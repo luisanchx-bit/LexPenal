@@ -92,6 +92,19 @@
             text-align: center;
             border-left: 3px solid #C8A951;
         }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: #C8A951;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -163,15 +176,6 @@
             return "Buenas noches";
         }
 
-        function generarCodigoUnico() {
-            const fecha = new Date();
-            const año = fecha.getFullYear();
-            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-            const dia = String(fecha.getDate()).padStart(2, '0');
-            const aleatorio = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-            return `CIT-${año}${mes}${dia}-${aleatorio}`;
-        }
-
         function formatearFecha(fecha) {
             const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
             const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -239,7 +243,8 @@
         
         function seleccionarFecha(dia, mes, año) {
             fechaSeleccionada = new Date(año, mes, dia);
-            document.getElementById('fecha').value = fechaSeleccionada.toISOString().split('T')[0];
+            const fechaISO = fechaSeleccionada.toISOString().split('T')[0];
+            document.getElementById('fecha').value = fechaISO;
             document.getElementById('fechaSeleccionada').innerHTML = `📅 Fecha seleccionada: ${dia} de ${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][mes]} de ${año}`;
             renderCalendario();
         }
@@ -268,26 +273,25 @@
                 return;
             }
             
-            const codigoUnico = generarCodigoUnico();
             const saludo = getSaludo();
-            const ramaTexto = tipoRama === 'penal' ? 'Derecho Penal' : 'Derecho Civil';
+            const ramaTexto = { penal: 'Derecho Penal', civil: 'Derecho Civil', victimas: 'Víctimas y Migrantes', jac: 'JAC y Veedurías' }[tipoRama] || 'Consulta Legal';
             const fechaObj = new Date(fecha);
             const fechaFormateada = formatearFecha(fechaObj);
             
             const btn = document.querySelector('.btn-agendar');
-            btn.innerHTML = '⏳ Agendando...';
+            btn.innerHTML = '<span class="loading"></span> Agendando...';
             btn.disabled = true;
             
             try {
                 const res = await fetch('/api/citas/nueva', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, telefono, email, motivo, fecha, tipo: 'cita', rama: ramaTexto, codigo: codigoUnico })
+                    body: JSON.stringify({ nombre, telefono, email, motivo, fecha, rama: tipoRama })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    const mensajeWhatsApp = `${saludo}, soy ${nombre}. Mi cita en ${ramaTexto} ha sido agendada para el día ${fechaFormateada} con el código: ${codigoUnico}. Quedo atento a su confirmación.`;
-                    alert(`✅ Cita agendada para el ${fecha}.`);
+                    const mensajeWhatsApp = `${saludo}, soy ${nombre}. Mi cita en ${ramaTexto} ha sido agendada para el día ${fechaFormateada} con el código: ${data.codigo}. Quedo atento a su confirmación.`;
+                    alert(`✅ Cita agendada para el ${fecha}. Código: ${data.codigo}`);
                     window.open(`https://wa.me/573145879875?text=${encodeURIComponent(mensajeWhatsApp)}`, '_blank');
                     window.location.href = '/';
                 } else {
@@ -296,7 +300,8 @@
                     btn.disabled = false;
                 }
             } catch (error) {
-                alert('❌ Error de conexión');
+                console.error('Error:', error);
+                alert('❌ Error de conexión con el servidor');
                 btn.innerHTML = '📅 Agendar Cita';
                 btn.disabled = false;
             }
