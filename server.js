@@ -10,13 +10,27 @@ const JWT_SECRET = 'lexpenal_seguro_2026_muy_secreto';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configuración de multer para subir archivos
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'frontend')));
 app.use('/storage', express.static(path.join(__dirname, 'storage')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const upload = multer({ dest: 'uploads/' });
 const DATA_FILE = path.join(__dirname, 'database.json');
 
 function initDB() {
@@ -24,7 +38,9 @@ function initDB() {
         const adminHash = bcrypt.hashSync("ACT1018457093", 10);
         const initialData = {
             usuarios: [{ id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }],
-            casos: [],
+            consultas: [],
+            citas: [],
+            casos_legales: [],
             testimonios: [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: new Date().toISOString().split('T')[0] }],
             plantillas: [],
             tipos_caso: [
@@ -43,8 +59,13 @@ function initDB() {
     }
 }
 
-function readDB() { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
-function writeDB(data) { fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); }
+function readDB() { 
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    return JSON.parse(data);
+}
+function writeDB(data) { 
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
 initDB();
 
 function verificarToken(req, res, next) {
@@ -95,6 +116,149 @@ app.post('/api/auth/login', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
 });
 
+// ==================== RUTAS DE CONSULTAS (CON ARCHIVOS) ====================
+app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
+    try {
+        const { nombre, telefono, email, hechos, rama } = req.body;
+        const codigo = `CON-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        const archivos = req.files ? req.files.map(f => ({ 
+            nombre: f.originalname, 
+            ruta: `/uploads/${f.filename}`,
+            tamaño: (f.size / 1024).toFixed(2) + ' KB'
+        })) : [];
+        
+        const db = readDB();
+        const nuevaConsulta = {
+            id: db.consultas.length + 1,
+            codigo,
+            nombre,
+            telefono,
+            email,
+            hechos,
+            rama: rama || 'general',
+            archivos,
+            fecha: new Date().toISOString(),
+            estado: 'pendiente',
+            tipo: 'consulta'
+        };
+        db.consultas.push(nuevaConsulta);
+        writeDB(db);
+        
+        console.log(`✅ Nueva consulta guardada: ${codigo} - ${nombre}`);
+        res.json({ success: true, codigo, mensaje: 'Consulta guardada exitosamente' });
+    } catch (error) { 
+        console.error('Error en consulta:', error);
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// ==================== RUTAS DE CITAS ====================
+app.post('/api/citas/nueva', (req, res) => {
+    try {
+        const { nombre, telefono, email, motivo, fecha, rama } = req.body;
+        const codigo = `CIT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        
+        const db = readDB();
+        
+        // Verificar si la fecha ya está ocupada
+        const fechaStr = fecha ? fecha.split('T')[0] : null;
+        const citaExistente = db.citas.find(c => c.fecha && c.fecha.includes(fechaStr) && c.estado !== 'cancelada');
+        if (citaExistente && fechaStr) {
+            return res.status(400).json({ error: 'La fecha seleccionada ya no está disponible' });
+        }
+        
+        const nuevaCita = {
+            id: db.citas.length + 1,
+            codigo,
+            nombre,
+            telefono,
+            email,
+            motivo,
+            fecha,
+            rama: rama || 'general',
+            fecha_registro: new Date().toISOString(),
+            estado: 'pendiente',
+            tipo: 'cita'
+        };
+        db.citas.push(nuevaCita);
+        writeDB(db);
+        
+        console.log(`✅ Nueva cita guardada: ${codigo} - ${nombre} - ${fecha}`);
+        res.json({ success: true, codigo, mensaje: 'Cita agendada exitosamente' });
+    } catch (error) { 
+        console.error('Error en cita:', error);
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// ==================== OBTENER TODOS LOS REGISTROS (ADMIN) ====================
+app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
+    const db = readDB();
+    res.json({ 
+        consultas: db.consultas || [], 
+        citas: db.citas || [], 
+        total: (db.consultas?.length || 0) + (db.citas?.length || 0)
+    });
+});
+
+// ==================== OBTENER CITAS OCUPADAS ====================
+app.get('/api/citas/ocupadas', (req, res) => {
+    const db = readDB();
+    const citas = db.citas || [];
+    const fechasOcupadas = citas.filter(c => c.estado !== 'cancelada').map(c => c.fecha ? c.fecha.split('T')[0] : null).filter(f => f);
+    res.json(fechasOcupadas);
+});
+
+// ==================== ACTUALIZAR ESTADO ====================
+app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const { estado, notas_admin, tipo } = req.body;
+    const db = readDB();
+    
+    let item = null;
+    let lista = tipo === 'consulta' ? db.consultas : db.citas;
+    const index = lista.findIndex(c => c.id === parseInt(id));
+    
+    if (index !== -1) {
+        if (estado) lista[index].estado = estado;
+        if (notas_admin !== undefined) lista[index].notas_admin = notas_admin;
+        writeDB(db);
+        res.json({ success: true });
+    } else { 
+        res.status(404).json({ error: 'No encontrado' }); 
+    }
+});
+
+// ==================== ELIMINAR REGISTRO ====================
+app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const { tipo } = req.body;
+    const db = readDB();
+    
+    if (tipo === 'consulta') {
+        db.consultas = db.consultas.filter(c => c.id !== parseInt(id));
+    } else {
+        db.citas = db.citas.filter(c => c.id !== parseInt(id));
+    }
+    writeDB(db);
+    res.json({ success: true });
+});
+
+// ==================== ADMIN DASHBOARD ====================
+app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
+    const db = readDB();
+    const consultas = db.consultas || [];
+    const citas = db.citas || [];
+    res.json({ 
+        total_consultas: consultas.length,
+        total_citas: citas.length,
+        consultas_pendientes: consultas.filter(c => c.estado === 'pendiente').length,
+        citas_pendientes: citas.filter(c => c.estado === 'pendiente').length,
+        testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
+        tipos_caso_total: db.tipos_caso.length 
+    });
+});
+
 // ==================== RUTAS DE PLANTILLAS ====================
 app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.plantillas || []); });
 app.get('/api/plantillas/public/:clave', (req, res) => {
@@ -125,114 +289,6 @@ app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single(
 });
 app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.plantillas = db.plantillas.filter(p => p.id !== parseInt(req.params.id)); writeDB(db); res.json({ success: true }); });
 
-// ==================== CONSULTAS Y CITAS ====================
-app.post('/api/consultas/nueva', upload.any(), async (req, res) => {
-    try {
-        const { nombre, telefono, email, hechos, rama, codigo } = req.body;
-        const db = readDB();
-        const archivos = req.files ? req.files.map(f => ({ nombre: f.originalname, ruta: f.path })) : [];
-        const nuevaConsulta = {
-            id: db.casos.length + 1,
-            tipo: 'consulta',
-            nombre,
-            telefono,
-            email,
-            hechos,
-            rama: rama || 'general',
-            codigo: codigo || `CON-${Date.now()}`,
-            archivos,
-            fecha: new Date().toISOString(),
-            estado: 'pendiente'
-        };
-        db.casos.push(nuevaConsulta);
-        writeDB(db);
-        res.json({ success: true, codigo: nuevaConsulta.codigo });
-    } catch (error) { 
-        res.status(500).json({ error: error.message }); 
-    }
-});
-
-app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    const consultas = db.casos.filter(c => c.tipo === 'consulta');
-    const citas = db.casos.filter(c => c.tipo === 'cita');
-    res.json({ consultas, citas, total: db.casos.length });
-});
-
-app.get('/api/citas/ocupadas', (req, res) => {
-    const db = readDB();
-    const citas = db.casos.filter(c => c.tipo === 'cita' && c.estado !== 'cancelada');
-    const fechasOcupadas = citas.map(c => c.fecha ? c.fecha.split('T')[0] : null).filter(f => f);
-    res.json(fechasOcupadas);
-});
-
-app.post('/api/citas/nueva', (req, res) => {
-    try {
-        const { nombre, telefono, email, motivo, fecha, rama, codigo } = req.body;
-        const db = readDB();
-        const fechaStr = fecha ? fecha.split('T')[0] : null;
-        const citaExistente = db.casos.find(c => c.tipo === 'cita' && c.fecha && c.fecha.includes(fechaStr));
-        if (citaExistente && fechaStr) {
-            return res.status(400).json({ error: 'La fecha seleccionada ya no está disponible' });
-        }
-        const nuevaCita = {
-            id: db.casos.length + 1,
-            tipo: 'cita',
-            nombre,
-            telefono,
-            email,
-            motivo,
-            fecha,
-            rama: rama || 'general',
-            codigo: codigo || `CIT-${Date.now()}`,
-            fecha_registro: new Date().toISOString(),
-            estado: 'pendiente'
-        };
-        db.casos.push(nuevaCita);
-        writeDB(db);
-        res.json({ success: true, codigo: nuevaCita.codigo });
-    } catch (error) { 
-        res.status(500).json({ error: error.message }); 
-    }
-});
-
-app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const { estado, notas_admin } = req.body;
-    const db = readDB();
-    const index = db.casos.findIndex(c => c.id === parseInt(id));
-    if (index !== -1) {
-        if (estado) db.casos[index].estado = estado;
-        if (notas_admin !== undefined) db.casos[index].notas_admin = notas_admin;
-        writeDB(db);
-        res.json({ success: true });
-    } else { 
-        res.status(404).json({ error: 'No encontrado' }); 
-    }
-});
-
-app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const db = readDB();
-    db.casos = db.casos.filter(c => c.id !== parseInt(id));
-    writeDB(db);
-    res.json({ success: true });
-});
-
-// ==================== RUTAS DE CASOS ANTIGUOS ====================
-app.get('/api/casos/tipos', (req, res) => { const db = readDB(); res.json(db.tipos_caso.map(t => t.nombre)); });
-app.post('/api/casos/nuevo', verificarToken, (req, res) => {
-    try {
-        const { tipo_caso, descripcion, fecha_hechos, lugar_hechos } = req.body;
-        const db = readDB();
-        const nuevoCaso = { id: db.casos.length + 1, id_cliente: req.usuario.id, nombre_cliente: req.usuario.nombre, cedula_cliente: req.usuario.cedula, tipo_caso, descripcion, fecha_hechos: fecha_hechos || null, lugar_hechos: lugar_hechos || null, fecha_registro: new Date().toISOString(), estado: 'pendiente', evidencias: [], notas_admin: null };
-        db.casos.push(nuevoCaso);
-        writeDB(db);
-        res.json({ success: true, mensaje: 'Caso creado exitosamente', caso: nuevoCaso });
-    } catch (error) { res.status(500).json({ error: 'Error al crear caso' }); }
-});
-app.get('/api/casos/mis-casos', verificarToken, (req, res) => { const db = readDB(); res.json(db.casos.filter(c => c.id_cliente === req.usuario.id)); });
-
 // ==================== RUTAS DE TESTIMONIOS ====================
 app.get('/api/testimonios', (req, res) => { const db = readDB(); res.json(db.testimonios.filter(t => t.aprobado)); });
 app.post('/api/testimonios', verificarToken, verificarAdmin, (req, res) => {
@@ -261,31 +317,6 @@ app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) =>
     writeDB(db);
     res.json({ success: true });
 });
-
-// ==================== WHATSAPP ====================
-app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
-    res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20el%20cliente%20con%20cédula%20${req.usuario.cedula}` });
-});
-
-// ==================== ADMIN DASHBOARD ====================
-app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    const consultas = db.casos.filter(c => c.tipo === 'consulta');
-    const citas = db.casos.filter(c => c.tipo === 'cita');
-    res.json({ 
-        total_casos: db.casos.length,
-        total_consultas: consultas.length,
-        total_citas: citas.length,
-        consultas_pendientes: consultas.filter(c => c.estado === 'pendiente').length,
-        citas_pendientes: citas.filter(c => c.estado === 'pendiente').length,
-        testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
-        tipos_caso_total: db.tipos_caso.length 
-    });
-});
-app.get('/api/admin/abogado', (req, res) => { const db = readDB(); res.json(db.abogado); });
-app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.abogado = { ...db.abogado, ...req.body }; writeDB(db); res.json({ success: true }); });
-app.get('/api/admin/configuracion', (req, res) => { const db = readDB(); res.json(db.configuracion); });
-app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion = { ...db.configuracion, ...req.body }; writeDB(db); res.json({ success: true }); });
 
 // ==================== RUTAS DE TIPOS DE CASO ====================
 app.get('/api/tipos-caso', (req, res) => { const db = readDB(); res.json(db.tipos_caso); });
@@ -316,6 +347,17 @@ app.delete('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => 
     res.json({ success: true });
 });
 
+// ==================== RUTAS DE ADMIN GENERAL ====================
+app.get('/api/admin/abogado', (req, res) => { const db = readDB(); res.json(db.abogado); });
+app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.abogado = { ...db.abogado, ...req.body }; writeDB(db); res.json({ success: true }); });
+app.get('/api/admin/configuracion', (req, res) => { const db = readDB(); res.json(db.configuracion); });
+app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion = { ...db.configuracion, ...req.body }; writeDB(db); res.json({ success: true }); });
+
+// ==================== WHATSAPP ====================
+app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
+    res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20el%20cliente%20con%20cédula%20${req.usuario.cedula}` });
+});
+
 // ==================== FRONTEND ====================
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'index.html')); });
 app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'index.html')); });
@@ -324,6 +366,5 @@ app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'front
 app.listen(PORT, () => {
     console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
     console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
-    console.log(`📂 Sube plantillas en /admin/plantillas.html`);
-    console.log(`📅 Citas y consultas en /admin/citas.html`);
+    console.log(`📂 Base de datos: ${DATA_FILE}`);
 });
