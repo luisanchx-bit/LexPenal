@@ -5,16 +5,20 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const nodemailer = require('nodemailer');
-const crypto = require('crypto');
-
-// Librerías para exportación
-const XLSX = require('xlsx');
-const PDFDocument = require('pdfkit');
+const { createClient } = require('@supabase/supabase-js');
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+const mammoth = require('mammoth');
+const { Packer } = require('docx');
+const { Document, Paragraph, TextRun } = require('docx');
 
 const JWT_SECRET = 'lexpenal_seguro_2026_muy_secreto';
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Supabase
+const supabaseUrl = process.env.SUPABASE_URL || 'https://fxfwcfanzqnegdyheklv.supabase.co';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Configuración de multer para subir archivos
 const storage = multer.diskStorage({
@@ -39,18 +43,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const DATA_FILE = path.join(__dirname, 'database.json');
 
-// Configuración de correo (para notificaciones)
-let transporter = null;
-try {
-    transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER || 'tuemail@gmail.com',
-            pass: process.env.EMAIL_PASS || 'tucontraseña'
-        }
-    });
-} catch(e) { console.log('Email no configurado'); }
-
 // ============ BASE DE DATOS EN MEMORIA ============
 let memoriaDB = {
     usuarios: [],
@@ -58,6 +50,7 @@ let memoriaDB = {
     citas: [],
     testimonios: [],
     plantillas: [],
+    documentos_generados: [],
     tipos_caso: [],
     configuracion: {},
     abogado: {},
@@ -86,6 +79,7 @@ function initDB() {
     memoriaDB.consultas = [];
     memoriaDB.citas = [];
     memoriaDB.plantillas = [];
+    memoriaDB.documentos_generados = [];
     memoriaDB.tokens_recuperacion = [];
 
     if (fs.existsSync(DATA_FILE)) {
@@ -97,6 +91,7 @@ function initDB() {
             if (archivoDB.usuarios) memoriaDB.usuarios = archivoDB.usuarios;
             if (archivoDB.testimonios) memoriaDB.testimonios = archivoDB.testimonios;
             if (archivoDB.plantillas) memoriaDB.plantillas = archivoDB.plantillas;
+            if (archivoDB.documentos_generados) memoriaDB.documentos_generados = archivoDB.documentos_generados;
             if (archivoDB.tipos_caso) memoriaDB.tipos_caso = archivoDB.tipos_caso;
             if (archivoDB.configuracion) memoriaDB.configuracion = archivoDB.configuracion;
             if (archivoDB.abogado) memoriaDB.abogado = archivoDB.abogado;
@@ -175,47 +170,129 @@ app.post('/api/auth/login', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
 });
 
-// ==================== RECUPERACIÓN DE CONTRASEÑA ====================
-app.post('/api/auth/recuperar', async (req, res) => {
+// ==================== SUBIR ARCHIVO A SUPABASE STORAGE ====================
+async function subirASupabase(filePath, fileName, carpeta) {
     try {
-        const { email } = req.body;
+        const fileBuffer = fs.readFileSync(filePath);
+        const { data, error } = await supabase.storage
+            .from('lexpenal')
+            .upload(`${carpeta}/${Date.now()}-${fileName}`, fileBuffer, {
+                contentType: 'application/octet-stream',
+                upsert: false
+            });
+        if (error) throw error;
+        const { data: urlData } = supabase.storage.from('lexpenal').getPublicUrl(data.path);
+        return urlData.publicUrl;
+    } catch (error) {
+        console.error('Error subiendo a Supabase:', error);
+        return null;
+    }
+}
+
+// ==================== RUTAS DE PLANTILLAS (con subida a Supabase) ====================
+app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
+    try {
+        const archivo = req.file;
+        const { nombre, clave, ubicacion, sububicacion } = req.body;
+        if (!archivo) return res.status(400).json({ error: 'No se subió ningún archivo' });
+        
+        const filePath = archivo.path;
+        const extension = archivo.originalname.split('.').pop().toLowerCase();
+        
+        // Subir a Supabase Storage
+        const url = await subirASupabase(filePath, archivo.originalname, 'plantillas');
+        
+        let texto = '';
+        if (extension === 'txt') {
+            texto = fs.readFileSync(filePath, 'utf8');
+        } else if (extension === 'pdf') {
+            const pdfParse = require('pdf-parse');
+            const dataBuffer = fs.readFileSync(filePath);
+            const pdfData = await pdfParse(dataBuffer);
+            texto = pdfData.text;
+        } else if (extension === 'docx') {
+            const result = await mammoth.extractRawText({ path: filePath });
+            texto = result.value;
+        }
+        
+        const regex = /\[([A-Z_]+)\]/g;
+        const campos = [];
+        let match;
+        while ((match = regex.exec(texto)) !== null) { if (!campos.includes(match[1])) campos.push(match[1]); }
+        
         const db = readDB();
-        const usuario = db.usuarios.find(u => u.email === email);
-        if (!usuario) return res.status(404).json({ error: 'Correo no registrado' });
+        const nuevaPlantilla = { 
+            id: db.plantillas.length + 1, 
+            nombre, 
+            clave, 
+            ubicacion: ubicacion || 'tramites', 
+            sububicacion: sububicacion || '', 
+            titulo: nombre, 
+            cuerpo: texto,
+            url: url,
+            extension: extension,
+            campos_editables: campos.length > 0 ? campos : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'], 
+            fecha_creacion: new Date().toISOString().split('T')[0] 
+        };
+        db.plantillas.push(nuevaPlantilla);
+        writeDB(db);
+        fs.unlinkSync(filePath);
         
-        const token = crypto.randomBytes(32).toString('hex');
-        const expira = new Date();
-        expira.setHours(expira.getHours() + 1);
+        res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
+    } catch (error) { res.status(500).json({ error: 'Error al procesar el archivo: ' + error.message }); }
+});
+
+app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.plantillas || []); });
+app.get('/api/plantillas/public/:clave', (req, res) => {
+    const db = readDB();
+    const plantilla = db.plantillas.find(p => p.clave === req.params.clave);
+    if (plantilla) { res.json(plantilla); } else { res.status(404).json({ error: 'Plantilla no encontrada' }); }
+});
+app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.plantillas = db.plantillas.filter(p => p.id !== parseInt(req.params.id)); writeDB(db); res.json({ success: true }); });
+
+// ==================== GENERAR DOCUMENTO ====================
+app.post('/api/generar-documento', verificarToken, async (req, res) => {
+    try {
+        const { plantillaId, datos, archivosPrueba } = req.body;
+        const db = readDB();
+        const plantilla = db.plantillas.find(p => p.id === plantillaId);
+        if (!plantilla) return res.status(404).json({ error: 'Plantilla no encontrada' });
         
-        db.tokens_recuperacion.push({ email, token, expira });
+        let documentoGenerado = plantilla.cuerpo;
+        for (const [key, value] of Object.entries(datos)) {
+            documentoGenerado = documentoGenerado.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
+        }
+        
+        const nuevoDoc = {
+            id: db.documentos_generados.length + 1,
+            usuario_id: req.usuario.id,
+            usuario_nombre: req.usuario.nombre,
+            plantilla_id: plantillaId,
+            plantilla_nombre: plantilla.nombre,
+            contenido: documentoGenerado,
+            archivos_prueba: archivosPrueba || [],
+            fecha_generacion: new Date().toISOString()
+        };
+        db.documentos_generados.push(nuevoDoc);
         writeDB(db);
         
-        // Enviar correo (simulado por ahora)
-        console.log(`🔐 Token de recuperación para ${email}: ${token}`);
-        res.json({ success: true, mensaje: 'Si el correo está registrado, recibirás un enlace de recuperación' });
+        res.json({ success: true, documento: nuevoDoc });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-app.post('/api/auth/restablecer', async (req, res) => {
-    try {
-        const { token, nuevaContrasena } = req.body;
-        const db = readDB();
-        const tokenObj = db.tokens_recuperacion.find(t => t.token === token && new Date(t.expira) > new Date());
-        if (!tokenObj) return res.status(400).json({ error: 'Token inválido o expirado' });
-        
-        const usuario = db.usuarios.find(u => u.email === tokenObj.email);
-        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
-        
-        usuario.contrasena_hash = await bcrypt.hash(nuevaContrasena, 10);
-        db.tokens_recuperacion = db.tokens_recuperacion.filter(t => t.token !== token);
-        writeDB(db);
-        
-        res.json({ success: true, mensaje: 'Contraseña restablecida exitosamente' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+app.get('/api/documentos-generados', verificarToken, verificarAdmin, (req, res) => {
+    const db = readDB();
+    res.json(db.documentos_generados || []);
+});
+
+app.delete('/api/documentos-generados/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const db = readDB();
+    db.documentos_generados = db.documentos_generados.filter(d => d.id !== parseInt(id));
+    writeDB(db);
+    res.json({ success: true });
 });
 
 // ==================== RUTAS DE CONSULTAS ====================
@@ -250,9 +327,6 @@ app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
         };
         db.consultas.push(nuevaConsulta);
         writeDB(db);
-        
-        // Enviar correo de confirmación (simulado)
-        console.log(`📧 Confirmación enviada a ${email} para consulta ${codigo}`);
         
         console.log(`✅ Consulta guardada: ${codigo} - ${nombre}`);
         res.json({ success: true, codigo, mensaje: 'Consulta guardada exitosamente' });
@@ -300,28 +374,6 @@ app.post('/api/citas/nueva', (req, res) => {
         console.error('❌ Error en cita:', error);
         res.status(500).json({ error: error.message }); 
     }
-});
-
-// ==================== ENVÍO DE RECORDATORIOS (simulado) ====================
-app.post('/api/enviar-recordatorios', verificarToken, verificarAdmin, async (req, res) => {
-    const db = readDB();
-    const ahora = new Date();
-    const manana = new Date();
-    manana.setDate(manana.getDate() + 1);
-    
-    const citasManana = db.citas.filter(c => {
-        if (!c.fecha || c.estado === 'cancelada' || c.recordatorio_enviado) return false;
-        const fechaCita = new Date(c.fecha);
-        return fechaCita.toDateString() === manana.toDateString();
-    });
-    
-    citasManana.forEach(cita => {
-        console.log(`📧 Recordatorio para ${cita.nombre} (${cita.email}): Su cita es mañana a las ${new Date(cita.fecha).toLocaleTimeString()}`);
-        cita.recordatorio_enviado = true;
-    });
-    
-    writeDB(db);
-    res.json({ success: true, enviados: citasManana.length });
 });
 
 // ==================== OBTENER TODOS LOS REGISTROS ====================
@@ -406,6 +458,9 @@ app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
 });
 
 // ==================== EXPORTAR DATOS ====================
+const XLSX = require('xlsx');
+const PDFDocument = require('pdfkit');
+
 app.get('/api/exportar/excel', verificarToken, verificarAdmin, async (req, res) => {
     try {
         const db = readDB();
@@ -497,59 +552,26 @@ app.get('/api/exportar/pdf', verificarToken, verificarAdmin, async (req, res) =>
     }
 });
 
-// ==================== RUTAS DE PLANTILLAS (con previsualización) ====================
-app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.plantillas || []); });
-app.get('/api/plantillas/public/:clave', (req, res) => {
+// ==================== ENVÍO DE RECORDATORIOS ====================
+app.post('/api/enviar-recordatorios', verificarToken, verificarAdmin, async (req, res) => {
     const db = readDB();
-    const plantilla = db.plantillas.find(p => p.clave === req.params.clave);
-    if (plantilla) { res.json(plantilla); } else { res.status(404).json({ error: 'Plantilla no encontrada' }); }
-});
-app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
-    try {
-        const archivo = req.file;
-        const { nombre, clave, ubicacion, sububicacion } = req.body;
-        if (!archivo) return res.status(400).json({ error: 'No se subió ningún archivo' });
-        const filePath = archivo.path;
-        const extension = archivo.originalname.split('.').pop().toLowerCase();
-        if (extension !== 'txt') { fs.unlinkSync(filePath); return res.status(400).json({ error: 'Solo se aceptan archivos .txt' }); }
-        const texto = fs.readFileSync(filePath, 'utf8');
-        const regex = /\[([A-Z_]+)\]/g;
-        const campos = [];
-        let match;
-        while ((match = regex.exec(texto)) !== null) { if (!campos.includes(match[1])) campos.push(match[1]); }
-        const db = readDB();
-        const nuevaPlantilla = { id: db.plantillas.length + 1, nombre, clave, ubicacion: ubicacion || 'tramites', sububicacion: sububicacion || '', titulo: nombre, cuerpo: texto, campos_editables: campos.length > 0 ? campos : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'], fecha_creacion: new Date().toISOString().split('T')[0] };
-        db.plantillas.push(nuevaPlantilla);
-        writeDB(db);
-        fs.unlinkSync(filePath);
-        res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
-    } catch (error) { res.status(500).json({ error: 'Error al procesar el archivo: ' + error.message }); }
-});
-app.put('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const { nombre, clave, ubicacion, sububicacion, cuerpo, campos_editables } = req.body;
-    const db = readDB();
-    const index = db.plantillas.findIndex(p => p.id === parseInt(id));
-    if (index !== -1) {
-        db.plantillas[index] = { ...db.plantillas[index], nombre, clave, ubicacion, sububicacion, cuerpo, campos_editables };
-        writeDB(db);
-        res.json({ success: true });
-    } else { res.status(404).json({ error: 'Plantilla no encontrada' }); }
-});
-app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.plantillas = db.plantillas.filter(p => p.id !== parseInt(req.params.id)); writeDB(db); res.json({ success: true }); });
-
-// ==================== RUTAS DE CONFIGURACIÓN (tema) ====================
-app.get('/api/configuracion/tema', (req, res) => {
-    const db = readDB();
-    res.json({ tema: db.configuracion.tema || 'oscuro' });
-});
-
-app.put('/api/configuracion/tema', verificarToken, verificarAdmin, (req, res) => {
-    const { tema } = req.body;
-    const db = readDB();
-    db.configuracion.tema = tema;
+    const ahora = new Date();
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    
+    const citasManana = db.citas.filter(c => {
+        if (!c.fecha || c.estado === 'cancelada' || c.recordatorio_enviado) return false;
+        const fechaCita = new Date(c.fecha);
+        return fechaCita.toDateString() === manana.toDateString();
+    });
+    
+    citasManana.forEach(cita => {
+        console.log(`📧 Recordatorio para ${cita.nombre} (${cita.email}): Su cita es mañana a las ${new Date(cita.fecha).toLocaleTimeString()}`);
+        cita.recordatorio_enviado = true;
+    });
+    
     writeDB(db);
-    res.json({ success: true });
+    res.json({ success: true, enviados: citasManana.length });
 });
 
 // ==================== RUTAS DE TESTIMONIOS ====================
@@ -615,6 +637,8 @@ app.get('/api/admin/abogado', (req, res) => { const db = readDB(); res.json(db.a
 app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.abogado = { ...db.abogado, ...req.body }; writeDB(db); res.json({ success: true }); });
 app.get('/api/admin/configuracion', (req, res) => { const db = readDB(); res.json(db.configuracion); });
 app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion = { ...db.configuracion, ...req.body }; writeDB(db); res.json({ success: true }); });
+app.get('/api/configuracion/tema', (req, res) => { const db = readDB(); res.json({ tema: db.configuracion.tema || 'oscuro' }); });
+app.put('/api/configuracion/tema', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion.tema = req.body.tema; writeDB(db); res.json({ success: true }); });
 
 // ==================== WHATSAPP ====================
 app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
@@ -630,4 +654,5 @@ app.listen(PORT, () => {
     console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
     console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
     console.log(`📊 Exportar: /api/exportar/excel | /api/exportar/pdf`);
+    console.log(`🗄️ Supabase: ${supabaseUrl ? 'Conectado' : 'No configurado'}`);
 });
