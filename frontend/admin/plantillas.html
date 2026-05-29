@@ -2,37 +2,107 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Gestión de Plantillas - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
     <style>
-        .upload-area { border: 2px dashed #C8A951; border-radius: 15px; padding: 2rem; text-align: center; cursor: pointer; margin-bottom: 1.5rem; transition: all 0.3s; }
-        .upload-area:hover { background: rgba(200, 169, 81, 0.1); }
-        .campo-tag { background: #C8A951; color: #000; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.8rem; display: inline-block; margin: 0.2rem; }
-        .select-group { margin-bottom: 1rem; }
-        .select-group label { display: block; margin-bottom: 0.5rem; color: #C8A951; }
-        .select-group select, .form-group input { width: 100%; padding: 0.8rem; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #fff; }
-        .modal-content { max-width: 600px; }
-        .btn-guardar { background: #C8A951; color: #000; border: none; padding: 0.8rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 1rem; font-size: 1rem; transition: all 0.3s; }
-        .btn-guardar:hover { background: #b8960c; transform: translateY(-2px); }
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1001;
+                width: 260px;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+            .menu-toggle-btn {
+                display: block !important;
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 1002;
+                background: #C8A951;
+                border: none;
+                color: #000;
+                font-size: 1.5rem;
+                padding: 0.5rem 0.8rem;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            .table-container {
+                overflow-x: auto;
+            }
+            table {
+                font-size: 0.8rem;
+            }
+            th, td {
+                padding: 0.5rem !important;
+            }
+        }
+        @media (min-width: 769px) {
+            .menu-toggle-btn {
+                display: none;
+            }
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+        .menu-toggle-btn {
+            display: none;
+        }
+        .upload-area {
+            border: 2px dashed #C8A951;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            background: rgba(200, 169, 81, 0.1);
+        }
+        .campo-tag {
+            background: #C8A951;
+            color: #000;
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            display: inline-block;
+            margin: 0.2rem;
+        }
     </style>
 </head>
 <body>
+    <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
+    
     <div class="admin-container">
-        <aside class="sidebar">
-            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'">
+                <h2>⚖️ LexPenal</h2>
+                <p>Panel de Control</p>
+            </div>
             <nav class="sidebar-nav">
                 <a href="/admin/index.html">📊 Dashboard</a>
-                <a href="/admin/interface.html">🎨 Interfaz</a>
-                <a href="/admin/casos.html">📋 Casos</a>
-                <a href="/admin/testimonios.html">💬 Testimonios</a>
+                <a href="/admin/citas.html">📅 Citas y Consultas</a>
                 <a href="/admin/plantillas.html" class="active">📄 Plantillas</a>
-                <a href="/admin/menu.html">📑 Menú</a>
-                <a href="/admin/estadisticas.html">📈 Estadísticas</a>
                 <a href="/admin/configuracion.html">⚙️ Configuración</a>
+                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
             </nav>
-            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
+            <div class="sidebar-footer">
+                <p>Dr. Asmairo Conde Torres</p>
+                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
+            </div>
         </aside>
 
         <main class="main-content">
@@ -40,107 +110,91 @@
                 <h1>📄 Gestión de Plantillas</h1>
                 <button class="btn-primary" onclick="abrirModalSubir()">📤 Subir Plantilla (.txt)</button>
             </div>
+
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>ID</th><th>Nombre</th><th>Ubicación</th><th>Clave</th><th>Campos</th><th>Acciones</th></tr>
+                        <tr><th>ID</th><th>Nombre</th><th>Clave</th><th>Campos</th><th>Fecha</th><th>Acciones</th></tr>
                     </thead>
                     <tbody id="listaPlantillas">
-                        <tr><td colspan="6">Cargando...<\/td><\/tr>
-                    <\/tbody>
-                <\/table>
-            <\/div>
-        <\/main>
-    <\/div>
+                        <tr><td colspan="6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
 
     <div id="modalSubir" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h3>Subir Plantilla (.txt)</h3>
-                <button class="close-modal" onclick="cerrarModalSubir()">&times;<\/button>
-            <\/div>
+                <button class="close-modal" onclick="cerrarModalSubir()">&times;</button>
+            </div>
             <div class="upload-area" id="uploadArea">
-                <div style="font-size:3rem;">📄<\/div>
-                <p>Haz clic para seleccionar un archivo .txt<\/p>
+                <div style="font-size: 2rem;">📄</div>
+                <p>Haz clic para seleccionar un archivo .txt</p>
                 <input type="file" id="archivoInput" accept=".txt" style="display:none;">
-            <\/div>
+            </div>
             <div class="form-group">
-                <label>Nombre de la plantilla *<\/label>
+                <label>Nombre *</label>
                 <input type="text" id="nombrePlantilla" placeholder="Ej: Apelación de Comparendo">
-            <\/div>
+            </div>
             <div class="form-group">
-                <label>Clave única *<\/label>
+                <label>Clave única *</label>
                 <input type="text" id="clavePlantilla" placeholder="Ej: apelacion_comparendo">
-            <\/div>
-            <div class="select-group">
-                <label>📂 Categoría<\/label>
-                <select id="ubicacionPlantilla">
-                    <option value="">Seleccione...<\/option>
-                    <option value="penal">⚖️ Derecho Penal<\/option>
-                    <option value="social">👥 Derecho Social<\/option>
-                    <option value="tramites">📋 Trámites Legales<\/option>
-                <\/select>
-            <\/div>
-            <div class="select-group" id="sububicacionGroup" style="display:none;">
-                <label>📌 Subcategoría<\/label>
-                <select id="sububicacionPlantilla">
-                    <option value="">Seleccione...<\/option>
-                <\/select>
-            <\/div>
-            <!-- BOTÓN GUARDAR AGREGADO -->
-            <button class="btn-guardar" id="btnSubir" onclick="subirPlantilla()">💾 Guardar Plantilla<\/button>
-        <\/div>
-    <\/div>
+            </div>
+            <button class="btn-primary" id="btnSubir" onclick="subirPlantilla()" style="width:100%;">💾 Guardar Plantilla</button>
+        </div>
+    </div>
 
     <script>
         const API_URL = '/api';
         let token = localStorage.getItem('token');
         let archivoSeleccionado = null;
+
         if (!token) window.location.href = '/login.html';
 
-        const subcategorias = {
-            penal: [{ value: 'homicidio', label: '🔪 Homicidio' }, { value: 'violacion', label: '🛡️ Violación' }, { value: 'robo', label: '💰 Robo' }],
-            social: [{ value: 'demandas', label: '📋 Demandas Laborales' }, { value: 'ejecutivos', label: '⚖️ Procesos Ejecutivos' }],
-            tramites: [{ value: 'peticiones', label: '✍️ Peticiones' }, { value: 'tutelas', label: '🛡️ Tutelas' }, { value: 'apelaciones', label: '📄 Apelaciones' }, { value: 'multas', label: '💰 Multas/Comparendos' }, { value: 'inmuebles', label: '🏠 Venta de Inmuebles' }, { value: 'lotes', label: '🌾 Venta de Lotes' }]
-        };
+        // Menú responsive
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const sidebar = document.getElementById('sidebar');
+        menuToggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+        });
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.remove('mobile-open');
+            });
+        });
 
         async function cargarPlantillas() {
             const res = await fetch(`${API_URL}/plantillas`, { headers: { 'Authorization': `Bearer ${token}` } });
             const plantillas = await res.json();
             const tbody = document.getElementById('listaPlantillas');
-            if (plantillas.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay plantillas. Sube tu primer archivo .txt!<\/td><\/tr>'; return; }
-            tbody.innerHTML = plantillas.map(p => `<tr>
-                <td>${p.id}<\/td>
-                <td><strong>${p.nombre}<\/strong><\/td>
-                <td>${p.ubicacion || '-'} ${p.sububicacion ? `→ ${p.sububicacion}` : ''}<\/td>
-                <td><code>${p.clave}<\/code><\/td>
-                <td>${p.campos_editables.map(c => `<span class="campo-tag">${c}<\/span>`).join('')}<\/td>
-                <td><button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️<\/button><\/td>
-            <\/tr>`).join('');
+            if (plantillas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No hay plantillas. Sube tu primer archivo .txt!</td></tr>';
+                return;
+            }
+            tbody.innerHTML = plantillas.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td><strong>${p.nombre}</strong></td>
+                    <td><code>${p.clave}</code></td>
+                    <td>${p.campos_editables.map(c => `<span class="campo-tag">${c}</span>`).join('')}</td>
+                    <td>${p.fecha_creacion}</td>
+                    <td><button class="btn-danger" onclick="eliminarPlantilla(${p.id})">🗑️</button></td>
+                </tr>
+            `).join('');
         }
 
         function abrirModalSubir() {
             document.getElementById('modalSubir').style.display = 'flex';
             document.getElementById('nombrePlantilla').value = '';
             document.getElementById('clavePlantilla').value = '';
-            document.getElementById('ubicacionPlantilla').value = '';
-            document.getElementById('sububicacionGroup').style.display = 'none';
             archivoSeleccionado = null;
-            document.getElementById('uploadArea').innerHTML = '<div style="font-size:3rem;">📄<\/div><p>Haz clic para seleccionar un archivo .txt<\/p><input type="file" id="archivoInput" accept=".txt" style="display:none;">';
-            document.getElementById('archivoInput').value = '';
+            document.getElementById('uploadArea').innerHTML = '<div style="font-size:2rem;">📄</div><p>Haz clic para seleccionar un archivo .txt</p><input type="file" id="archivoInput" accept=".txt" style="display:none;">';
         }
 
         function cerrarModalSubir() { document.getElementById('modalSubir').style.display = 'none'; }
-
-        document.getElementById('ubicacionPlantilla').addEventListener('change', function() {
-            const ubicacion = this.value;
-            const subGroup = document.getElementById('sububicacionGroup');
-            const subSelect = document.getElementById('sububicacionPlantilla');
-            if (ubicacion && subcategorias[ubicacion]) {
-                subGroup.style.display = 'block';
-                subSelect.innerHTML = '<option value="">Seleccione...<\/option>' + subcategorias[ubicacion].map(sub => `<option value="${sub.value}">${sub.label}<\/option>`).join('');
-            } else { subGroup.style.display = 'none'; }
-        });
 
         document.getElementById('uploadArea').addEventListener('click', () => document.getElementById('archivoInput').click());
         document.getElementById('archivoInput').addEventListener('change', (e) => { if (e.target.files[0]) procesarArchivo(e.target.files[0]); });
@@ -148,55 +202,44 @@
         function procesarArchivo(file) {
             if (!file.name.endsWith('.txt')) { alert('Solo se aceptan archivos .txt'); return; }
             archivoSeleccionado = file;
-            document.getElementById('uploadArea').innerHTML = `<div style="font-size:3rem;">✅<\/div><p>${file.name}<\/p><p>${(file.size / 1024).toFixed(2)} KB<\/p>`;
+            document.getElementById('uploadArea').innerHTML = `<div style="font-size:2rem;">✅</div><p>${file.name}</p><p>${(file.size / 1024).toFixed(2)} KB</p>`;
         }
 
         async function subirPlantilla() {
             const nombre = document.getElementById('nombrePlantilla').value;
             const clave = document.getElementById('clavePlantilla').value;
-            const ubicacion = document.getElementById('ubicacionPlantilla').value;
-            const sububicacion = document.getElementById('sububicacionPlantilla').value;
-            
-            if (!nombre || !clave || !ubicacion) { alert('Complete todos los campos'); return; }
+            if (!nombre || !clave) { alert('Complete todos los campos'); return; }
             if (!archivoSeleccionado) { alert('Seleccione un archivo .txt'); return; }
 
             const formData = new FormData();
             formData.append('archivo', archivoSeleccionado);
             formData.append('nombre', nombre);
             formData.append('clave', clave);
-            formData.append('ubicacion', ubicacion);
-            formData.append('sububicacion', sububicacion);
 
             const btn = document.getElementById('btnSubir');
             btn.innerHTML = '⏳ Guardando...';
             btn.disabled = true;
 
-            try {
-                const res = await fetch(`${API_URL}/plantillas/subir`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert(`✅ Plantilla "${nombre}" guardada correctamente!\n📌 Campos detectados: ${data.campos_detectados.join(', ')}`);
-                    cerrarModalSubir();
-                    cargarPlantillas();
-                } else {
-                    alert('❌ Error: ' + data.error);
-                    btn.innerHTML = '💾 Guardar Plantilla';
-                    btn.disabled = false;
-                }
-            } catch(e) {
-                alert('❌ Error de conexión');
+            const res = await fetch(`${API_URL}/plantillas/subir`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ Plantilla "${nombre}" guardada!\nCampos: ${data.campos_detectados.join(', ')}`);
+                cerrarModalSubir();
+                cargarPlantillas();
+            } else {
+                alert('❌ Error: ' + data.error);
                 btn.innerHTML = '💾 Guardar Plantilla';
                 btn.disabled = false;
             }
         }
 
-        async function eliminarPlantilla(id) { if (confirm('¿Eliminar esta plantilla?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
+        async function eliminarPlantilla(id) { if (confirm('¿Eliminar?')) { await fetch(`${API_URL}/plantillas/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); cargarPlantillas(); } }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
         cargarPlantillas();
     </script>
 </body>
-                </html>
+</html>
