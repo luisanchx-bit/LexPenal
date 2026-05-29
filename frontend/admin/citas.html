@@ -39,17 +39,14 @@
                 border-radius: 8px;
                 cursor: pointer;
             }
-            .stats-grid {
-                grid-template-columns: 1fr !important;
-            }
             .table-container {
                 overflow-x: auto;
             }
             table {
-                font-size: 0.8rem;
+                font-size: 0.7rem;
             }
             th, td {
-                padding: 0.5rem !important;
+                padding: 0.3rem !important;
             }
             .tabs {
                 flex-wrap: wrap;
@@ -195,7 +192,10 @@
     </div>
 
     <script>
-        const API_URL = '/api';
+        // CONFIGURACIÓN GLOBAL
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        
         let token = localStorage.getItem('token');
         let currentItem = null;
         let currentTipo = null;
@@ -215,7 +215,7 @@
 
         async function cargarDatos() {
             try {
-                const res = await fetch(`${API_URL}/casos/todos`, {
+                const res = await fetch(API_URL + '/casos/todos', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -258,13 +258,14 @@
                 }
             } catch (error) {
                 console.error('Error al cargar datos:', error);
+                alert('Error al cargar los datos. Asegúrate de estar conectado.');
             }
         }
 
         async function verDetalle(id, tipo) {
             currentTipo = tipo;
             try {
-                const res = await fetch(`${API_URL}/casos/todos`, {
+                const res = await fetch(API_URL + '/casos/todos', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -306,7 +307,6 @@
                             </div>
                         `;
                         
-                        // Mostrar audio si existe
                         if (currentItem.archivos && currentItem.archivos.length > 0) {
                             const audios = currentItem.archivos.filter(a => a.tipo && a.tipo.startsWith('audio'));
                             if (audios.length > 0) {
@@ -315,19 +315,17 @@
                                         <div style="color: #C8A951; font-weight: bold;">🎙️ Grabaciones de audio</div>
                                 `;
                                 audios.forEach(audio => {
+                                    const audioUrl = API_BASE_URL + audio.ruta;
                                     html += `
                                         <div class="audio-player">
-                                            <audio controls src="${audio.ruta}"></audio>
+                                            <audio controls src="${audioUrl}"></audio>
                                             <div style="font-size:0.7rem; color:#888; margin-top:0.3rem;">${audio.nombre} (${audio.tamaño})</div>
                                         </div>
                                     `;
                                 });
                                 html += `</div>`;
                             }
-                        }
-                        
-                        // Mostrar otros archivos adjuntos
-                        if (currentItem.archivos && currentItem.archivos.length > 0) {
+                            
                             const otrosArchivos = currentItem.archivos.filter(a => !a.tipo || !a.tipo.startsWith('audio'));
                             if (otrosArchivos.length > 0) {
                                 html += `
@@ -375,7 +373,7 @@
         async function actualizarEstado() {
             const nuevoEstado = document.getElementById('estadoSelect').value;
             try {
-                const res = await fetch(`${API_URL}/casos/${currentItem.id}/estado`, {
+                const res = await fetch(API_URL + '/casos/' + currentItem.id + '/estado', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -398,7 +396,7 @@
         async function eliminarRegistro() {
             if (confirm('¿Eliminar este registro permanentemente?')) {
                 try {
-                    const res = await fetch(`${API_URL}/casos/${currentItem.id}`, {
+                    const res = await fetch(API_URL + '/casos/' + currentItem.id, {
                         method: 'DELETE',
                         headers: { 
                             'Content-Type': 'application/json',
