@@ -6,6 +6,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 
+// Librerías para exportación (Render las instalará automáticamente)
+const XLSX = require('xlsx');
+const PDFDocument = require('pdfkit');
+
 const JWT_SECRET = 'lexpenal_seguro_2026_muy_secreto';
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -311,6 +315,98 @@ app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
     });
 });
 
+// ==================== EXPORTAR DATOS ====================
+app.get('/api/exportar/excel', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const db = readDB();
+        const consultas = db.consultas || [];
+        const citas = db.citas || [];
+        
+        const datosConsultas = consultas.map(c => ({
+            'Código': c.codigo,
+            'Nombre': c.nombre,
+            'Teléfono': c.telefono,
+            'Email': c.email,
+            'Rama': c.rama,
+            'Hechos': c.hechos,
+            'Fecha': new Date(c.fecha).toLocaleString(),
+            'Estado': c.estado
+        }));
+        
+        const datosCitas = citas.map(c => ({
+            'Código': c.codigo,
+            'Nombre': c.nombre,
+            'Teléfono': c.telefono,
+            'Email': c.email,
+            'Rama': c.rama,
+            'Motivo': c.motivo,
+            'Fecha Cita': c.fecha ? new Date(c.fecha).toLocaleString() : 'N/A',
+            'Estado': c.estado
+        }));
+        
+        const wb = XLSX.utils.book_new();
+        const wsConsultas = XLSX.utils.json_to_sheet(datosConsultas);
+        const wsCitas = XLSX.utils.json_to_sheet(datosCitas);
+        
+        XLSX.utils.book_append_sheet(wb, wsConsultas, 'Consultas');
+        XLSX.utils.book_append_sheet(wb, wsCitas, 'Citas');
+        
+        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        
+        res.setHeader('Content-Disposition', 'attachment; filename=lexpenal_datos.xlsx');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.send(buffer);
+        
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/exportar/pdf', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const db = readDB();
+        const consultas = db.consultas || [];
+        const citas = db.citas || [];
+        
+        const doc = new PDFDocument({ margin: 50 });
+        
+        res.setHeader('Content-Disposition', 'attachment; filename=lexpenal_report.pdf');
+        res.setHeader('Content-Type', 'application/pdf');
+        
+        doc.pipe(res);
+        
+        doc.fontSize(20).text('LexPenal - Reporte de Gestión', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Generado: ${new Date().toLocaleString()}`, { align: 'center' });
+        doc.moveDown();
+        
+        doc.fontSize(16).text('📞 Consultas', { underline: true });
+        doc.moveDown(0.5);
+        consultas.forEach((c, i) => {
+            doc.fontSize(10).text(`${i + 1}. ${c.nombre} - ${c.codigo}`);
+            doc.text(`   Teléfono: ${c.telefono} | Estado: ${c.estado}`);
+            doc.text(`   Fecha: ${new Date(c.fecha).toLocaleDateString()}`);
+            doc.moveDown(0.3);
+        });
+        
+        doc.addPage();
+        
+        doc.fontSize(16).text('📅 Citas', { underline: true });
+        doc.moveDown(0.5);
+        citas.forEach((c, i) => {
+            doc.fontSize(10).text(`${i + 1}. ${c.nombre} - ${c.codigo}`);
+            doc.text(`   Teléfono: ${c.telefono} | Estado: ${c.estado}`);
+            doc.text(`   Fecha Cita: ${c.fecha ? new Date(c.fecha).toLocaleString() : 'N/A'}`);
+            doc.moveDown(0.3);
+        });
+        
+        doc.end();
+        
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== RUTAS DE PLANTILLAS ====================
 app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.plantillas || []); });
 app.get('/api/plantillas/public/:clave', (req, res) => {
@@ -418,5 +514,5 @@ app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'front
 app.listen(PORT, () => {
     console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
     console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
-    console.log(`📊 Diagnóstico: http://localhost:${PORT}/api/diagnostico`);
+    console.log(`📊 Exportar: /api/exportar/excel | /api/exportar/pdf`);
 });
