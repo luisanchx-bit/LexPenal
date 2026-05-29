@@ -62,6 +62,19 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: #C8A951;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -84,29 +97,29 @@
             <p>Complete el formulario y un abogado lo contactará</p>
         </div>
 
-        <form id="formConsulta">
+        <form id="formConsulta" enctype="multipart/form-data">
             <div class="input-group">
                 <label>Nombre completo *</label>
-                <input type="text" id="nombre" required>
+                <input type="text" id="nombre" name="nombre" required>
             </div>
             <div class="input-group">
                 <label>Teléfono *</label>
-                <input type="tel" id="telefono" required>
+                <input type="tel" id="telefono" name="telefono" required>
             </div>
             <div class="input-group">
                 <label>Correo electrónico *</label>
-                <input type="email" id="email" required>
+                <input type="email" id="email" name="email" required>
             </div>
             <div class="input-group">
                 <label>Describa los hechos de su caso *</label>
-                <textarea id="hechos" rows="5" required></textarea>
+                <textarea id="hechos" name="hechos" rows="5" required></textarea>
             </div>
             <div class="input-group">
-                <label>📎 Adjuntar evidencias (fotos, videos, audios)</label>
+                <label>📎 Adjuntar evidencias (fotos, videos, audios, PDF)</label>
                 <div class="upload-area" id="uploadArea">
                     <div style="font-size: 2rem;">📁</div>
                     <p>Arrastra archivos o haz clic para seleccionar</p>
-                    <input type="file" id="archivosInput" multiple accept="image/*,video/*,audio/*,application/pdf">
+                    <input type="file" id="archivosInput" name="archivos" multiple accept="image/*,video/*,audio/*,application/pdf">
                 </div>
                 <div id="fileList" class="file-list"></div>
             </div>
@@ -116,6 +129,15 @@
 
     <script>
         let archivosSeleccionados = [];
+        const urlParams = new URLSearchParams(window.location.search);
+        const tipoRama = urlParams.get('tipo') || 'general';
+
+        function getSaludo() {
+            const hora = new Date().getHours();
+            if (hora >= 6 && hora < 12) return "Buenos días";
+            if (hora >= 12 && hora < 19) return "Buenas tardes";
+            return "Buenas noches";
+        }
 
         const uploadArea = document.getElementById('uploadArea');
         const archivosInput = document.getElementById('archivosInput');
@@ -173,14 +195,14 @@
             formData.append('telefono', telefono);
             formData.append('email', email);
             formData.append('hechos', hechos);
-            formData.append('tipo', 'consulta');
+            formData.append('rama', tipoRama);
             
-            archivosSeleccionados.forEach((archivo, i) => {
-                formData.append(`archivo_${i}`, archivo);
+            archivosSeleccionados.forEach((archivo) => {
+                formData.append('archivos', archivo);
             });
             
             const btn = document.querySelector('.btn-enviar');
-            btn.innerHTML = '⏳ Enviando...';
+            btn.innerHTML = '<span class="loading"></span> Enviando...';
             btn.disabled = true;
             
             try {
@@ -190,16 +212,20 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('✅ Consulta enviada exitosamente. Serás redirigido al WhatsApp del abogado para continuar con la facturación.');
-                    window.open(`https://wa.me/573145879875?text=Hola,%20soy%20${encodeURIComponent(nombre)}%20y%20acabo%20de%20enviar%20una%20consulta%20legal.`, '_blank');
+                    const saludo = getSaludo();
+                    const ramaTexto = { penal: 'Derecho Penal', civil: 'Derecho Civil', victimas: 'Víctimas y Migrantes', jac: 'JAC y Veedurías' }[tipoRama] || 'Consulta Legal';
+                    const mensajeWhatsApp = `${saludo}, soy ${nombre}. Mi consulta en ${ramaTexto} ha sido registrada con el código: ${data.codigo}. Quedo atento a su respuesta.`;
+                    alert('✅ Consulta enviada exitosamente. Código: ' + data.codigo);
+                    window.open(`https://wa.me/573145879875?text=${encodeURIComponent(mensajeWhatsApp)}`, '_blank');
                     window.location.href = '/';
                 } else {
-                    alert('❌ Error: ' + data.error);
+                    alert('❌ Error: ' + (data.error || 'No se pudo guardar'));
                     btn.innerHTML = '📤 Enviar Consulta';
                     btn.disabled = false;
                 }
             } catch (error) {
-                alert('❌ Error de conexión');
+                console.error('Error:', error);
+                alert('❌ Error de conexión con el servidor');
                 btn.innerHTML = '📤 Enviar Consulta';
                 btn.disabled = false;
             }
