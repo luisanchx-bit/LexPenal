@@ -5,8 +5,10 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
-// Librerías para exportación (Render las instalará automáticamente)
+// Librerías para exportación
 const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 
@@ -37,6 +39,18 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const DATA_FILE = path.join(__dirname, 'database.json');
 
+// Configuración de correo (para notificaciones)
+let transporter = null;
+try {
+    transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER || 'tuemail@gmail.com',
+            pass: process.env.EMAIL_PASS || 'tucontraseña'
+        }
+    });
+} catch(e) { console.log('Email no configurado'); }
+
 // ============ BASE DE DATOS EN MEMORIA ============
 let memoriaDB = {
     usuarios: [],
@@ -46,13 +60,14 @@ let memoriaDB = {
     plantillas: [],
     tipos_caso: [],
     configuracion: {},
-    abogado: {}
+    abogado: {},
+    tokens_recuperacion: []
 };
 
 function initDB() {
     const adminHash = bcrypt.hashSync("ACT1018457093", 10);
     
-    memoriaDB.usuarios = [{ id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }];
+    memoriaDB.usuarios = [{ id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", email: "asmairo.conde.torres@hotmail.com", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }];
     memoriaDB.testimonios = [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: new Date().toISOString().split('T')[0] }];
     memoriaDB.tipos_caso = [
         { id: 1, nombre: "Homicidio", icono: "⚖️", orden: 1 },
@@ -62,11 +77,16 @@ function initDB() {
         { id: 5, nombre: "Citaciones", icono: "📅", orden: 5 },
         { id: 6, nombre: "Trámites Legales", icono: "📋", orden: 6 }
     ];
-    memoriaDB.configuracion = { colores: { dorado: "#C8A951", azul: "#0A1628", fondo: "#000000" }, textos: { hero_titulo: "Defensa Penal Estratégica", hero_subtitulo: "Más de 6 años protegiendo tus derechos" } };
+    memoriaDB.configuracion = { 
+        colores: { dorado: "#C8A951", azul: "#0A1628", fondo: "#000000" }, 
+        textos: { hero_titulo: "Defensa Penal Estratégica", hero_subtitulo: "Más de 6 años protegiendo tus derechos" },
+        tema: 'oscuro'
+    };
     memoriaDB.abogado = { nombre: "Asmairo Conde Torres", telefono: "573145879875", email: "asmairo.conde.torres@hotmail.com" };
     memoriaDB.consultas = [];
     memoriaDB.citas = [];
     memoriaDB.plantillas = [];
+    memoriaDB.tokens_recuperacion = [];
 
     if (fs.existsSync(DATA_FILE)) {
         try {
@@ -124,7 +144,7 @@ function verificarAdmin(req, res, next) {
 // ==================== RUTAS DE AUTENTICACIÓN ====================
 app.post('/api/auth/registro', async (req, res) => {
     try {
-        const { cedula, nombre_completo, contrasena } = req.body;
+        const { cedula, nombre_completo, email, contrasena } = req.body;
         if (!cedula || !nombre_completo || !contrasena) return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         if (cedula.length < 6) return res.status(400).json({ error: 'La cédula debe tener al menos 6 dígitos' });
         if (contrasena.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
@@ -133,7 +153,7 @@ app.post('/api/auth/registro', async (req, res) => {
         if (db.usuarios.find(u => u.cedula === cedula)) return res.status(400).json({ error: 'Esta cédula ya está registrada' });
         
         const hashedPassword = await bcrypt.hash(contrasena, 10);
-        const nuevoUsuario = { id: db.usuarios.length + 1, cedula, nombre_completo, contrasena_hash: hashedPassword, rol: 'cliente', fecha_registro: new Date().toISOString() };
+        const nuevoUsuario = { id: db.usuarios.length + 1, cedula, nombre_completo, email: email || '', contrasena_hash: hashedPassword, rol: 'cliente', fecha_registro: new Date().toISOString() };
         db.usuarios.push(nuevoUsuario);
         writeDB(db);
         
@@ -153,6 +173,49 @@ app.post('/api/auth/login', async (req, res) => {
         const token = jwt.sign({ id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol }, JWT_SECRET, { expiresIn: '7d' });
         res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, isAdmin: usuario.rol === 'super_admin' });
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
+});
+
+// ==================== RECUPERACIÓN DE CONTRASEÑA ====================
+app.post('/api/auth/recuperar', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const db = readDB();
+        const usuario = db.usuarios.find(u => u.email === email);
+        if (!usuario) return res.status(404).json({ error: 'Correo no registrado' });
+        
+        const token = crypto.randomBytes(32).toString('hex');
+        const expira = new Date();
+        expira.setHours(expira.getHours() + 1);
+        
+        db.tokens_recuperacion.push({ email, token, expira });
+        writeDB(db);
+        
+        // Enviar correo (simulado por ahora)
+        console.log(`🔐 Token de recuperación para ${email}: ${token}`);
+        res.json({ success: true, mensaje: 'Si el correo está registrado, recibirás un enlace de recuperación' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/auth/restablecer', async (req, res) => {
+    try {
+        const { token, nuevaContrasena } = req.body;
+        const db = readDB();
+        const tokenObj = db.tokens_recuperacion.find(t => t.token === token && new Date(t.expira) > new Date());
+        if (!tokenObj) return res.status(400).json({ error: 'Token inválido o expirado' });
+        
+        const usuario = db.usuarios.find(u => u.email === tokenObj.email);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+        
+        usuario.contrasena_hash = await bcrypt.hash(nuevaContrasena, 10);
+        db.tokens_recuperacion = db.tokens_recuperacion.filter(t => t.token !== token);
+        writeDB(db);
+        
+        res.json({ success: true, mensaje: 'Contraseña restablecida exitosamente' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // ==================== RUTAS DE CONSULTAS ====================
@@ -182,10 +245,14 @@ app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
             tieneAudio: archivos.some(a => a.tipo && a.tipo.startsWith('audio')),
             fecha: new Date().toISOString(),
             estado: 'pendiente',
-            tipo: 'consulta'
+            tipo: 'consulta',
+            confirmado: false
         };
         db.consultas.push(nuevaConsulta);
         writeDB(db);
+        
+        // Enviar correo de confirmación (simulado)
+        console.log(`📧 Confirmación enviada a ${email} para consulta ${codigo}`);
         
         console.log(`✅ Consulta guardada: ${codigo} - ${nombre}`);
         res.json({ success: true, codigo, mensaje: 'Consulta guardada exitosamente' });
@@ -221,7 +288,8 @@ app.post('/api/citas/nueva', (req, res) => {
             rama: rama || 'general',
             fecha_registro: new Date().toISOString(),
             estado: 'pendiente',
-            tipo: 'cita'
+            tipo: 'cita',
+            recordatorio_enviado: false
         };
         db.citas.push(nuevaCita);
         writeDB(db);
@@ -232,6 +300,28 @@ app.post('/api/citas/nueva', (req, res) => {
         console.error('❌ Error en cita:', error);
         res.status(500).json({ error: error.message }); 
     }
+});
+
+// ==================== ENVÍO DE RECORDATORIOS (simulado) ====================
+app.post('/api/enviar-recordatorios', verificarToken, verificarAdmin, async (req, res) => {
+    const db = readDB();
+    const ahora = new Date();
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    
+    const citasManana = db.citas.filter(c => {
+        if (!c.fecha || c.estado === 'cancelada' || c.recordatorio_enviado) return false;
+        const fechaCita = new Date(c.fecha);
+        return fechaCita.toDateString() === manana.toDateString();
+    });
+    
+    citasManana.forEach(cita => {
+        console.log(`📧 Recordatorio para ${cita.nombre} (${cita.email}): Su cita es mañana a las ${new Date(cita.fecha).toLocaleTimeString()}`);
+        cita.recordatorio_enviado = true;
+    });
+    
+    writeDB(db);
+    res.json({ success: true, enviados: citasManana.length });
 });
 
 // ==================== OBTENER TODOS LOS REGISTROS ====================
@@ -407,7 +497,7 @@ app.get('/api/exportar/pdf', verificarToken, verificarAdmin, async (req, res) =>
     }
 });
 
-// ==================== RUTAS DE PLANTILLAS ====================
+// ==================== RUTAS DE PLANTILLAS (con previsualización) ====================
 app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.plantillas || []); });
 app.get('/api/plantillas/public/:clave', (req, res) => {
     const db = readDB();
@@ -435,7 +525,32 @@ app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single(
         res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
     } catch (error) { res.status(500).json({ error: 'Error al procesar el archivo: ' + error.message }); }
 });
+app.put('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const { nombre, clave, ubicacion, sububicacion, cuerpo, campos_editables } = req.body;
+    const db = readDB();
+    const index = db.plantillas.findIndex(p => p.id === parseInt(id));
+    if (index !== -1) {
+        db.plantillas[index] = { ...db.plantillas[index], nombre, clave, ubicacion, sububicacion, cuerpo, campos_editables };
+        writeDB(db);
+        res.json({ success: true });
+    } else { res.status(404).json({ error: 'Plantilla no encontrada' }); }
+});
 app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.plantillas = db.plantillas.filter(p => p.id !== parseInt(req.params.id)); writeDB(db); res.json({ success: true }); });
+
+// ==================== RUTAS DE CONFIGURACIÓN (tema) ====================
+app.get('/api/configuracion/tema', (req, res) => {
+    const db = readDB();
+    res.json({ tema: db.configuracion.tema || 'oscuro' });
+});
+
+app.put('/api/configuracion/tema', verificarToken, verificarAdmin, (req, res) => {
+    const { tema } = req.body;
+    const db = readDB();
+    db.configuracion.tema = tema;
+    writeDB(db);
+    res.json({ success: true });
+});
 
 // ==================== RUTAS DE TESTIMONIOS ====================
 app.get('/api/testimonios', (req, res) => { const db = readDB(); res.json(db.testimonios.filter(t => t.aprobado)); });
