@@ -55,9 +55,11 @@
                 <a href="/admin/index.html" class="active">📊 Dashboard</a>
                 <a href="/admin/citas.html">📅 Citas y Consultas</a>
                 <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/documentos.html">📁 Docs Generados</a>
                 <a href="/admin/configuracion.html">⚙️ Configuración</a>
                 <a href="/faq.html">❓ FAQ</a>
                 <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
+                <a href="https://www.mintrabajo.gov.co/atencion-al-ciudadano/tramites-y-servicios/mi-calculadora" target="_blank" style="padding-left: 1rem;">📊 Calculadora Laboral</a>
             </nav>
             <div class="sidebar-footer">
                 <p>Dr. Asmairo Conde Torres</p>
@@ -94,17 +96,19 @@
 
             <div class="table-container"><h3 style="margin-bottom:1rem; color:#C8A951;">📋 Consultas Recientes</h3>
                 <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
-                <tbody id="consultasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody></table>
-            </div>
+                <tbody id="consultasRecientes"><tr><td colspan="7">Cargando...<\/td><\/tr><\/tbody>
+            </table>
+            <\/div>
 
             <div class="table-container" style="margin-top:2rem;"><h3 style="margin-bottom:1rem; color:#C8A951;">📅 Citas Recientes</h3>
                 <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr></thead>
-                <tbody id="citasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody></table>
-            </div>
-        </main>
-    </div>
+                <tbody id="citasRecientes"><tr><td colspan="7">Cargando...<\/td><\/tr><\/tbody>
+            </table>
+            <\/div>
+        <\/main>
+    <\/div>
 
-    <div id="modalDetalle" class="modal"><div class="modal-content" style="max-width:600px;"><div class="modal-header"><h3>📋 Detalles</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div id="modalBody"></div><div style="margin-top:1rem; display:flex; gap:1rem;"><select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:5px;"><option value="pendiente">Pendiente</option><option value="en_proceso">En Proceso</option><option value="resuelto">Resuelto</option><option value="cancelada">Cancelada</option></select><button class="btn-primary" onclick="actualizarEstado()">Actualizar</button><button class="btn-danger" onclick="eliminarRegistro()">Eliminar</button></div></div></div>
+    <div id="modalDetalle" class="modal"><div class="modal-content" style="max-width:600px;"><div class="modal-header"><h3>📋 Detalles</h3><button class="close-modal" onclick="cerrarModal()">&times;</button><\/div><div id="modalBody"><\/div><div style="margin-top:1rem; display:flex; gap:1rem;"><select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:5px;"><option value="pendiente">Pendiente<\/option><option value="en_proceso">En Proceso<\/option><option value="resuelto">Resuelto<\/option><option value="cancelada">Cancelada<\/option><\/select><button class="btn-primary" onclick="actualizarEstado()">Actualizar<\/button><button class="btn-danger" onclick="eliminarRegistro()">Eliminar<\/button><\/div><\/div><\/div>
 
     <script>
         const API_BASE_URL = window.location.origin;
@@ -118,7 +122,6 @@
         if (!token) window.location.href = '/login.html';
         document.getElementById('nombreAdmin').textContent = localStorage.getItem('nombre') || 'Administrador';
 
-        // Tema
         function aplicarTema(tema) {
             const root = document.documentElement;
             if (tema === 'claro') {
@@ -179,8 +182,8 @@
             const consultas = (data.consultas || []).slice(-5).reverse();
             const citas = (data.citas || []).slice(-5).reverse();
             
-            document.getElementById('consultasRecientes').innerHTML = consultas.map(c => `<tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${new Date(c.fecha).toLocaleDateString()}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td></tr>`).join('');
-            document.getElementById('citasRecientes').innerHTML = citas.map(c => `<tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td></tr>`).join('');
+            document.getElementById('consultasRecientes').innerHTML = consultas.map(c => `<tr><td>${c.codigo}<\/td><td>${c.nombre}<\/td><td>${c.telefono}<\/td><td>${c.rama}<\/td><td>${new Date(c.fecha).toLocaleDateString()}<\/td><td><span class="badge badge-${c.estado}">${c.estado}<\/span><\/td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver<\/button><\/td><\/tr>`).join('');
+            document.getElementById('citasRecientes').innerHTML = citas.map(c => `<tr><td>${c.codigo}<\/td><td>${c.nombre}<\/td><td>${c.telefono}<\/td><td>${c.rama}<\/td><td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}<\/td><td><span class="badge badge-${c.estado}">${c.estado}<\/span><\/td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver<\/button><\/td><\/tr>`).join('');
         }
 
         async function verDetalle(id, tipo) {
@@ -191,15 +194,15 @@
             currentItem = items.find(i => i.id === id);
             if (currentItem) {
                 document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
-                let html = `<div><strong>📌 Código:</strong> ${currentItem.codigo}</div><div><strong>👤 Nombre:</strong> ${currentItem.nombre}</div><div><strong>📞 Teléfono:</strong> ${currentItem.telefono}</div><div><strong>✉️ Email:</strong> ${currentItem.email}</div><div><strong>⚖️ Rama:</strong> ${currentItem.rama}</div>`;
+                let html = `<div><strong>📌 Código:</strong> ${currentItem.codigo}<\/div><div><strong>👤 Nombre:</strong> ${currentItem.nombre}<\/div><div><strong>📞 Teléfono:</strong> ${currentItem.telefono}<\/div><div><strong>✉️ Email:</strong> ${currentItem.email}<\/div><div><strong>⚖️ Rama:</strong> ${currentItem.rama}<\/div>`;
                 if (tipo === 'consulta') {
-                    html += `<div><strong>📝 Hechos:</strong><br>${currentItem.hechos || 'N/A'}</div>`;
+                    html += `<div><strong>📝 Hechos:</strong><br>${currentItem.hechos || 'N/A'}<\/div>`;
                     if (currentItem.archivos?.length) {
                         const audios = currentItem.archivos.filter(a => a.tipo?.startsWith('audio'));
-                        audios.forEach(a => { html += `<div><strong>🎙️ Audio:</strong><br><audio controls src="${API_BASE_URL + a.ruta}" style="max-width:100%"></audio></div>`; });
+                        audios.forEach(a => { html += `<div><strong>🎙️ Audio:</strong><br><audio controls src="${API_BASE_URL + a.ruta}" style="max-width:100%"><\/audio><\/div>`; });
                     }
                 } else {
-                    html += `<div><strong>📝 Motivo:</strong> ${currentItem.motivo}</div><div><strong>📅 Fecha Cita:</strong> ${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>`;
+                    html += `<div><strong>📝 Motivo:</strong> ${currentItem.motivo}<\/div><div><strong>📅 Fecha Cita:</strong> ${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}<\/div>`;
                 }
                 document.getElementById('modalBody').innerHTML = html;
                 document.getElementById('modalDetalle').style.display = 'flex';
@@ -234,6 +237,6 @@
         window.eliminarRegistro = eliminarRegistro;
         window.cerrarModal = cerrarModal;
         window.cerrarSesion = cerrarSesion;
-    </script>
+    <\/script>
 </body>
 </html>
