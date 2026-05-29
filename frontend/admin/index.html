@@ -2,241 +2,247 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Dashboard - Admin LexPenal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Ingeniero - LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .sidebar { transition: transform 0.3s ease; }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); position: fixed; z-index: 1001; width: 260px; }
-            .sidebar.mobile-open { transform: translateX(0); }
-            .main-content { margin-left: 0 !important; padding: 1rem; margin-top: 60px; }
-            .menu-toggle-btn { display: block !important; position: fixed; top: 15px; left: 15px; z-index: 1002; background: #C8A951; border: none; color: #000; font-size: 1.5rem; padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; }
-            .stats-grid { grid-template-columns: 1fr !important; }
-            .chart-container { grid-template-columns: 1fr !important; }
-            .export-buttons { flex-direction: column; }
+        .ingeniero-container {
+            max-width: 1400px;
+            margin: 80px auto 2rem;
+            padding: 2rem;
         }
-        @media (min-width: 769px) { .menu-toggle-btn { display: none; } .main-content { margin-left: 280px; } }
-        .menu-toggle-btn { display: none; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: #0a0a0a; padding: 1rem; border-radius: 15px; border-left: 3px solid #C8A951; }
-        .stat-card h3 { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
-        .stat-number { font-size: 1.8rem; font-weight: bold; color: #C8A951; }
-        .chart-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
-        .chart-card { background: #0a0a0a; padding: 1rem; border-radius: 15px; border: 1px solid rgba(200,169,81,0.3); }
-        .chart-card h3 { color: #C8A951; margin-bottom: 1rem; font-size: 1rem; }
-        canvas { max-height: 250px; }
-        .export-buttons { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        .btn-export { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 1px solid #C8A951; border-radius: 40px; padding: 0.6rem 1.2rem; cursor: pointer; transition: all 0.3s; color: #C8A951; font-weight: bold; }
-        .btn-export:hover { background: #C8A951; color: #000; }
-        .table-container { overflow-x: auto; margin-top: 2rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 0.8rem; text-align: left; border-bottom: 1px solid #222; }
-        th { color: #C8A951; }
-        .badge { padding: 0.2rem 0.5rem; border-radius: 20px; font-size: 0.7rem; }
-        .badge-pendiente { background: #ff9800; color: #000; }
-        .badge-en_proceso { background: #2196f3; color: #fff; }
-        .badge-resuelto { background: #4caf50; color: #fff; }
-        .badge-cancelada { background: #f44336; color: #fff; }
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .tech-card {
+            background: #0a0a0a;
+            border-radius: 15px;
+            border: 1px solid rgba(200, 169, 81, 0.3);
+            padding: 1.5rem;
+        }
+        .tech-card:hover {
+            border-color: #C8A951;
+        }
+        .tech-card h3 {
+            color: #C8A951;
+            margin-bottom: 1rem;
+            border-left: 3px solid #C8A951;
+            padding-left: 0.8rem;
+        }
+        .tech-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            margin: 1rem 0;
+        }
+        .tech-card .label {
+            color: #888;
+            font-size: 0.8rem;
+        }
+        .btn-tech {
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border: 1px solid #C8A951;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #C8A951;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .btn-tech:hover {
+            background: #C8A951;
+            color: #000;
+        }
+        .btn-danger {
+            border-color: #8B0000;
+            color: #8B0000;
+        }
+        .btn-danger:hover {
+            background: #8B0000;
+            color: #fff;
+        }
+        .log-container {
+            background: #050505;
+            border-radius: 10px;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .log-entry {
+            padding: 0.3rem;
+            border-bottom: 1px solid #222;
+            color: #0f0;
+        }
+        .log-entry.error { color: #f00; }
+        .log-entry.warning { color: #ff0; }
+        @media (max-width: 768px) {
+            .tech-grid { grid-template-columns: 1fr; }
+            .ingeniero-container { padding: 1rem; margin-top: 70px; }
+        }
     </style>
 </head>
-<body data-theme="oscuro">
-    <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
-    
-    <div class="admin-container">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'">
-                <h2>⚖️ LexPenal</h2>
-                <p>Panel de Control</p>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo" style="cursor:pointer" onclick="window.location.href='/'"><h2>⚖️ LexPenal</h2></div>
+            <div class="user-info">
+                <span id="nombreIngeniero" style="color:#C8A951;">Cargando...</span>
+                <button onclick="cerrarSesion()" class="btn-cerrar" style="margin-left:1rem">Cerrar sesión</button>
             </div>
-            <nav class="sidebar-nav">
-                <a href="/admin/index.html" class="active">📊 Dashboard</a>
-                <a href="/admin/citas.html">📅 Citas y Consultas</a>
-                <a href="/admin/plantillas.html">📄 Plantillas</a>
-                <a href="/admin/documentos.html">📁 Docs Generados</a>
-                <a href="/admin/configuracion.html">⚙️ Configuración</a>
-                <a href="/faq.html">❓ FAQ</a>
-                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
-                <a href="https://www.mintrabajo.gov.co/atencion-al-ciudadano/tramites-y-servicios/mi-calculadora" target="_blank" style="padding-left: 1rem;">📊 Calculadora Laboral</a>
-            </nav>
-            <div class="sidebar-footer">
-                <p>Dr. Asmairo Conde Torres</p>
-                <button onclick="cambiarTema()" class="btn-theme" style="background:transparent; border:1px solid #C8A951; color:#C8A951; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; cursor:pointer;">🌓 Cambiar Tema</button>
-                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:0.5rem">Cerrar sesión</button></p>
-            </div>
-        </aside>
+        </div>
+    </nav>
 
-        <main class="main-content">
-            <div class="admin-header">
-                <h1>Dashboard</h1>
-                <div class="user-info">
-                    <span class="user-name" id="nombreAdmin">Cargando...</span>
+    <div class="ingeniero-container">
+        <h1 style="color:#C8A951; margin-bottom:1.5rem;">🔧 Panel de Ingeniero Técnico</h1>
+        
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>🖥️ Estado del Servidor</h3>
+                <div class="label">Status</div>
+                <div class="value" id="serverStatus">🟢 Verificando...</div>
+                <button class="btn-tech" onclick="verificarServidor()">🔄 Verificar Estado</button>
+            </div>
+            
+            <div class="tech-card">
+                <h3>🗄️ Base de Datos</h3>
+                <div class="label">Total de registros</div>
+                <div class="value" id="dbCount">-</div>
+                <div class="label">Consultas / Citas</div>
+                <div class="value" id="dbDetails">-</div>
+                <button class="btn-tech" onclick="respaldarDB()">💾 Respaldar Base de Datos</button>
+            </div>
+            
+            <div class="tech-card">
+                <h3>📋 Logs del Sistema</h3>
+                <div class="log-container" id="logsContainer">
+                    <div class="log-entry">🟢 Sistema iniciado</div>
                 </div>
+                <button class="btn-tech" onclick="descargarLogs()">📥 Descargar Logs</button>
+                <button class="btn-tech btn-danger" onclick="limpiarLogs()">🗑️ Limpiar Logs</button>
             </div>
-
-            <div class="export-buttons">
-                <button class="btn-export" onclick="exportarExcel()">📊 Exportar a Excel</button>
-                <button class="btn-export" onclick="exportarPDF()">📄 Exportar a PDF</button>
-                <button class="btn-export" onclick="enviarRecordatorios()">📧 Enviar Recordatorios</button>
+            
+            <div class="tech-card">
+                <h3>☁️ Supabase Storage</h3>
+                <div class="label">URL del proyecto</div>
+                <div class="value" style="font-size:0.7rem;" id="supabaseUrl">-</div>
+                <button class="btn-tech" onclick="verSupabase()">🔗 Ver en Supabase</button>
             </div>
-
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card"><h3>Total Consultas</h3><div class="stat-number" id="totalConsultas">-</div></div>
-                <div class="stat-card"><h3>Total Citas</h3><div class="stat-number" id="totalCitas">-</div></div>
-                <div class="stat-card"><h3>Consultas Pendientes</h3><div class="stat-number" id="consultasPendientes">-</div></div>
-                <div class="stat-card"><h3>Citas Pendientes</h3><div class="stat-number" id="citasPendientes">-</div></div>
-            </div>
-
-            <div class="chart-container">
-                <div class="chart-card"><h3>📊 Consultas vs Citas</h3><canvas id="comparativaChart"></canvas></div>
-                <div class="chart-card"><h3>📈 Evolución de Consultas</h3><canvas id="evolucionChart"></canvas></div>
-            </div>
-
-            <div class="table-container"><h3 style="margin-bottom:1rem; color:#C8A951;">📋 Consultas Recientes</h3>
-                <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
-                <tbody id="consultasRecientes"><tr><td colspan="7">Cargando...<\/td><\/tr><\/tbody>
-            </table>
-            <\/div>
-
-            <div class="table-container" style="margin-top:2rem;"><h3 style="margin-bottom:1rem; color:#C8A951;">📅 Citas Recientes</h3>
-                <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr></thead>
-                <tbody id="citasRecientes"><tr><td colspan="7">Cargando...<\/td><\/tr><\/tbody>
-            </table>
-            <\/div>
-        <\/main>
-    <\/div>
-
-    <div id="modalDetalle" class="modal"><div class="modal-content" style="max-width:600px;"><div class="modal-header"><h3>📋 Detalles</h3><button class="close-modal" onclick="cerrarModal()">&times;</button><\/div><div id="modalBody"><\/div><div style="margin-top:1rem; display:flex; gap:1rem;"><select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:5px;"><option value="pendiente">Pendiente<\/option><option value="en_proceso">En Proceso<\/option><option value="resuelto">Resuelto<\/option><option value="cancelada">Cancelada<\/option><\/select><button class="btn-primary" onclick="actualizarEstado()">Actualizar<\/button><button class="btn-danger" onclick="eliminarRegistro()">Eliminar<\/button><\/div><\/div><\/div>
+        </div>
+    </div>
 
     <script>
         const API_BASE_URL = window.location.origin;
         const API_URL = API_BASE_URL + '/api';
         let token = localStorage.getItem('token');
-        let currentItem = null;
-        let currentTipo = null;
-        let comparativaChart = null;
-        let evolucionChart = null;
-
-        if (!token) window.location.href = '/login.html';
-        document.getElementById('nombreAdmin').textContent = localStorage.getItem('nombre') || 'Administrador';
-
-        function aplicarTema(tema) {
-            const root = document.documentElement;
-            if (tema === 'claro') {
-                root.style.setProperty('--bg-color', '#f5f5f5');
-                root.style.setProperty('--text-color', '#000');
-                root.style.setProperty('--card-bg', '#fff');
-            } else {
-                root.style.setProperty('--bg-color', '#000');
-                root.style.setProperty('--text-color', '#fff');
-                root.style.setProperty('--card-bg', '#0a0a0a');
-            }
-            document.body.setAttribute('data-theme', tema);
+        let rol = localStorage.getItem('rol');
+        
+        if (!token || rol !== 'ingeniero') {
+            window.location.href = '/login-ingeniero.html';
         }
-
-        async function cargarTema() {
+        
+        document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
+        
+        async function verificarServidor() {
+            document.getElementById('serverStatus').innerHTML = '🟡 Verificando...';
             try {
-                const res = await fetch(API_URL + '/configuracion/tema');
-                const data = await res.json();
-                aplicarTema(data.tema);
-            } catch(e) { aplicarTema('oscuro'); }
-        }
-
-        async function cambiarTema() {
-            const nuevoTema = document.body.getAttribute('data-theme') === 'oscuro' ? 'claro' : 'oscuro';
-            await fetch(API_URL + '/configuracion/tema', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ tema: nuevoTema }) });
-            aplicarTema(nuevoTema);
-        }
-
-        const menuToggleBtn = document.getElementById('menuToggleBtn');
-        const sidebar = document.getElementById('sidebar');
-        menuToggleBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
-        document.querySelectorAll('.sidebar-nav a').forEach(link => { link.addEventListener('click', () => sidebar.classList.remove('mobile-open')); });
-
-        function exportarExcel() { window.open(API_URL + '/exportar/excel?token=' + token, '_blank'); }
-        function exportarPDF() { window.open(API_URL + '/exportar/pdf?token=' + token, '_blank'); }
-        async function enviarRecordatorios() { await fetch(API_URL + '/enviar-recordatorios', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('Recordatorios enviados'); }
-
-        async function cargarDashboard() {
-            const res = await fetch(API_URL + '/admin/dashboard', { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            document.getElementById('totalConsultas').textContent = data.total_consultas || 0;
-            document.getElementById('totalCitas').textContent = data.total_citas || 0;
-            document.getElementById('consultasPendientes').textContent = data.consultas_pendientes || 0;
-            document.getElementById('citasPendientes').textContent = data.citas_pendientes || 0;
-            
-            if (comparativaChart) comparativaChart.destroy();
-            const ctxComp = document.getElementById('comparativaChart').getContext('2d');
-            comparativaChart = new Chart(ctxComp, { type: 'bar', data: { labels: ['Consultas', 'Citas'], datasets: [{ label: 'Total', data: [data.total_consultas, data.total_citas], backgroundColor: ['#C8A951', '#0A1628'], borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: true } });
-            
-            if (evolucionChart) evolucionChart.destroy();
-            const ctxEvo = document.getElementById('evolucionChart').getContext('2d');
-            evolucionChart = new Chart(ctxEvo, { type: 'line', data: { labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], datasets: [{ label: 'Consultas', data: [0, 0, 0, 0, 0, 0, 0], borderColor: '#C8A951', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: true } });
-        }
-
-        async function cargarRegistrosRecientes() {
-            const res = await fetch(API_URL + '/casos/todos', { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            const consultas = (data.consultas || []).slice(-5).reverse();
-            const citas = (data.citas || []).slice(-5).reverse();
-            
-            document.getElementById('consultasRecientes').innerHTML = consultas.map(c => `<tr><td>${c.codigo}<\/td><td>${c.nombre}<\/td><td>${c.telefono}<\/td><td>${c.rama}<\/td><td>${new Date(c.fecha).toLocaleDateString()}<\/td><td><span class="badge badge-${c.estado}">${c.estado}<\/span><\/td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver<\/button><\/td><\/tr>`).join('');
-            document.getElementById('citasRecientes').innerHTML = citas.map(c => `<tr><td>${c.codigo}<\/td><td>${c.nombre}<\/td><td>${c.telefono}<\/td><td>${c.rama}<\/td><td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}<\/td><td><span class="badge badge-${c.estado}">${c.estado}<\/span><\/td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver<\/button><\/td><\/tr>`).join('');
-        }
-
-        async function verDetalle(id, tipo) {
-            currentTipo = tipo;
-            const res = await fetch(API_URL + '/casos/todos', { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            const items = tipo === 'consulta' ? data.consultas : data.citas;
-            currentItem = items.find(i => i.id === id);
-            if (currentItem) {
-                document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
-                let html = `<div><strong>📌 Código:</strong> ${currentItem.codigo}<\/div><div><strong>👤 Nombre:</strong> ${currentItem.nombre}<\/div><div><strong>📞 Teléfono:</strong> ${currentItem.telefono}<\/div><div><strong>✉️ Email:</strong> ${currentItem.email}<\/div><div><strong>⚖️ Rama:</strong> ${currentItem.rama}<\/div>`;
-                if (tipo === 'consulta') {
-                    html += `<div><strong>📝 Hechos:</strong><br>${currentItem.hechos || 'N/A'}<\/div>`;
-                    if (currentItem.archivos?.length) {
-                        const audios = currentItem.archivos.filter(a => a.tipo?.startsWith('audio'));
-                        audios.forEach(a => { html += `<div><strong>🎙️ Audio:</strong><br><audio controls src="${API_BASE_URL + a.ruta}" style="max-width:100%"><\/audio><\/div>`; });
-                    }
+                const res = await fetch(API_URL + '/admin/dashboard', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    document.getElementById('serverStatus').innerHTML = '🟢 Servidor OK';
+                    agregarLog('Servidor verificado');
                 } else {
-                    html += `<div><strong>📝 Motivo:</strong> ${currentItem.motivo}<\/div><div><strong>📅 Fecha Cita:</strong> ${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}<\/div>`;
+                    document.getElementById('serverStatus').innerHTML = '🔴 Error';
+                    agregarLog('Error al verificar servidor', 'error');
                 }
-                document.getElementById('modalBody').innerHTML = html;
-                document.getElementById('modalDetalle').style.display = 'flex';
+            } catch(e) {
+                document.getElementById('serverStatus').innerHTML = '🔴 Servidor caído';
+                agregarLog('Servidor no responde', 'error');
             }
         }
-
-        async function actualizarEstado() {
-            const nuevoEstado = document.getElementById('estadoSelect').value;
-            await fetch(API_URL + `/casos/${currentItem.id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo }) });
-            alert('Estado actualizado'); cerrarModal(); cargarDashboard(); cargarRegistrosRecientes();
-        }
-
-        async function eliminarRegistro() {
-            if (confirm('¿Eliminar?')) {
-                await fetch(API_URL + `/casos/${currentItem.id}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ tipo: currentTipo }) });
-                alert('Eliminado'); cerrarModal(); cargarDashboard(); cargarRegistrosRecientes();
+        
+        async function cargarEstadisticas() {
+            try {
+                const res = await fetch(API_URL + '/admin/dashboard', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                document.getElementById('dbCount').textContent = (data.total_consultas || 0) + (data.total_citas || 0);
+                document.getElementById('dbDetails').textContent = `${data.total_consultas || 0} consultas, ${data.total_citas || 0} citas`;
+                document.getElementById('supabaseUrl').textContent = 'https://fxfwcfanzqnegdyheklv.supabase.co';
+                agregarLog('Estadísticas cargadas');
+            } catch(e) {
+                agregarLog('Error al cargar estadísticas', 'error');
             }
         }
-
-        function cerrarModal() { document.getElementById('modalDetalle').style.display = 'none'; }
-        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
-
-        cargarTema();
-        cargarDashboard();
-        cargarRegistrosRecientes();
-        window.cambiarTema = cambiarTema;
-        window.exportarExcel = exportarExcel;
-        window.exportarPDF = exportarPDF;
-        window.enviarRecordatorios = enviarRecordatorios;
-        window.verDetalle = verDetalle;
-        window.actualizarEstado = actualizarEstado;
-        window.eliminarRegistro = eliminarRegistro;
-        window.cerrarModal = cerrarModal;
+        
+        async function respaldarDB() {
+            agregarLog('Iniciando respaldo...');
+            try {
+                const res = await fetch(API_URL + '/exportar/excel?token=' + token);
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backup_lexpenal_${Date.now()}.xlsx`;
+                    a.click();
+                    agregarLog('Respaldo completado');
+                } else {
+                    agregarLog('Error en respaldo', 'error');
+                }
+            } catch(e) {
+                agregarLog('Error en respaldo', 'error');
+            }
+        }
+        
+        function verSupabase() {
+            window.open('https://supabase.com/dashboard/projects', '_blank');
+            agregarLog('Abriendo Supabase');
+        }
+        
+        function descargarLogs() {
+            const logs = document.getElementById('logsContainer').innerHTML;
+            const blob = new Blob([logs], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${Date.now()}.html`;
+            a.click();
+            agregarLog('Logs descargados');
+        }
+        
+        function limpiarLogs() {
+            if (confirm('¿Limpiar logs?')) {
+                document.getElementById('logsContainer').innerHTML = '<div class="log-entry">🟢 Logs reiniciados</div>';
+                agregarLog('Logs limpiados');
+            }
+        }
+        
+        function agregarLog(mensaje, tipo = 'info') {
+            const container = document.getElementById('logsContainer');
+            const time = new Date().toLocaleTimeString();
+            const clase = tipo === 'error' ? 'error' : '';
+            container.innerHTML += `<div class="log-entry ${clase}">[${time}] ${mensaje}</div>`;
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = '/login-ingeniero.html';
+        }
+        
+        verificarServidor();
+        cargarEstadisticas();
+        
+        window.verificarServidor = verificarServidor;
+        window.respaldarDB = respaldarDB;
+        window.verSupabase = verSupabase;
+        window.descargarLogs = descargarLogs;
+        window.limpiarLogs = limpiarLogs;
         window.cerrarSesion = cerrarSesion;
-    <\/script>
+    </script>
 </body>
 </html>
