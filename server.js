@@ -33,41 +33,81 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const DATA_FILE = path.join(__dirname, 'database.json');
 
+// ============ BASE DE DATOS EN MEMORIA (SIEMPRE FUNCIONA) ============
+let memoriaDB = {
+    usuarios: [],
+    consultas: [],
+    citas: [],
+    testimonios: [],
+    plantillas: [],
+    tipos_caso: [],
+    configuracion: {},
+    abogado: {}
+};
+
+// Inicializar base de datos
 function initDB() {
-    if (!fs.existsSync(DATA_FILE)) {
-        const adminHash = bcrypt.hashSync("ACT1018457093", 10);
-        const initialData = {
-            usuarios: [{ id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }],
-            consultas: [],
-            citas: [],
-            casos_legales: [],
-            testimonios: [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: new Date().toISOString().split('T')[0] }],
-            plantillas: [],
-            tipos_caso: [
-                { id: 1, nombre: "Homicidio", icono: "⚖️", orden: 1 },
-                { id: 2, nombre: "Violación", icono: "🛡️", orden: 2 },
-                { id: 3, nombre: "Robo", icono: "🔒", orden: 3 },
-                { id: 4, nombre: "Apelaciones", icono: "📄", orden: 4 },
-                { id: 5, nombre: "Citaciones", icono: "📅", orden: 5 },
-                { id: 6, nombre: "Trámites Legales", icono: "📋", orden: 6 }
-            ],
-            configuracion: { colores: { dorado: "#C8A951", azul: "#0A1628", fondo: "#000000" }, textos: { hero_titulo: "Defensa Penal Estratégica", hero_subtitulo: "Más de 6 años protegiendo tus derechos" } },
-            abogado: { nombre: "Asmairo Conde Torres", telefono: "573145879875", email: "asmairo.conde.torres@hotmail.com" }
-        };
-        fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2));
-        console.log('✅ Base de datos inicializada');
+    // Datos por defecto
+    const adminHash = bcrypt.hashSync("ACT1018457093", 10);
+    
+    memoriaDB.usuarios = [{ id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }];
+    memoriaDB.testimonios = [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: new Date().toISOString().split('T')[0] }];
+    memoriaDB.tipos_caso = [
+        { id: 1, nombre: "Homicidio", icono: "⚖️", orden: 1 },
+        { id: 2, nombre: "Violación", icono: "🛡️", orden: 2 },
+        { id: 3, nombre: "Robo", icono: "🔒", orden: 3 },
+        { id: 4, nombre: "Apelaciones", icono: "📄", orden: 4 },
+        { id: 5, nombre: "Citaciones", icono: "📅", orden: 5 },
+        { id: 6, nombre: "Trámites Legales", icono: "📋", orden: 6 }
+    ];
+    memoriaDB.configuracion = { colores: { dorado: "#C8A951", azul: "#0A1628", fondo: "#000000" }, textos: { hero_titulo: "Defensa Penal Estratégica", hero_subtitulo: "Más de 6 años protegiendo tus derechos" } };
+    memoriaDB.abogado = { nombre: "Asmairo Conde Torres", telefono: "573145879875", email: "asmairo.conde.torres@hotmail.com" };
+    memoriaDB.consultas = [];
+    memoriaDB.citas = [];
+    memoriaDB.plantillas = [];
+
+    // Intentar cargar datos existentes del archivo
+    if (fs.existsSync(DATA_FILE)) {
+        try {
+            const data = fs.readFileSync(DATA_FILE, 'utf8');
+            const archivoDB = JSON.parse(data);
+            if (archivoDB.consultas) memoriaDB.consultas = archivoDB.consultas;
+            if (archivoDB.citas) memoriaDB.citas = archivoDB.citas;
+            if (archivoDB.usuarios) memoriaDB.usuarios = archivoDB.usuarios;
+            if (archivoDB.testimonios) memoriaDB.testimonios = archivoDB.testimonios;
+            if (archivoDB.plantillas) memoriaDB.plantillas = archivoDB.plantillas;
+            if (archivoDB.tipos_caso) memoriaDB.tipos_caso = archivoDB.tipos_caso;
+            if (archivoDB.configuracion) memoriaDB.configuracion = archivoDB.configuracion;
+            if (archivoDB.abogado) memoriaDB.abogado = archivoDB.abogado;
+            console.log('✅ Datos cargados del archivo database.json');
+        } catch (e) {
+            console.log('⚠️ Error al leer database.json, usando datos por defecto');
+        }
+    } else {
+        // Guardar datos por defecto en archivo
+        guardarDB();
+        console.log('✅ Base de datos inicializada con valores por defecto');
     }
 }
 
-function readDB() { 
-    const data = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(data);
+function guardarDB() {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify(memoriaDB, null, 2));
+        console.log('💾 Datos guardados en database.json');
+    } catch (e) {
+        console.log('⚠️ Error al guardar database.json');
+    }
 }
+
+function readDB() { return memoriaDB; }
 function writeDB(data) { 
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    memoriaDB = data; 
+    guardarDB();
 }
+
 initDB();
 
+// ============ MIDDLEWARE ============
 function verificarToken(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({ error: 'No autorizado' });
@@ -116,9 +156,10 @@ app.post('/api/auth/login', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
 });
 
-// ==================== RUTAS DE CONSULTAS (CON ARCHIVOS) ====================
+// ==================== RUTAS DE CONSULTAS ====================
 app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
     try {
+        console.log('📝 Recibiendo consulta...');
         const { nombre, telefono, email, hechos, rama } = req.body;
         const codigo = `CON-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         const archivos = req.files ? req.files.map(f => ({ 
@@ -144,10 +185,10 @@ app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
         db.consultas.push(nuevaConsulta);
         writeDB(db);
         
-        console.log(`✅ Nueva consulta guardada: ${codigo} - ${nombre}`);
+        console.log(`✅ Consulta guardada: ${codigo} - ${nombre}`);
         res.json({ success: true, codigo, mensaje: 'Consulta guardada exitosamente' });
     } catch (error) { 
-        console.error('Error en consulta:', error);
+        console.error('❌ Error en consulta:', error);
         res.status(500).json({ error: error.message }); 
     }
 });
@@ -155,6 +196,7 @@ app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
 // ==================== RUTAS DE CITAS ====================
 app.post('/api/citas/nueva', (req, res) => {
     try {
+        console.log('📝 Recibiendo cita...');
         const { nombre, telefono, email, motivo, fecha, rama } = req.body;
         const codigo = `CIT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         
@@ -183,22 +225,28 @@ app.post('/api/citas/nueva', (req, res) => {
         db.citas.push(nuevaCita);
         writeDB(db);
         
-        console.log(`✅ Nueva cita guardada: ${codigo} - ${nombre} - ${fecha}`);
+        console.log(`✅ Cita guardada: ${codigo} - ${nombre} - ${fecha}`);
         res.json({ success: true, codigo, mensaje: 'Cita agendada exitosamente' });
     } catch (error) { 
-        console.error('Error en cita:', error);
+        console.error('❌ Error en cita:', error);
         res.status(500).json({ error: error.message }); 
     }
 });
 
-// ==================== OBTENER TODOS LOS REGISTROS (ADMIN) ====================
+// ==================== OBTENER TODOS LOS REGISTROS ====================
 app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    res.json({ 
-        consultas: db.consultas || [], 
-        citas: db.citas || [], 
-        total: (db.consultas?.length || 0) + (db.citas?.length || 0)
-    });
+    try {
+        const db = readDB();
+        console.log(`📊 Enviando datos: ${db.consultas.length} consultas, ${db.citas.length} citas`);
+        res.json({ 
+            consultas: db.consultas || [], 
+            citas: db.citas || [], 
+            total: (db.consultas?.length || 0) + (db.citas?.length || 0)
+        });
+    } catch (error) {
+        console.error('❌ Error:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // ==================== OBTENER CITAS OCUPADAS ====================
@@ -211,37 +259,44 @@ app.get('/api/citas/ocupadas', (req, res) => {
 
 // ==================== ACTUALIZAR ESTADO ====================
 app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const { estado, notas_admin, tipo } = req.body;
-    const db = readDB();
-    
-    let item = null;
-    let lista = tipo === 'consulta' ? db.consultas : db.citas;
-    const index = lista.findIndex(c => c.id === parseInt(id));
-    
-    if (index !== -1) {
-        if (estado) lista[index].estado = estado;
-        if (notas_admin !== undefined) lista[index].notas_admin = notas_admin;
-        writeDB(db);
-        res.json({ success: true });
-    } else { 
-        res.status(404).json({ error: 'No encontrado' }); 
+    try {
+        const { id } = req.params;
+        const { estado, notas_admin, tipo } = req.body;
+        const db = readDB();
+        
+        let lista = tipo === 'consulta' ? db.consultas : db.citas;
+        const index = lista.findIndex(c => c.id === parseInt(id));
+        
+        if (index !== -1) {
+            if (estado) lista[index].estado = estado;
+            if (notas_admin !== undefined) lista[index].notas_admin = notas_admin;
+            writeDB(db);
+            res.json({ success: true });
+        } else { 
+            res.status(404).json({ error: 'No encontrado' }); 
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
 // ==================== ELIMINAR REGISTRO ====================
 app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const { tipo } = req.body;
-    const db = readDB();
-    
-    if (tipo === 'consulta') {
-        db.consultas = db.consultas.filter(c => c.id !== parseInt(id));
-    } else {
-        db.citas = db.citas.filter(c => c.id !== parseInt(id));
+    try {
+        const { id } = req.params;
+        const { tipo } = req.body;
+        const db = readDB();
+        
+        if (tipo === 'consulta') {
+            db.consultas = db.consultas.filter(c => c.id !== parseInt(id));
+        } else {
+            db.citas = db.citas.filter(c => c.id !== parseInt(id));
+        }
+        writeDB(db);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    writeDB(db);
-    res.json({ success: true });
 });
 
 // ==================== ADMIN DASHBOARD ====================
@@ -363,8 +418,20 @@ app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'inde
 app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'index.html')); });
 app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', `${req.params.page}.html`)); });
 
+// ==================== DIAGNÓSTICO ====================
+app.get('/api/diagnostico', (req, res) => {
+    const db = readDB();
+    res.json({
+        status: 'ok',
+        consultas: db.consultas.length,
+        citas: db.citas.length,
+        usuarios: db.usuarios.length,
+        archivo_existe: fs.existsSync(DATA_FILE)
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
     console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
-    console.log(`📂 Base de datos: ${DATA_FILE}`);
+    console.log(`📊 Diagnóstico: http://localhost:${PORT}/api/diagnostico`);
 });
