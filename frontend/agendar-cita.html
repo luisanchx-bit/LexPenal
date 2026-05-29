@@ -162,6 +162,10 @@
     </div>
 
     <script>
+        // CONFIGURACIÓN GLOBAL
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        
         let fechaActual = new Date();
         let citasOcupadas = [];
         let fechaSeleccionada = null;
@@ -184,7 +188,7 @@
 
         async function cargarCitasOcupadas() {
             try {
-                const res = await fetch('/api/citas/ocupadas');
+                const res = await fetch(API_URL + '/citas/ocupadas');
                 const data = await res.json();
                 citasOcupadas = data;
                 renderCalendario();
@@ -283,7 +287,7 @@
             btn.disabled = true;
             
             try {
-                const res = await fetch('/api/citas/nueva', {
+                const res = await fetch(API_URL + '/citas/nueva', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre, telefono, email, motivo, fecha, rama: tipoRama })
@@ -316,4 +320,4 @@
         cargarCitasOcupadas();
     </script>
 </body>
-    </html>
+</html>
