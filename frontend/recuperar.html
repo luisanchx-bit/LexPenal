@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña - LexPenal</title>
+    <link rel="stylesheet" href="/css/estilo.css">
+    <style>
+        .recuperar-container {
+            max-width: 500px;
+            margin: 100px auto 4rem;
+            padding: 2rem;
+            background: #0a0a0a;
+            border-radius: 20px;
+            border: 1px solid rgba(200, 169, 81, 0.3);
+        }
+        .step { display: none; }
+        .step.active { display: block; }
+        .btn-enviar {
+            background: #C8A951; color: #000; border: none; padding: 0.8rem; border-radius: 40px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 1rem;
+        }
+        .mensaje {
+            margin-top: 1rem; padding: 0.8rem; border-radius: 10px; text-align: center;
+        }
+        .mensaje.exito { background: rgba(46,125,50,0.2); border: 1px solid #2E7D32; color: #81C784; }
+        .mensaje.error { background: rgba(198,40,40,0.2); border: 1px solid #C62828; color: #EF5350; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo" style="cursor:pointer" onclick="window.location.href='/'"><h2>⚖️ LexPenal</h2></div>
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/login.html">Acceder</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="recuperar-container">
+        <h1 style="color:#C8A951; text-align:center;">🔐 Recuperar Contraseña</h1>
+        
+        <div id="step1" class="step active">
+            <p style="text-align:center; margin-bottom:1.5rem;">Ingrese su correo electrónico para recibir un enlace de recuperación</p>
+            <div class="input-group"><label>Correo electrónico</label><input type="email" id="email" placeholder="tuemail@ejemplo.com"></div>
+            <button class="btn-enviar" onclick="solicitarRecuperacion()">Enviar enlace</button>
+            <div id="mensaje1" class="mensaje"></div>
+        </div>
+
+        <div id="step2" class="step">
+            <p style="text-align:center; margin-bottom:1.5rem;">Ingrese su nueva contraseña</p>
+            <div class="input-group"><label>Nueva contraseña</label><input type="password" id="nuevaPass" placeholder="Mínimo 6 caracteres"></div>
+            <div class="input-group"><label>Confirmar contraseña</label><input type="password" id="confirmPass" placeholder="Repita su contraseña"></div>
+            <button class="btn-enviar" onclick="restablecerContrasena()">Restablecer contraseña</button>
+            <div id="mensaje2" class="mensaje"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        let tokenRecuperacion = null;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenUrl = urlParams.get('token');
+        if (tokenUrl) {
+            tokenRecuperacion = tokenUrl;
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+        }
+
+        async function solicitarRecuperacion() {
+            const email = document.getElementById('email').value;
+            if (!email) { mostrarMensaje('Ingrese su correo', 'error', 'mensaje1'); return; }
+            try {
+                const res = await fetch(API_URL + '/auth/recuperar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+                const data = await res.json();
+                if (data.success) mostrarMensaje('Si el correo está registrado, recibirás un enlace', 'exito', 'mensaje1');
+                else mostrarMensaje(data.error, 'error', 'mensaje1');
+            } catch(e) { mostrarMensaje('Error de conexión', 'error', 'mensaje1'); }
+        }
+
+        async function restablecerContrasena() {
+            const nueva = document.getElementById('nuevaPass').value;
+            const confirm = document.getElementById('confirmPass').value;
+            if (!nueva || nueva.length < 6) { mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error', 'mensaje2'); return; }
+            if (nueva !== confirm) { mostrarMensaje('Las contraseñas no coinciden', 'error', 'mensaje2'); return; }
+            if (!tokenRecuperacion) { mostrarMensaje('Token no válido', 'error', 'mensaje2'); return; }
+            try {
+                const res = await fetch(API_URL + '/auth/restablecer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tokenRecuperacion, nuevaContrasena: nueva }) });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Contraseña restablecida exitosamente');
+                    window.location.href = '/login.html';
+                } else mostrarMensaje(data.error, 'error', 'mensaje2');
+            } catch(e) { mostrarMensaje('Error de conexión', 'error', 'mensaje2'); }
+        }
+
+        function mostrarMensaje(texto, tipo, elementoId) {
+            const div = document.getElementById(elementoId);
+            div.textContent = texto;
+            div.className = `mensaje ${tipo}`;
+            setTimeout(() => { div.textContent = ''; div.className = 'mensaje'; }, 5000);
+        }
+
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (menuToggle) menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+    </script>
+</body>
+</html>
