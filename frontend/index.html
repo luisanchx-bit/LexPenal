@@ -113,10 +113,46 @@
             color: #aaa;
             margin-top: 1rem;
         }
+        /* Estilos para los botones de acceso en el navbar */
+        .acceso-buttons {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+        .btn-acceso {
+            background: transparent;
+            border: 1px solid #C8A951;
+            border-radius: 30px;
+            padding: 0.4rem 1rem;
+            color: #C8A951;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-acceso:hover {
+            background: #C8A951;
+            color: #000;
+        }
+        .btn-acceso.admin {
+            border-color: #C8A951;
+            color: #C8A951;
+        }
+        .btn-acceso.ingeniero {
+            border-color: #00aaff;
+            color: #00aaff;
+        }
+        .btn-acceso.ingeniero:hover {
+            background: #00aaff;
+            color: #000;
+        }
         @media (max-width: 768px) {
             .menu-grid { grid-template-columns: 1fr; }
             .hero-mini { margin-top: 60px; padding: 2rem 1rem; }
             .hero-mini h1 { font-size: 1.8rem; }
+            .acceso-buttons { gap: 0.5rem; }
+            .btn-acceso { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -129,7 +165,10 @@
             <button class="menu-toggle" id="menuToggle">☰</button>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="/">Inicio</a></li>
-                <li><a href="/login.html">Acceder</a></li>
+                <li class="acceso-buttons">
+                    <a href="/login.html" class="btn-acceso admin">👑 Admin</a>
+                    <a href="/login-ingeniero.html" class="btn-acceso ingeniero">🔧 Ingeniero</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -271,19 +310,11 @@
             window.location.href = '/generar-documento.html';
         }
         
-        // Menú responsive
         const menuToggle = document.getElementById('menuToggle');
         const navMenu = document.getElementById('navMenu');
         if (menuToggle) {
             menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
         }
-
-        // Verificar si es admin para mostrar calculadora (opcional, ya no se usa)
-        const token = localStorage.getItem('token');
-        const isAdmin = localStorage.getItem('isAdmin');
-        // La calculadora ya no está en el frontend público
     </script>
-
-    <!-- EL BOTÓN FLOTANTE DE LA CALCULADORA SE ELIMINA - SOLO ADMIN -->
 </body>
-    </html>
+</html>
