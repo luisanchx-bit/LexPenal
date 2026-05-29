@@ -2,11 +2,70 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Gestión de Citas y Consultas - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
     <style>
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1001;
+                width: 260px;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+            .menu-toggle-btn {
+                display: block !important;
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 1002;
+                background: #C8A951;
+                border: none;
+                color: #000;
+                font-size: 1.5rem;
+                padding: 0.5rem 0.8rem;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .table-container {
+                overflow-x: auto;
+            }
+            table {
+                font-size: 0.8rem;
+            }
+            th, td {
+                padding: 0.5rem !important;
+            }
+            .tabs {
+                flex-wrap: wrap;
+            }
+        }
+        @media (min-width: 769px) {
+            .menu-toggle-btn {
+                display: none;
+            }
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+        .menu-toggle-btn {
+            display: none;
+        }
         .tabs {
             display: flex;
             gap: 1rem;
@@ -43,56 +102,33 @@
         .badge-en_proceso { background: #2196f3; color: #fff; }
         .badge-resuelto { background: #4caf50; color: #fff; }
         .badge-cancelada { background: #f44336; color: #fff; }
-        .modal-detalle {
-            background: #0a0a0a;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-top: 1rem;
-        }
-        .detalle-item {
-            margin-bottom: 0.8rem;
-            border-left: 2px solid #C8A951;
-            padding-left: 1rem;
-        }
-        .detalle-label {
-            color: #C8A951;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-        .detalle-valor {
-            color: #fff;
-            font-size: 0.9rem;
-            margin-top: 0.2rem;
-        }
     </style>
 </head>
 <body>
+    <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
+    
     <div class="admin-container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'">
                 <h2>⚖️ LexPenal</h2>
                 <p>Panel de Control</p>
             </div>
             <nav class="sidebar-nav">
                 <a href="/admin/index.html">📊 Dashboard</a>
-                <a href="/admin/interface.html">🎨 Interfaz</a>
-                <a href="/admin/casos.html">📋 Casos Antiguos</a>
                 <a href="/admin/citas.html" class="active">📅 Citas y Consultas</a>
-                <a href="/admin/testimonios.html">💬 Testimonios</a>
                 <a href="/admin/plantillas.html">📄 Plantillas</a>
-                <a href="/admin/menu.html">📑 Menú</a>
-                <a href="/admin/estadisticas.html">📈 Estadísticas</a>
                 <a href="/admin/configuracion.html">⚙️ Configuración</a>
+                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
             </nav>
             <div class="sidebar-footer">
                 <p>Dr. Asmairo Conde Torres</p>
-                <button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button>
+                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
             </div>
         </aside>
 
         <main class="main-content">
             <div class="admin-header">
-                <h1>📅 Gestión de Citas y Consultas</h1>
+                <h1>📅 Citas y Consultas</h1>
             </div>
 
             <div class="tabs">
@@ -104,15 +140,7 @@
                 <div class="table-container">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Nombre</th>
-                                <th>Teléfono</th>
-                                <th>Rama</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
+                            <tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
                         </thead>
                         <tbody id="listaConsultas">
                             <tr><td colspan="7">Cargando...</td></tr>
@@ -125,15 +153,7 @@
                 <div class="table-container">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Nombre</th>
-                                <th>Teléfono</th>
-                                <th>Rama</th>
-                                <th>Fecha Cita</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
+                            <tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr>
                         </thead>
                         <tbody id="listaCitas">
                             <tr><td colspan="7">Cargando...</td></tr>
@@ -144,7 +164,6 @@
         </main>
     </div>
 
-    <!-- Modal de detalles -->
     <div id="modalDetalle" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
@@ -152,7 +171,7 @@
                 <button class="close-modal" onclick="cerrarModal()">&times;</button>
             </div>
             <div id="modalBody"></div>
-            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 1rem;">
                 <select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:5px;">
                     <option value="pendiente">Pendiente</option>
                     <option value="en_proceso">En Proceso</option>
@@ -169,8 +188,21 @@
         const API_URL = '/api';
         let token = localStorage.getItem('token');
         let currentItem = null;
+        let currentTipo = null;
 
         if (!token) window.location.href = '/login.html';
+
+        // Menú responsive
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const sidebar = document.getElementById('sidebar');
+        menuToggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+        });
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.remove('mobile-open');
+            });
+        });
 
         async function cargarDatos() {
             const res = await fetch(`${API_URL}/casos/todos`, {
@@ -178,8 +210,9 @@
             });
             const data = await res.json();
             
-            // Consultas
             const consultas = data.consultas || [];
+            const citas = data.citas || [];
+            
             const tbodyConsultas = document.getElementById('listaConsultas');
             if (consultas.length === 0) {
                 tbodyConsultas.innerHTML = '<tr><td colspan="7">No hay consultas registradas</td></tr>';
@@ -192,15 +225,11 @@
                         <td>${c.rama || 'general'}</td>
                         <td>${new Date(c.fecha).toLocaleDateString()}</td>
                         <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                        <td>
-                            <button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button>
-                        </td>
+                        <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td>
                     </tr>
                 `).join('');
             }
             
-            // Citas
-            const citas = data.citas || [];
             const tbodyCitas = document.getElementById('listaCitas');
             if (citas.length === 0) {
                 tbodyCitas.innerHTML = '<tr><td colspan="7">No hay citas registradas</td></tr>';
@@ -213,15 +242,14 @@
                         <td>${c.rama || 'general'}</td>
                         <td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td>
                         <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                        <td>
-                            <button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button>
-                        </td>
+                        <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td>
                     </tr>
                 `).join('');
             }
         }
 
         async function verDetalle(id, tipo) {
+            currentTipo = tipo;
             const res = await fetch(`${API_URL}/casos/todos`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -234,57 +262,53 @@
                 document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
                 
                 let html = `
-                    <div class="detalle-item">
-                        <div class="detalle-label">📌 Código</div>
-                        <div class="detalle-valor">${currentItem.codigo || 'N/A'}</div>
+                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                        <div style="color: #C8A951; font-weight: bold;">📌 Código</div>
+                        <div style="color: #fff;">${currentItem.codigo || 'N/A'}</div>
                     </div>
-                    <div class="detalle-item">
-                        <div class="detalle-label">👤 Nombre</div>
-                        <div class="detalle-valor">${currentItem.nombre || 'N/A'}</div>
+                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                        <div style="color: #C8A951; font-weight: bold;">👤 Nombre</div>
+                        <div style="color: #fff;">${currentItem.nombre || 'N/A'}</div>
                     </div>
-                    <div class="detalle-item">
-                        <div class="detalle-label">📞 Teléfono</div>
-                        <div class="detalle-valor">${currentItem.telefono || 'N/A'}</div>
+                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                        <div style="color: #C8A951; font-weight: bold;">📞 Teléfono</div>
+                        <div style="color: #fff;">${currentItem.telefono || 'N/A'}</div>
                     </div>
-                    <div class="detalle-item">
-                        <div class="detalle-label">✉️ Email</div>
-                        <div class="detalle-valor">${currentItem.email || 'N/A'}</div>
+                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                        <div style="color: #C8A951; font-weight: bold;">✉️ Email</div>
+                        <div style="color: #fff;">${currentItem.email || 'N/A'}</div>
                     </div>
-                    <div class="detalle-item">
-                        <div class="detalle-label">⚖️ Rama del Derecho</div>
-                        <div class="detalle-valor">${currentItem.rama || 'general'}</div>
+                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                        <div style="color: #C8A951; font-weight: bold;">⚖️ Rama</div>
+                        <div style="color: #fff;">${currentItem.rama || 'general'}</div>
                     </div>
                 `;
                 
                 if (tipo === 'consulta') {
                     html += `
-                        <div class="detalle-item">
-                            <div class="detalle-label">📝 Hechos del caso</div>
-                            <div class="detalle-valor">${currentItem.hechos || 'N/A'}</div>
-                        </div>
-                        <div class="detalle-item">
-                            <div class="detalle-label">📎 Archivos adjuntos</div>
-                            <div class="detalle-valor">${currentItem.archivos ? currentItem.archivos.map(a => a.nombre).join(', ') : 'No hay archivos'}</div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">📝 Hechos</div>
+                            <div style="color: #fff;">${currentItem.hechos || 'N/A'}</div>
                         </div>
                     `;
                 } else {
                     html += `
-                        <div class="detalle-item">
-                            <div class="detalle-label">📝 Motivo de la cita</div>
-                            <div class="detalle-valor">${currentItem.motivo || 'N/A'}</div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">📝 Motivo</div>
+                            <div style="color: #fff;">${currentItem.motivo || 'N/A'}</div>
                         </div>
-                        <div class="detalle-item">
-                            <div class="detalle-label">📅 Fecha de la cita</div>
-                            <div class="detalle-valor">${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">📅 Fecha Cita</div>
+                            <div style="color: #fff;">${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>
                         </div>
                     `;
                 }
                 
                 if (currentItem.notas_admin) {
                     html += `
-                        <div class="detalle-item">
-                            <div class="detalle-label">📝 Notas del abogado</div>
-                            <div class="detalle-valor">${currentItem.notas_admin}</div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">📝 Notas</div>
+                            <div style="color: #fff;">${currentItem.notas_admin}</div>
                         </div>
                     `;
                 }
@@ -302,7 +326,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ estado: nuevoEstado })
+                body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo })
             });
             if (res.ok) {
                 alert('Estado actualizado');
@@ -317,7 +341,11 @@
             if (confirm('¿Eliminar este registro permanentemente?')) {
                 const res = await fetch(`${API_URL}/casos/${currentItem.id}`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ tipo: currentTipo })
                 });
                 if (res.ok) {
                     alert('Registro eliminado');
@@ -354,4 +382,4 @@
         cargarDatos();
     </script>
 </body>
-  </html>
+</html>
