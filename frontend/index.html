@@ -38,12 +38,12 @@
         }
         .menu-header h2 {
             color: #C8A951;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             margin-bottom: 0.5rem;
         }
         .menu-header p {
             color: #888;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
         .menu-items {
             max-height: 0;
@@ -52,7 +52,7 @@
             background: #050505;
         }
         .menu-items.active {
-            max-height: 300px;
+            max-height: 500px;
         }
         .submenu {
             padding: 0.5rem 0;
@@ -75,6 +75,27 @@
         .submenu-item .arrow {
             color: #C8A951;
             font-size: 0.8rem;
+        }
+        .sub-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding-left: 2rem;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .sub-submenu.active {
+            max-height: 300px;
+        }
+        .sub-submenu-item {
+            padding: 0.6rem 1rem;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .sub-submenu-item:hover {
+            color: #C8A951;
+            padding-left: 1.5rem;
         }
         .hero-mini {
             text-align: center;
@@ -165,23 +186,59 @@
                 <div id="tramitesMenu" class="menu-items">
                     <div class="submenu">
                         <div class="submenu-item" onclick="irAGenerarDocumento('peticion', 'derecho')">
-                            Peticiones <span class="arrow">→</span>
+                            ✍️ Peticiones <span class="arrow">→</span>
                         </div>
                         <div class="submenu-item" onclick="irAGenerarDocumento('tutela', 'simple')">
-                            Tutelas <span class="arrow">→</span>
+                            🛡️ Tutelas <span class="arrow">→</span>
                         </div>
                         <div class="submenu-item" onclick="toggleSubMenu('apelacionSub')">
-                            Apelaciones <span class="arrow">▼</span>
+                            📄 Apelaciones <span class="arrow">▼</span>
                         </div>
-                        <div id="apelacionSub" class="sub-submenu" style="max-height:0; overflow:hidden; transition:max-height 0.3s ease; padding-left:2rem;">
+                        <div id="apelacionSub" class="sub-submenu">
                             <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_multas', 'simple')">💰 Apelación de Multas</div>
-                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_sentencia', 'simple')">⚖️ Apelación de Sentencia</div>
+                            <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_comparendo', 'simple')">🚗 Apelación de Comparendos</div>
                         </div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_inmueble', 'simple')">
-                            Venta de Inmuebles <span class="arrow">→</span>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('reclamacion_servicios', 'simple')">
+                            🔧 Reclamación de Servicios <span class="arrow">→</span>
                         </div>
-                        <div class="submenu-item" onclick="irAGenerarDocumento('venta_lote', 'simple')">
-                            Venta de Lotes <span class="arrow">→</span>
+                        <div class="submenu-item" onclick="irAGenerarDocumento('elaboracion_contrato', 'simple')">
+                            📝 Elaboración de Contrato <span class="arrow">→</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 4: VÍCTIMAS Y MIGRANTES -->
+            <div class="menu-card">
+                <div class="menu-header" onclick="toggleMenu('victimasMenu')">
+                    <h2>🕊️ Víctimas y Migrantes</h2>
+                    <p>Asesoría especializada</p>
+                </div>
+                <div id="victimasMenu" class="menu-items">
+                    <div class="submenu">
+                        <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=victimas'">
+                            📞 Consulta Legal <span class="arrow">→</span>
+                        </div>
+                        <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=victimas'">
+                            📅 Agendar Cita <span class="arrow">→</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 5: ASESORAMIENTO JAC Y VEEDURÍAS -->
+            <div class="menu-card">
+                <div class="menu-header" onclick="toggleMenu('jacMenu')">
+                    <h2>👥 JAC y Veedurías</h2>
+                    <p>Asesoramiento comunitario</p>
+                </div>
+                <div id="jacMenu" class="menu-items">
+                    <div class="submenu">
+                        <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=jac'">
+                            📞 Consulta Legal <span class="arrow">→</span>
+                        </div>
+                        <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=jac'">
+                            📅 Agendar Cita <span class="arrow">→</span>
                         </div>
                     </div>
                 </div>
@@ -205,11 +262,7 @@
         
         function toggleSubMenu(submenuId) {
             const submenu = document.getElementById(submenuId);
-            if (submenu.style.maxHeight === '0px' || submenu.style.maxHeight === '') {
-                submenu.style.maxHeight = '300px';
-            } else {
-                submenu.style.maxHeight = '0px';
-            }
+            submenu.classList.toggle('active');
         }
         
         function irAGenerarDocumento(delito, tipo) {
@@ -224,11 +277,13 @@
         if (menuToggle) {
             menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
         }
+
+        // Verificar si es admin para mostrar calculadora (opcional, ya no se usa)
+        const token = localStorage.getItem('token');
+        const isAdmin = localStorage.getItem('isAdmin');
+        // La calculadora ya no está en el frontend público
     </script>
 
-    <!-- BOTÓN FLOTANTE DE LA CALCULADORA -->
-    <div class="calculadora-btn" onclick="window.location.href='/calculadora.html'">
-        <div class="btn-text-calc">⚖️ CALCULAR<br>PENA</div>
-    </div>
+    <!-- EL BOTÓN FLOTANTE DE LA CALCULADORA SE ELIMINA - SOLO ADMIN -->
 </body>
-                    </html>
+    </html>
