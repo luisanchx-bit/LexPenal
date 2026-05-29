@@ -8,148 +8,41 @@
     <link rel="stylesheet" href="/admin/css/admin.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .sidebar {
-            transition: transform 0.3s ease;
-        }
+        .sidebar { transition: transform 0.3s ease; }
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 1001;
-                width: 260px;
-            }
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0 !important;
-                padding: 1rem;
-                margin-top: 60px;
-            }
-            .menu-toggle-btn {
-                display: block !important;
-                position: fixed;
-                top: 15px;
-                left: 15px;
-                z-index: 1002;
-                background: #C8A951;
-                border: none;
-                color: #000;
-                font-size: 1.5rem;
-                padding: 0.5rem 0.8rem;
-                border-radius: 8px;
-                cursor: pointer;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr !important;
-            }
-            .chart-container {
-                grid-template-columns: 1fr !important;
-            }
-            .export-buttons {
-                flex-direction: column;
-            }
+            .sidebar { transform: translateX(-100%); position: fixed; z-index: 1001; width: 260px; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; padding: 1rem; margin-top: 60px; }
+            .menu-toggle-btn { display: block !important; position: fixed; top: 15px; left: 15px; z-index: 1002; background: #C8A951; border: none; color: #000; font-size: 1.5rem; padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; }
+            .stats-grid { grid-template-columns: 1fr !important; }
+            .chart-container { grid-template-columns: 1fr !important; }
+            .export-buttons { flex-direction: column; }
         }
-        @media (min-width: 769px) {
-            .menu-toggle-btn {
-                display: none;
-            }
-            .main-content {
-                margin-left: 280px;
-            }
-        }
-        .menu-toggle-btn {
-            display: none;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .stat-card {
-            background: #0a0a0a;
-            padding: 1rem;
-            border-radius: 15px;
-            border-left: 3px solid #C8A951;
-        }
-        .stat-card h3 {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 0.5rem;
-        }
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #C8A951;
-        }
-        .chart-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        .chart-card {
-            background: #0a0a0a;
-            padding: 1rem;
-            border-radius: 15px;
-            border: 1px solid rgba(200,169,81,0.3);
-        }
-        .chart-card h3 {
-            color: #C8A951;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-        }
-        canvas {
-            max-height: 250px;
-        }
-        .export-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-        .btn-export {
-            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
-            border: 1px solid #C8A951;
-            border-radius: 40px;
-            padding: 0.6rem 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: #C8A951;
-            font-weight: bold;
-        }
-        .btn-export:hover {
-            background: #C8A951;
-            color: #000;
-        }
-        .table-container {
-            overflow-x: auto;
-            margin-top: 2rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 0.8rem;
-            text-align: left;
-            border-bottom: 1px solid #222;
-        }
-        th {
-            color: #C8A951;
-        }
-        .badge {
-            padding: 0.2rem 0.5rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-        }
+        @media (min-width: 769px) { .menu-toggle-btn { display: none; } .main-content { margin-left: 280px; } }
+        .menu-toggle-btn { display: none; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #0a0a0a; padding: 1rem; border-radius: 15px; border-left: 3px solid #C8A951; }
+        .stat-card h3 { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
+        .stat-number { font-size: 1.8rem; font-weight: bold; color: #C8A951; }
+        .chart-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .chart-card { background: #0a0a0a; padding: 1rem; border-radius: 15px; border: 1px solid rgba(200,169,81,0.3); }
+        .chart-card h3 { color: #C8A951; margin-bottom: 1rem; font-size: 1rem; }
+        canvas { max-height: 250px; }
+        .export-buttons { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .btn-export { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 1px solid #C8A951; border-radius: 40px; padding: 0.6rem 1.2rem; cursor: pointer; transition: all 0.3s; color: #C8A951; font-weight: bold; }
+        .btn-export:hover { background: #C8A951; color: #000; }
+        .table-container { overflow-x: auto; margin-top: 2rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.8rem; text-align: left; border-bottom: 1px solid #222; }
+        th { color: #C8A951; }
+        .badge { padding: 0.2rem 0.5rem; border-radius: 20px; font-size: 0.7rem; }
         .badge-pendiente { background: #ff9800; color: #000; }
         .badge-en_proceso { background: #2196f3; color: #fff; }
         .badge-resuelto { background: #4caf50; color: #fff; }
+        .badge-cancelada { background: #f44336; color: #fff; }
     </style>
 </head>
-<body>
+<body data-theme="oscuro">
     <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
     
     <div class="admin-container">
@@ -163,11 +56,13 @@
                 <a href="/admin/citas.html">📅 Citas y Consultas</a>
                 <a href="/admin/plantillas.html">📄 Plantillas</a>
                 <a href="/admin/configuracion.html">⚙️ Configuración</a>
+                <a href="/faq.html">❓ FAQ</a>
                 <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
             </nav>
             <div class="sidebar-footer">
                 <p>Dr. Asmairo Conde Torres</p>
-                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
+                <button onclick="cambiarTema()" class="btn-theme" style="background:transparent; border:1px solid #C8A951; color:#C8A951; padding:0.3rem 0.8rem; border-radius:20px; margin-bottom:0.5rem; cursor:pointer;">🌓 Cambiar Tema</button>
+                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:0.5rem">Cerrar sesión</button></p>
             </div>
         </aside>
 
@@ -182,6 +77,7 @@
             <div class="export-buttons">
                 <button class="btn-export" onclick="exportarExcel()">📊 Exportar a Excel</button>
                 <button class="btn-export" onclick="exportarPDF()">📄 Exportar a PDF</button>
+                <button class="btn-export" onclick="enviarRecordatorios()">📧 Enviar Recordatorios</button>
             </div>
 
             <div class="stats-grid" id="statsGrid">
@@ -192,50 +88,23 @@
             </div>
 
             <div class="chart-container">
-                <div class="chart-card">
-                    <h3>📊 Consultas vs Citas</h3>
-                    <canvas id="comparativaChart"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3>📈 Evolución de Consultas (últimos 7 días)</h3>
-                    <canvas id="evolucionChart"></canvas>
-                </div>
+                <div class="chart-card"><h3>📊 Consultas vs Citas</h3><canvas id="comparativaChart"></canvas></div>
+                <div class="chart-card"><h3>📈 Evolución de Consultas</h3><canvas id="evolucionChart"></canvas></div>
             </div>
 
-            <div class="table-container">
-                <h3 style="margin-bottom:1rem; color:#C8A951;">📋 Consultas Recientes</h3>
-                <table>
-                    <thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
-                    <tbody id="consultasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody>
-                </table>
+            <div class="table-container"><h3 style="margin-bottom:1rem; color:#C8A951;">📋 Consultas Recientes</h3>
+                <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="consultasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody></table>
             </div>
 
-            <div class="table-container" style="margin-top: 2rem;">
-                <h3 style="margin-bottom:1rem; color:#C8A951;">📅 Citas Recientes</h3>
-                <table>
-                    <thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr></thead>
-                    <tbody id="citasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody>
-                </table>
+            <div class="table-container" style="margin-top:2rem;"><h3 style="margin-bottom:1rem; color:#C8A951;">📅 Citas Recientes</h3>
+                <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="citasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody></table>
             </div>
         </main>
     </div>
 
-    <div id="modalDetalle" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header"><h3>📋 Detalles</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div>
-            <div id="modalBody"></div>
-            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                <select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:5px;">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="en_proceso">En Proceso</option>
-                    <option value="resuelto">Resuelto</option>
-                    <option value="cancelada">Cancelada</option>
-                </select>
-                <button class="btn-primary" onclick="actualizarEstado()">Actualizar</button>
-                <button class="btn-danger" onclick="eliminarRegistro()">Eliminar</button>
-            </div>
-        </div>
-    </div>
+    <div id="modalDetalle" class="modal"><div class="modal-content" style="max-width:600px;"><div class="modal-header"><h3>📋 Detalles</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div><div id="modalBody"></div><div style="margin-top:1rem; display:flex; gap:1rem;"><select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:5px;"><option value="pendiente">Pendiente</option><option value="en_proceso">En Proceso</option><option value="resuelto">Resuelto</option><option value="cancelada">Cancelada</option></select><button class="btn-primary" onclick="actualizarEstado()">Actualizar</button><button class="btn-danger" onclick="eliminarRegistro()">Eliminar</button></div></div></div>
 
     <script>
         const API_BASE_URL = window.location.origin;
@@ -249,15 +118,43 @@
         if (!token) window.location.href = '/login.html';
         document.getElementById('nombreAdmin').textContent = localStorage.getItem('nombre') || 'Administrador';
 
+        // Tema
+        function aplicarTema(tema) {
+            const root = document.documentElement;
+            if (tema === 'claro') {
+                root.style.setProperty('--bg-color', '#f5f5f5');
+                root.style.setProperty('--text-color', '#000');
+                root.style.setProperty('--card-bg', '#fff');
+            } else {
+                root.style.setProperty('--bg-color', '#000');
+                root.style.setProperty('--text-color', '#fff');
+                root.style.setProperty('--card-bg', '#0a0a0a');
+            }
+            document.body.setAttribute('data-theme', tema);
+        }
+
+        async function cargarTema() {
+            try {
+                const res = await fetch(API_URL + '/configuracion/tema');
+                const data = await res.json();
+                aplicarTema(data.tema);
+            } catch(e) { aplicarTema('oscuro'); }
+        }
+
+        async function cambiarTema() {
+            const nuevoTema = document.body.getAttribute('data-theme') === 'oscuro' ? 'claro' : 'oscuro';
+            await fetch(API_URL + '/configuracion/tema', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ tema: nuevoTema }) });
+            aplicarTema(nuevoTema);
+        }
+
         const menuToggleBtn = document.getElementById('menuToggleBtn');
         const sidebar = document.getElementById('sidebar');
         menuToggleBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
-        document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.addEventListener('click', () => sidebar.classList.remove('mobile-open'));
-        });
+        document.querySelectorAll('.sidebar-nav a').forEach(link => { link.addEventListener('click', () => sidebar.classList.remove('mobile-open')); });
 
         function exportarExcel() { window.open(API_URL + '/exportar/excel?token=' + token, '_blank'); }
         function exportarPDF() { window.open(API_URL + '/exportar/pdf?token=' + token, '_blank'); }
+        async function enviarRecordatorios() { await fetch(API_URL + '/enviar-recordatorios', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('Recordatorios enviados'); }
 
         async function cargarDashboard() {
             const res = await fetch(API_URL + '/admin/dashboard', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -268,21 +165,12 @@
             document.getElementById('citasPendientes').textContent = data.citas_pendientes || 0;
             
             if (comparativaChart) comparativaChart.destroy();
-            if (evolucionChart) evolucionChart.destroy();
-            
             const ctxComp = document.getElementById('comparativaChart').getContext('2d');
-            comparativaChart = new Chart(ctxComp, {
-                type: 'bar',
-                data: { labels: ['Consultas', 'Citas'], datasets: [{ label: 'Total', data: [data.total_consultas, data.total_citas], backgroundColor: ['#C8A951', '#0A1628'], borderRadius: 5 }] },
-                options: { responsive: true, maintainAspectRatio: true }
-            });
+            comparativaChart = new Chart(ctxComp, { type: 'bar', data: { labels: ['Consultas', 'Citas'], datasets: [{ label: 'Total', data: [data.total_consultas, data.total_citas], backgroundColor: ['#C8A951', '#0A1628'], borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: true } });
             
+            if (evolucionChart) evolucionChart.destroy();
             const ctxEvo = document.getElementById('evolucionChart').getContext('2d');
-            evolucionChart = new Chart(ctxEvo, {
-                type: 'line',
-                data: { labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], datasets: [{ label: 'Consultas', data: [0, 0, 0, 0, 0, 0, 0], borderColor: '#C8A951', tension: 0.3, fill: false }] },
-                options: { responsive: true, maintainAspectRatio: true }
-            });
+            evolucionChart = new Chart(ctxEvo, { type: 'line', data: { labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], datasets: [{ label: 'Consultas', data: [0, 0, 0, 0, 0, 0, 0], borderColor: '#C8A951', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: true } });
         }
 
         async function cargarRegistrosRecientes() {
@@ -291,13 +179,8 @@
             const consultas = (data.consultas || []).slice(-5).reverse();
             const citas = (data.citas || []).slice(-5).reverse();
             
-            document.getElementById('consultasRecientes').innerHTML = consultas.map(c => `
-                <tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${new Date(c.fecha).toLocaleDateString()}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td></tr>
-            `).join('');
-            
-            document.getElementById('citasRecientes').innerHTML = citas.map(c => `
-                <tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td></tr>
-            `).join('');
+            document.getElementById('consultasRecientes').innerHTML = consultas.map(c => `<tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${new Date(c.fecha).toLocaleDateString()}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td></tr>`).join('');
+            document.getElementById('citasRecientes').innerHTML = citas.map(c => `<tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td></tr>`).join('');
         }
 
         async function verDetalle(id, tipo) {
@@ -308,13 +191,7 @@
             currentItem = items.find(i => i.id === id);
             if (currentItem) {
                 document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
-                let html = `
-                    <div><strong>📌 Código:</strong> ${currentItem.codigo}</div>
-                    <div><strong>👤 Nombre:</strong> ${currentItem.nombre}</div>
-                    <div><strong>📞 Teléfono:</strong> ${currentItem.telefono}</div>
-                    <div><strong>✉️ Email:</strong> ${currentItem.email}</div>
-                    <div><strong>⚖️ Rama:</strong> ${currentItem.rama}</div>
-                `;
+                let html = `<div><strong>📌 Código:</strong> ${currentItem.codigo}</div><div><strong>👤 Nombre:</strong> ${currentItem.nombre}</div><div><strong>📞 Teléfono:</strong> ${currentItem.telefono}</div><div><strong>✉️ Email:</strong> ${currentItem.email}</div><div><strong>⚖️ Rama:</strong> ${currentItem.rama}</div>`;
                 if (tipo === 'consulta') {
                     html += `<div><strong>📝 Hechos:</strong><br>${currentItem.hechos || 'N/A'}</div>`;
                     if (currentItem.archivos?.length) {
@@ -332,27 +209,31 @@
         async function actualizarEstado() {
             const nuevoEstado = document.getElementById('estadoSelect').value;
             await fetch(API_URL + `/casos/${currentItem.id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo }) });
-            alert('Estado actualizado');
-            cerrarModal();
-            cargarDashboard();
-            cargarRegistrosRecientes();
+            alert('Estado actualizado'); cerrarModal(); cargarDashboard(); cargarRegistrosRecientes();
         }
 
         async function eliminarRegistro() {
             if (confirm('¿Eliminar?')) {
                 await fetch(API_URL + `/casos/${currentItem.id}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ tipo: currentTipo }) });
-                alert('Eliminado');
-                cerrarModal();
-                cargarDashboard();
-                cargarRegistrosRecientes();
+                alert('Eliminado'); cerrarModal(); cargarDashboard(); cargarRegistrosRecientes();
             }
         }
 
         function cerrarModal() { document.getElementById('modalDetalle').style.display = 'none'; }
         function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
 
+        cargarTema();
         cargarDashboard();
         cargarRegistrosRecientes();
+        window.cambiarTema = cambiarTema;
+        window.exportarExcel = exportarExcel;
+        window.exportarPDF = exportarPDF;
+        window.enviarRecordatorios = enviarRecordatorios;
+        window.verDetalle = verDetalle;
+        window.actualizarEstado = actualizarEstado;
+        window.eliminarRegistro = eliminarRegistro;
+        window.cerrarModal = cerrarModal;
+        window.cerrarSesion = cerrarSesion;
     </script>
 </body>
 </html>
