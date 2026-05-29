@@ -102,6 +102,16 @@
         .badge-en_proceso { background: #2196f3; color: #fff; }
         .badge-resuelto { background: #4caf50; color: #fff; }
         .badge-cancelada { background: #f44336; color: #fff; }
+        .audio-player {
+            background: #0a0a0a;
+            border-radius: 10px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .audio-player audio {
+            max-width: 100%;
+            height: 40px;
+        }
     </style>
 </head>
 <body>
@@ -138,7 +148,7 @@
 
             <div id="tabConsultas" class="tab-content active">
                 <div class="table-container">
-                    <table>
+                    <table class="tabla-datos">
                         <thead>
                             <tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
                         </thead>
@@ -151,7 +161,7 @@
 
             <div id="tabCitas" class="tab-content">
                 <div class="table-container">
-                    <table>
+                    <table class="tabla-datos">
                         <thead>
                             <tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr>
                         </thead>
@@ -165,7 +175,7 @@
     </div>
 
     <div id="modalDetalle" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
             <div class="modal-header">
                 <h3>📋 Detalles</h3>
                 <button class="close-modal" onclick="cerrarModal()">&times;</button>
@@ -192,7 +202,6 @@
 
         if (!token) window.location.href = '/login.html';
 
-        // Menú responsive
         const menuToggleBtn = document.getElementById('menuToggleBtn');
         const sidebar = document.getElementById('sidebar');
         menuToggleBtn.addEventListener('click', () => {
@@ -205,154 +214,207 @@
         });
 
         async function cargarDatos() {
-            const res = await fetch(`${API_URL}/casos/todos`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            
-            const consultas = data.consultas || [];
-            const citas = data.citas || [];
-            
-            const tbodyConsultas = document.getElementById('listaConsultas');
-            if (consultas.length === 0) {
-                tbodyConsultas.innerHTML = '<tr><td colspan="7">No hay consultas registradas</td></tr>';
-            } else {
-                tbodyConsultas.innerHTML = consultas.map(c => `
-                    <tr>
-                        <td><code>${c.codigo || 'N/A'}</code></td>
-                        <td>${c.nombre || '-'}</td>
-                        <td>${c.telefono || '-'}</td>
-                        <td>${c.rama || 'general'}</td>
-                        <td>${new Date(c.fecha).toLocaleDateString()}</td>
-                        <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                        <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td>
-                    </tr>
-                `).join('');
-            }
-            
-            const tbodyCitas = document.getElementById('listaCitas');
-            if (citas.length === 0) {
-                tbodyCitas.innerHTML = '<tr><td colspan="7">No hay citas registradas</td></tr>';
-            } else {
-                tbodyCitas.innerHTML = citas.map(c => `
-                    <tr>
-                        <td><code>${c.codigo || 'N/A'}</code></td>
-                        <td>${c.nombre || '-'}</td>
-                        <td>${c.telefono || '-'}</td>
-                        <td>${c.rama || 'general'}</td>
-                        <td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td>
-                        <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                        <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td>
-                    </tr>
-                `).join('');
+            try {
+                const res = await fetch(`${API_URL}/casos/todos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const consultas = data.consultas || [];
+                const citas = data.citas || [];
+                
+                const tbodyConsultas = document.getElementById('listaConsultas');
+                if (consultas.length === 0) {
+                    tbodyConsultas.innerHTML = '<tr><td colspan="7">No hay consultas registradas</td></tr>';
+                } else {
+                    tbodyConsultas.innerHTML = consultas.map(c => `
+                        <tr>
+                            <td><code>${c.codigo || 'N/A'}</code></td>
+                            <td>${c.nombre || '-'}</td>
+                            <td>${c.telefono || '-'}</td>
+                            <td>${c.rama || 'general'}</td>
+                            <td>${new Date(c.fecha).toLocaleDateString()}</td>
+                            <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
+                            <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td>
+                        </tr>
+                    `).join('');
+                }
+                
+                const tbodyCitas = document.getElementById('listaCitas');
+                if (citas.length === 0) {
+                    tbodyCitas.innerHTML = '<tr><td colspan="7">No hay citas registradas</td></tr>';
+                } else {
+                    tbodyCitas.innerHTML = citas.map(c => `
+                        <tr>
+                            <td><code>${c.codigo || 'N/A'}</code></td>
+                            <td>${c.nombre || '-'}</td>
+                            <td>${c.telefono || '-'}</td>
+                            <td>${c.rama || 'general'}</td>
+                            <td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td>
+                            <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
+                            <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
             }
         }
 
         async function verDetalle(id, tipo) {
             currentTipo = tipo;
-            const res = await fetch(`${API_URL}/casos/todos`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            const items = tipo === 'consulta' ? data.consultas : data.citas;
-            currentItem = items.find(i => i.id === id);
-            
-            if (currentItem) {
-                const modalBody = document.getElementById('modalBody');
-                document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
+            try {
+                const res = await fetch(`${API_URL}/casos/todos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const items = tipo === 'consulta' ? data.consultas : data.citas;
+                currentItem = items.find(i => i.id === id);
                 
-                let html = `
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">📌 Código</div>
-                        <div style="color: #fff;">${currentItem.codigo || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">👤 Nombre</div>
-                        <div style="color: #fff;">${currentItem.nombre || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">📞 Teléfono</div>
-                        <div style="color: #fff;">${currentItem.telefono || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">✉️ Email</div>
-                        <div style="color: #fff;">${currentItem.email || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">⚖️ Rama</div>
-                        <div style="color: #fff;">${currentItem.rama || 'general'}</div>
-                    </div>
-                `;
-                
-                if (tipo === 'consulta') {
-                    html += `
+                if (currentItem) {
+                    const modalBody = document.getElementById('modalBody');
+                    document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
+                    
+                    let html = `
                         <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📝 Hechos</div>
-                            <div style="color: #fff;">${currentItem.hechos || 'N/A'}</div>
+                            <div style="color: #C8A951; font-weight: bold;">📌 Código</div>
+                            <div style="color: #fff;">${currentItem.codigo || 'N/A'}</div>
+                        </div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">👤 Nombre</div>
+                            <div style="color: #fff;">${currentItem.nombre || 'N/A'}</div>
+                        </div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">📞 Teléfono</div>
+                            <div style="color: #fff;">${currentItem.telefono || 'N/A'}</div>
+                        </div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">✉️ Email</div>
+                            <div style="color: #fff;">${currentItem.email || 'N/A'}</div>
+                        </div>
+                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                            <div style="color: #C8A951; font-weight: bold;">⚖️ Rama</div>
+                            <div style="color: #fff;">${currentItem.rama || 'general'}</div>
                         </div>
                     `;
-                } else {
-                    html += `
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📝 Motivo</div>
-                            <div style="color: #fff;">${currentItem.motivo || 'N/A'}</div>
-                        </div>
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📅 Fecha Cita</div>
-                            <div style="color: #fff;">${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>
-                        </div>
-                    `;
+                    
+                    if (tipo === 'consulta') {
+                        html += `
+                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                                <div style="color: #C8A951; font-weight: bold;">📝 Hechos del caso</div>
+                                <div style="color: #fff; white-space: pre-wrap;">${currentItem.hechos || 'N/A'}</div>
+                            </div>
+                        `;
+                        
+                        // Mostrar audio si existe
+                        if (currentItem.archivos && currentItem.archivos.length > 0) {
+                            const audios = currentItem.archivos.filter(a => a.tipo && a.tipo.startsWith('audio'));
+                            if (audios.length > 0) {
+                                html += `
+                                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                                        <div style="color: #C8A951; font-weight: bold;">🎙️ Grabaciones de audio</div>
+                                `;
+                                audios.forEach(audio => {
+                                    html += `
+                                        <div class="audio-player">
+                                            <audio controls src="${audio.ruta}"></audio>
+                                            <div style="font-size:0.7rem; color:#888; margin-top:0.3rem;">${audio.nombre} (${audio.tamaño})</div>
+                                        </div>
+                                    `;
+                                });
+                                html += `</div>`;
+                            }
+                        }
+                        
+                        // Mostrar otros archivos adjuntos
+                        if (currentItem.archivos && currentItem.archivos.length > 0) {
+                            const otrosArchivos = currentItem.archivos.filter(a => !a.tipo || !a.tipo.startsWith('audio'));
+                            if (otrosArchivos.length > 0) {
+                                html += `
+                                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                                        <div style="color: #C8A951; font-weight: bold;">📎 Archivos adjuntos</div>
+                                        <div style="color: #fff;">
+                                `;
+                                otrosArchivos.forEach(arch => {
+                                    html += `<div>📄 ${arch.nombre} (${arch.tamaño})</div>`;
+                                });
+                                html += `</div></div>`;
+                            }
+                        }
+                    } else {
+                        html += `
+                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                                <div style="color: #C8A951; font-weight: bold;">📝 Motivo de la cita</div>
+                                <div style="color: #fff; white-space: pre-wrap;">${currentItem.motivo || 'N/A'}</div>
+                            </div>
+                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                                <div style="color: #C8A951; font-weight: bold;">📅 Fecha de la cita</div>
+                                <div style="color: #fff;">${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (currentItem.notas_admin) {
+                        html += `
+                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
+                                <div style="color: #C8A951; font-weight: bold;">📝 Notas del abogado</div>
+                                <div style="color: #fff; white-space: pre-wrap;">${currentItem.notas_admin}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    modalBody.innerHTML = html;
+                    document.getElementById('modalDetalle').style.display = 'flex';
                 }
-                
-                if (currentItem.notas_admin) {
-                    html += `
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📝 Notas</div>
-                            <div style="color: #fff;">${currentItem.notas_admin}</div>
-                        </div>
-                    `;
-                }
-                
-                document.getElementById('modalBody').innerHTML = html;
-                document.getElementById('modalDetalle').style.display = 'flex';
+            } catch (error) {
+                console.error('Error al ver detalle:', error);
+                alert('Error al cargar los detalles');
             }
         }
 
         async function actualizarEstado() {
             const nuevoEstado = document.getElementById('estadoSelect').value;
-            const res = await fetch(`${API_URL}/casos/${currentItem.id}/estado`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo })
-            });
-            if (res.ok) {
-                alert('Estado actualizado');
-                cerrarModal();
-                cargarDatos();
-            } else {
-                alert('Error al actualizar');
+            try {
+                const res = await fetch(`${API_URL}/casos/${currentItem.id}/estado`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo })
+                });
+                if (res.ok) {
+                    alert('Estado actualizado');
+                    cerrarModal();
+                    cargarDatos();
+                } else {
+                    alert('Error al actualizar');
+                }
+            } catch (error) {
+                alert('Error de conexión');
             }
         }
 
         async function eliminarRegistro() {
             if (confirm('¿Eliminar este registro permanentemente?')) {
-                const res = await fetch(`${API_URL}/casos/${currentItem.id}`, {
-                    method: 'DELETE',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ tipo: currentTipo })
-                });
-                if (res.ok) {
-                    alert('Registro eliminado');
-                    cerrarModal();
-                    cargarDatos();
-                } else {
-                    alert('Error al eliminar');
+                try {
+                    const res = await fetch(`${API_URL}/casos/${currentItem.id}`, {
+                        method: 'DELETE',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: JSON.stringify({ tipo: currentTipo })
+                    });
+                    if (res.ok) {
+                        alert('Registro eliminado');
+                        cerrarModal();
+                        cargarDatos();
+                    } else {
+                        alert('Error al eliminar');
+                    }
+                } catch (error) {
+                    alert('Error de conexión');
                 }
             }
         }
