@@ -2,44 +2,123 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Configuración - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
+    <style>
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1001;
+                width: 260px;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+            .menu-toggle-btn {
+                display: block !important;
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 1002;
+                background: #C8A951;
+                border: none;
+                color: #000;
+                font-size: 1.5rem;
+                padding: 0.5rem 0.8rem;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+        }
+        @media (min-width: 769px) {
+            .menu-toggle-btn {
+                display: none;
+            }
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+        .menu-toggle-btn {
+            display: none;
+        }
+        .config-card {
+            background: #0a0a0a;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(200,169,81,0.3);
+        }
+    </style>
 </head>
 <body>
+    <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
+    
     <div class="admin-container">
-        <aside class="sidebar">
-            <div class="sidebar-logo"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'">
+                <h2>⚖️ LexPenal</h2>
+                <p>Panel de Control</p>
+            </div>
             <nav class="sidebar-nav">
                 <a href="/admin/index.html">📊 Dashboard</a>
-                <a href="/admin/interface.html">🎨 Interfaz</a>
-                <a href="/admin/casos.html">📋 Casos</a>
-                <a href="/admin/testimonios.html">💬 Testimonios</a>
+                <a href="/admin/citas.html">📅 Citas y Consultas</a>
                 <a href="/admin/plantillas.html">📄 Plantillas</a>
-                <a href="/admin/menu.html">📑 Menú</a>
-                <a href="/admin/estadisticas.html">📈 Estadísticas</a>
                 <a href="/admin/configuracion.html" class="active">⚙️ Configuración</a>
+                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
             </nav>
-            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></div>
+            <div class="sidebar-footer">
+                <p>Dr. Asmairo Conde Torres</p>
+                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
+            </div>
         </aside>
 
         <main class="main-content">
-            <div class="admin-header"><h1>Configuración General</h1></div>
-            <div style="display:grid; gap:2rem">
-                <div class="table-container" style="padding:1.5rem"><h3 style="margin-bottom:1rem">👤 Datos del Abogado</h3>
-                    <div class="form-group"><label>Nombre</label><input type="text" id="nombre" class="form-control"></div>
-                    <div class="form-group"><label>Teléfono</label><input type="text" id="telefono" class="form-control"></div>
-                    <div class="form-group"><label>Email</label><input type="email" id="email" class="form-control"></div>
-                    <button class="btn-primary" onclick="guardarAbogado()">Guardar Cambios</button>
+            <div class="admin-header">
+                <h1>⚙️ Configuración</h1>
+            </div>
+
+            <div class="config-card">
+                <h3 style="color:#C8A951; margin-bottom:1rem;">👤 Datos del Abogado</h3>
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="nombre" class="form-control">
                 </div>
-                <div class="table-container" style="padding:1.5rem"><h3 style="margin-bottom:1rem">🎨 Personalización</h3>
-                    <div class="form-group"><label>Color Dorado</label><input type="color" id="colorDorado" class="form-control"></div>
-                    <div class="form-group"><label>Color Azul</label><input type="color" id="colorAzul" class="form-control"></div>
-                    <div class="form-group"><label>Texto Hero</label><input type="text" id="heroTitulo" class="form-control"></div>
-                    <div class="form-group"><label>Subtítulo Hero</label><input type="text" id="heroSubtitulo" class="form-control"></div>
-                    <button class="btn-primary" onclick="guardarConfiguracion()">Guardar Cambios</button>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" id="telefono" class="form-control">
                 </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" class="form-control">
+                </div>
+                <button class="btn-primary" onclick="guardarAbogado()">Guardar Cambios</button>
+            </div>
+
+            <div class="config-card">
+                <h3 style="color:#C8A951; margin-bottom:1rem;">🎨 Colores</h3>
+                <div class="form-group">
+                    <label>Color Dorado</label>
+                    <input type="color" id="colorDorado" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Color Azul</label>
+                    <input type="color" id="colorAzul" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Color Fondo</label>
+                    <input type="color" id="colorFondo" class="form-control">
+                </div>
+                <button class="btn-primary" onclick="guardarColores()">Guardar Colores</button>
             </div>
         </main>
     </div>
@@ -47,9 +126,20 @@
     <script>
         const API_URL = '/api';
         let token = localStorage.getItem('token');
-        const isAdmin = localStorage.getItem('isAdmin');
 
-        if (!token || isAdmin !== 'true') { window.location.href = '/login.html'; }
+        if (!token) window.location.href = '/login.html';
+
+        // Menú responsive
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const sidebar = document.getElementById('sidebar');
+        menuToggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+        });
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.remove('mobile-open');
+            });
+        });
 
         async function cargarConfiguracion() {
             const resAbogado = await fetch(`${API_URL}/admin/abogado`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -57,27 +147,49 @@
             document.getElementById('nombre').value = abogado.nombre || '';
             document.getElementById('telefono').value = abogado.telefono || '';
             document.getElementById('email').value = abogado.email || '';
+
             const resConfig = await fetch(`${API_URL}/admin/configuracion`, { headers: { 'Authorization': `Bearer ${token}` } });
             const config = await resConfig.json();
             document.getElementById('colorDorado').value = config.colores?.dorado || '#C8A951';
             document.getElementById('colorAzul').value = config.colores?.azul || '#0A1628';
-            document.getElementById('heroTitulo').value = config.textos?.hero_titulo || '';
-            document.getElementById('heroSubtitulo').value = config.textos?.hero_subtitulo || '';
+            document.getElementById('colorFondo').value = config.colores?.fondo || '#000000';
         }
 
         async function guardarAbogado() {
-            const data = { nombre: document.getElementById('nombre').value, telefono: document.getElementById('telefono').value, email: document.getElementById('email').value };
-            const res = await fetch(`${API_URL}/admin/abogado`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
-            alert(res.ok ? 'Datos guardados' : 'Error');
+            const data = {
+                nombre: document.getElementById('nombre').value,
+                telefono: document.getElementById('telefono').value,
+                email: document.getElementById('email').value
+            };
+            const res = await fetch(`${API_URL}/admin/abogado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data)
+            });
+            alert(res.ok ? '✅ Datos guardados' : '❌ Error');
         }
 
-        async function guardarConfiguracion() {
-            const data = { colores: { dorado: document.getElementById('colorDorado').value, azul: document.getElementById('colorAzul').value }, textos: { hero_titulo: document.getElementById('heroTitulo').value, hero_subtitulo: document.getElementById('heroSubtitulo').value } };
-            const res = await fetch(`${API_URL}/admin/configuracion`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
-            alert(res.ok ? 'Configuración guardada' : 'Error');
+        async function guardarColores() {
+            const data = {
+                colores: {
+                    dorado: document.getElementById('colorDorado').value,
+                    azul: document.getElementById('colorAzul').value,
+                    fondo: document.getElementById('colorFondo').value
+                }
+            };
+            const res = await fetch(`${API_URL}/admin/configuracion`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data)
+            });
+            alert(res.ok ? '✅ Colores guardados' : '❌ Error');
         }
 
-        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
         cargarConfiguracion();
     </script>
 </body>
