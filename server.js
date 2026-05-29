@@ -6,10 +6,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
-const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+const { PDFDocument } = require('pdf-lib');
 const mammoth = require('mammoth');
-const { Packer } = require('docx');
-const { Document, Paragraph, TextRun } = require('docx');
 
 const JWT_SECRET = 'lexpenal_seguro_2026_muy_secreto';
 const app = express();
@@ -20,7 +18,7 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://fxfwcfanzqnegdyheklv.su
 const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Configuración de multer para subir archivos
+// Configuración de multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadDir = path.join(__dirname, 'uploads');
@@ -60,7 +58,9 @@ let memoriaDB = {
 function initDB() {
     const adminHash = bcrypt.hashSync("ACT1018457093", 10);
     
-    memoriaDB.usuarios = [{ id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", email: "asmairo.conde.torres@hotmail.com", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }];
+    memoriaDB.usuarios = [
+        { id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", email: "asmairo.conde.torres@hotmail.com", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }
+    ];
     memoriaDB.testimonios = [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: new Date().toISOString().split('T')[0] }];
     memoriaDB.tipos_caso = [
         { id: 1, nombre: "Homicidio", icono: "⚖️", orden: 1 },
@@ -101,16 +101,16 @@ function initDB() {
         }
     } else {
         guardarDB();
-        console.log('✅ Base de datos inicializada con valores por defecto');
+        console.log('✅ Base de datos inicializada');
     }
 }
 
 function guardarDB() {
     try {
         fs.writeFileSync(DATA_FILE, JSON.stringify(memoriaDB, null, 2));
-        console.log('💾 Datos guardados en database.json');
+        console.log('💾 Datos guardados');
     } catch (e) {
-        console.log('⚠️ Error al guardar database.json');
+        console.log('⚠️ Error al guardar');
     }
 }
 
@@ -132,7 +132,7 @@ function verificarToken(req, res, next) {
 }
 
 function verificarAdmin(req, res, next) {
-    if (req.usuario.rol !== 'super_admin' && req.usuario.cedula !== '1018457093') return res.status(403).json({ error: 'Acceso denegado' });
+    if (req.usuario.rol !== 'super_admin' && req.usuario.rol !== 'ingeniero' && req.usuario.cedula !== '1018457093') return res.status(403).json({ error: 'Acceso denegado' });
     next();
 }
 
@@ -170,7 +170,91 @@ app.post('/api/auth/login', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
 });
 
-// ==================== SUBIR ARCHIVO A SUPABASE STORAGE ====================
+// ==================== LOGIN PARA INGENIERO ====================
+app.post('/api/auth/login-ingeniero', async (req, res) => {
+    try {
+        const { cedula, contrasena } = req.body;
+        
+        const INGENIERO_CEDULA = "1052041627";
+        const INGENIERO_PASSWORD = "123luisancho";
+        const INGENIERO_NOMBRE = "Luis Angel Caballero Ortega";
+        
+        if (cedula === INGENIERO_CEDULA && contrasena === INGENIERO_PASSWORD) {
+            const token = jwt.sign(
+                { id: 999, cedula: INGENIERO_CEDULA, nombre: INGENIERO_NOMBRE, rol: 'ingeniero' },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+            return res.json({ 
+                success: true, 
+                token, 
+                nombre: INGENIERO_NOMBRE, 
+                cedula: INGENIERO_CEDULA, 
+                rol: 'ingeniero' 
+            });
+        }
+        
+        const db = readDB();
+        const usuario = db.usuarios.find(u => u.cedula === cedula && u.rol === 'ingeniero');
+        
+        if (usuario && await bcrypt.compare(contrasena, usuario.contrasena_hash)) {
+            const token = jwt.sign(
+                { id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+            return res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, rol: usuario.rol });
+        }
+        
+        res.status(401).json({ error: 'Credenciales incorrectas' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== RECUPERACIÓN DE CONTRASEÑA ====================
+app.post('/api/auth/recuperar', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const db = readDB();
+        const usuario = db.usuarios.find(u => u.email === email);
+        if (!usuario) return res.status(404).json({ error: 'Correo no registrado' });
+        
+        const token = crypto.randomBytes(32).toString('hex');
+        const expira = new Date();
+        expira.setHours(expira.getHours() + 1);
+        
+        db.tokens_recuperacion.push({ email, token, expira });
+        writeDB(db);
+        
+        console.log(`🔐 Token de recuperación para ${email}: ${token}`);
+        res.json({ success: true, mensaje: 'Si el correo está registrado, recibirás un enlace' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/auth/restablecer', async (req, res) => {
+    try {
+        const { token, nuevaContrasena } = req.body;
+        const db = readDB();
+        const tokenObj = db.tokens_recuperacion.find(t => t.token === token && new Date(t.expira) > new Date());
+        if (!tokenObj) return res.status(400).json({ error: 'Token inválido o expirado' });
+        
+        const usuario = db.usuarios.find(u => u.email === tokenObj.email);
+        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+        
+        usuario.contrasena_hash = await bcrypt.hash(nuevaContrasena, 10);
+        db.tokens_recuperacion = db.tokens_recuperacion.filter(t => t.token !== token);
+        writeDB(db);
+        
+        res.json({ success: true, mensaje: 'Contraseña restablecida' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== SUBIR ARCHIVO A SUPABASE ====================
 async function subirASupabase(filePath, fileName, carpeta) {
     try {
         const fileBuffer = fs.readFileSync(filePath);
@@ -189,7 +273,7 @@ async function subirASupabase(filePath, fileName, carpeta) {
     }
 }
 
-// ==================== RUTAS DE PLANTILLAS (con subida a Supabase) ====================
+// ==================== RUTAS DE PLANTILLAS ====================
 app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
     try {
         const archivo = req.file;
@@ -199,7 +283,6 @@ app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single(
         const filePath = archivo.path;
         const extension = archivo.originalname.split('.').pop().toLowerCase();
         
-        // Subir a Supabase Storage
         const url = await subirASupabase(filePath, archivo.originalname, 'plantillas');
         
         let texto = '';
@@ -239,7 +322,7 @@ app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single(
         fs.unlinkSync(filePath);
         
         res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
-    } catch (error) { res.status(500).json({ error: 'Error al procesar el archivo: ' + error.message }); }
+    } catch (error) { res.status(500).json({ error: 'Error: ' + error.message }); }
 });
 
 app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); res.json(db.plantillas || []); });
@@ -298,7 +381,6 @@ app.delete('/api/documentos-generados/:id', verificarToken, verificarAdmin, (req
 // ==================== RUTAS DE CONSULTAS ====================
 app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
     try {
-        console.log('📝 Recibiendo consulta...');
         const { nombre, telefono, email, hechos, rama } = req.body;
         const codigo = `CON-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         
@@ -328,10 +410,8 @@ app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
         db.consultas.push(nuevaConsulta);
         writeDB(db);
         
-        console.log(`✅ Consulta guardada: ${codigo} - ${nombre}`);
-        res.json({ success: true, codigo, mensaje: 'Consulta guardada exitosamente' });
+        res.json({ success: true, codigo });
     } catch (error) { 
-        console.error('❌ Error en consulta:', error);
         res.status(500).json({ error: error.message }); 
     }
 });
@@ -339,7 +419,6 @@ app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
 // ==================== RUTAS DE CITAS ====================
 app.post('/api/citas/nueva', (req, res) => {
     try {
-        console.log('📝 Recibiendo cita...');
         const { nombre, telefono, email, motivo, fecha, rama } = req.body;
         const codigo = `CIT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         
@@ -368,10 +447,8 @@ app.post('/api/citas/nueva', (req, res) => {
         db.citas.push(nuevaCita);
         writeDB(db);
         
-        console.log(`✅ Cita guardada: ${codigo} - ${nombre} - ${fecha}`);
-        res.json({ success: true, codigo, mensaje: 'Cita agendada exitosamente' });
+        res.json({ success: true, codigo });
     } catch (error) { 
-        console.error('❌ Error en cita:', error);
         res.status(500).json({ error: error.message }); 
     }
 });
@@ -380,19 +457,16 @@ app.post('/api/citas/nueva', (req, res) => {
 app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
     try {
         const db = readDB();
-        console.log(`📊 Enviando datos: ${db.consultas.length} consultas, ${db.citas.length} citas`);
         res.json({ 
             consultas: db.consultas || [], 
             citas: db.citas || [], 
             total: (db.consultas?.length || 0) + (db.citas?.length || 0)
         });
     } catch (error) {
-        console.error('❌ Error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// ==================== OBTENER CITAS OCUPADAS ====================
 app.get('/api/citas/ocupadas', (req, res) => {
     const db = readDB();
     const citas = db.citas || [];
@@ -400,7 +474,6 @@ app.get('/api/citas/ocupadas', (req, res) => {
     res.json(fechasOcupadas);
 });
 
-// ==================== ACTUALIZAR ESTADO ====================
 app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     try {
         const { id } = req.params;
@@ -423,7 +496,6 @@ app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     }
 });
 
-// ==================== ELIMINAR REGISTRO ====================
 app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
     try {
         const { id } = req.params;
@@ -555,7 +627,6 @@ app.get('/api/exportar/pdf', verificarToken, verificarAdmin, async (req, res) =>
 // ==================== ENVÍO DE RECORDATORIOS ====================
 app.post('/api/enviar-recordatorios', verificarToken, verificarAdmin, async (req, res) => {
     const db = readDB();
-    const ahora = new Date();
     const manana = new Date();
     manana.setDate(manana.getDate() + 1);
     
@@ -566,7 +637,7 @@ app.post('/api/enviar-recordatorios', verificarToken, verificarAdmin, async (req
     });
     
     citasManana.forEach(cita => {
-        console.log(`📧 Recordatorio para ${cita.nombre} (${cita.email}): Su cita es mañana a las ${new Date(cita.fecha).toLocaleTimeString()}`);
+        console.log(`📧 Recordatorio para ${cita.nombre}: Su cita es mañana`);
         cita.recordatorio_enviado = true;
     });
     
@@ -652,7 +723,6 @@ app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'front
 
 app.listen(PORT, () => {
     console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
-    console.log(`👑 Admin: cédula 1018457093 / contraseña ACT1018457093`);
-    console.log(`📊 Exportar: /api/exportar/excel | /api/exportar/pdf`);
-    console.log(`🗄️ Supabase: ${supabaseUrl ? 'Conectado' : 'No configurado'}`);
+    console.log(`👑 Admin: cédula 1018457093 / ACT1018457093`);
+    console.log(`🔧 Ingeniero: cédula 1052041627 / 123luisancho`);
 });
