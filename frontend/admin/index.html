@@ -6,8 +6,8 @@
     <title>Dashboard - Admin LexPenal</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Estilos responsive adicionales */
         .sidebar {
             transition: transform 0.3s ease;
         }
@@ -24,6 +24,7 @@
             .main-content {
                 margin-left: 0 !important;
                 padding: 1rem;
+                margin-top: 60px;
             }
             .menu-toggle-btn {
                 display: block !important;
@@ -39,20 +40,14 @@
                 border-radius: 8px;
                 cursor: pointer;
             }
-            .admin-header {
-                margin-top: 50px;
-            }
             .stats-grid {
                 grid-template-columns: 1fr !important;
             }
-            .table-container {
-                overflow-x: auto;
+            .chart-container {
+                grid-template-columns: 1fr !important;
             }
-            table {
-                font-size: 0.8rem;
-            }
-            th, td {
-                padding: 0.5rem !important;
+            .export-buttons {
+                flex-direction: column;
             }
         }
         @media (min-width: 769px) {
@@ -66,6 +61,92 @@
         .menu-toggle-btn {
             display: none;
         }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 15px;
+            border-left: 3px solid #C8A951;
+        }
+        .stat-card h3 {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #C8A951;
+        }
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .chart-card {
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 15px;
+            border: 1px solid rgba(200,169,81,0.3);
+        }
+        .chart-card h3 {
+            color: #C8A951;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        canvas {
+            max-height: 250px;
+        }
+        .export-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .btn-export {
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border: 1px solid #C8A951;
+            border-radius: 40px;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #C8A951;
+            font-weight: bold;
+        }
+        .btn-export:hover {
+            background: #C8A951;
+            color: #000;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #222;
+        }
+        th {
+            color: #C8A951;
+        }
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+        .badge-pendiente { background: #ff9800; color: #000; }
+        .badge-en_proceso { background: #2196f3; color: #fff; }
+        .badge-resuelto { background: #4caf50; color: #fff; }
     </style>
 </head>
 <body>
@@ -80,288 +161,4 @@
             <nav class="sidebar-nav">
                 <a href="/admin/index.html" class="active">📊 Dashboard</a>
                 <a href="/admin/citas.html">📅 Citas y Consultas</a>
-                <a href="/admin/plantillas.html">📄 Plantillas</a>
-                <a href="/admin/configuracion.html">⚙️ Configuración</a>
-                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
-            </nav>
-            <div class="sidebar-footer">
-                <p>Dr. Asmairo Conde Torres</p>
-                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div class="admin-header">
-                <h1>Dashboard</h1>
-                <div class="user-info">
-                    <span class="user-name" id="nombreAdmin">Cargando...</span>
-                </div>
-            </div>
-
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card"><h3>Total Consultas</h3><div class="stat-number" id="totalConsultas">-</div></div>
-                <div class="stat-card"><h3>Total Citas</h3><div class="stat-number" id="totalCitas">-</div></div>
-                <div class="stat-card"><h3>Consultas Pendientes</h3><div class="stat-number" id="consultasPendientes">-</div></div>
-                <div class="stat-card"><h3>Citas Pendientes</h3><div class="stat-number" id="citasPendientes">-</div></div>
-            </div>
-
-            <div class="table-container">
-                <h3 style="margin-bottom:1rem; color:#C8A951;">📋 Consultas Recientes</h3>
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
-                    </thead>
-                    <tbody id="consultasRecientes">
-                        <tr><td colspan="7">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="table-container" style="margin-top: 2rem;">
-                <h3 style="margin-bottom:1rem; color:#C8A951;">📅 Citas Recientes</h3>
-                 able
-                    <thead>
-                        <tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr>
-                    </thead>
-                    <tbody id="citasRecientes">
-                        <tr><td colspan="7">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-
-    <div id="modalDetalle" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>📋 Detalles</h3>
-                <button class="close-modal" onclick="cerrarModal()">&times;</button>
-            </div>
-            <div id="modalBody"></div>
-            <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 1rem;">
-                <select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:5px;">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="en_proceso">En Proceso</option>
-                    <option value="resuelto">Resuelto</option>
-                    <option value="cancelada">Cancelada</option>
-                </select>
-                <button class="btn-primary" onclick="actualizarEstado()">Actualizar Estado</button>
-                <button class="btn-danger" onclick="eliminarRegistro()">Eliminar</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_URL = '/api';
-        let token = localStorage.getItem('token');
-        const isAdmin = localStorage.getItem('isAdmin');
-        let currentItem = null;
-        let currentTipo = null;
-
-        if (!token || isAdmin !== 'true') {
-            window.location.href = '/login.html';
-        }
-
-        document.getElementById('nombreAdmin').textContent = localStorage.getItem('nombre') || 'Administrador';
-
-        // Menú responsive
-        const menuToggleBtn = document.getElementById('menuToggleBtn');
-        const sidebar = document.getElementById('sidebar');
-        menuToggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('mobile-open');
-        });
-        // Cerrar menú al hacer clic en un enlace
-        document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                sidebar.classList.remove('mobile-open');
-            });
-        });
-
-        async function cargarDashboard() {
-            try {
-                const res = await fetch(`${API_URL}/admin/dashboard`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.status === 401) { cerrarSesion(); return; }
-                const data = await res.json();
-                document.getElementById('totalConsultas').textContent = data.total_consultas || 0;
-                document.getElementById('totalCitas').textContent = data.total_citas || 0;
-                document.getElementById('consultasPendientes').textContent = data.consultas_pendientes || 0;
-                document.getElementById('citasPendientes').textContent = data.citas_pendientes || 0;
-            } catch (error) { console.error(error); }
-        }
-
-        async function cargarRegistrosRecientes() {
-            try {
-                const res = await fetch(`${API_URL}/casos/todos`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.status === 401) { cerrarSesion(); return; }
-                const data = await res.json();
-                const consultas = data.consultas || [];
-                const citas = data.citas || [];
-
-                const tbodyConsultas = document.getElementById('consultasRecientes');
-                if (consultas.length === 0) {
-                    tbodyConsultas.innerHTML = '<tr><td colspan="7">No hay consultas registradas</td></tr>';
-                } else {
-                    const consultasRecientes = consultas.slice(-5).reverse();
-                    tbodyConsultas.innerHTML = consultasRecientes.map(c => `
-                        <tr>
-                            <td>${c.id}</td>
-                            <td>${c.nombre || '-'}</td>
-                            <td>${c.telefono || '-'}</td>
-                            <td>${c.rama || 'general'}</td>
-                            <td>${new Date(c.fecha).toLocaleDateString()}</td>
-                            <td><span class="estado-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                            <td><button class="btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td>
-                        </tr>
-                    `).join('');
-                }
-
-                const tbodyCitas = document.getElementById('citasRecientes');
-                if (citas.length === 0) {
-                    tbodyCitas.innerHTML = '<tr><td colspan="7">No hay citas registradas</td></tr>';
-                } else {
-                    const citasRecientes = citas.slice(-5).reverse();
-                    tbodyCitas.innerHTML = citasRecientes.map(c => `
-                        <tr>
-                            <td>${c.id}</td>
-                            <td>${c.nombre || '-'}</td>
-                            <td>${c.telefono || '-'}</td>
-                            <td>${c.rama || 'general'}</td>
-                            <td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td>
-                            <td><span class="estado-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                            <td><button class="btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) { console.error(error); }
-        }
-
-        async function verDetalle(id, tipo) {
-            currentTipo = tipo;
-            const res = await fetch(`${API_URL}/casos/todos`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            const items = tipo === 'consulta' ? data.consultas : data.citas;
-            currentItem = items.find(i => i.id === id);
-            
-            if (currentItem) {
-                const modalBody = document.getElementById('modalBody');
-                document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
-                
-                let html = `
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">📌 Código</div>
-                        <div style="color: #fff;">${currentItem.codigo || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">👤 Nombre</div>
-                        <div style="color: #fff;">${currentItem.nombre || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">📞 Teléfono</div>
-                        <div style="color: #fff;">${currentItem.telefono || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">✉️ Email</div>
-                        <div style="color: #fff;">${currentItem.email || 'N/A'}</div>
-                    </div>
-                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                        <div style="color: #C8A951; font-weight: bold;">⚖️ Rama</div>
-                        <div style="color: #fff;">${currentItem.rama || 'general'}</div>
-                    </div>
-                `;
-                
-                if (tipo === 'consulta') {
-                    html += `
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📝 Hechos</div>
-                            <div style="color: #fff;">${currentItem.hechos || 'N/A'}</div>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📝 Motivo</div>
-                            <div style="color: #fff;">${currentItem.motivo || 'N/A'}</div>
-                        </div>
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📅 Fecha Cita</div>
-                            <div style="color: #fff;">${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>
-                        </div>
-                    `;
-                }
-                
-                if (currentItem.notas_admin) {
-                    html += `
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📝 Notas</div>
-                            <div style="color: #fff;">${currentItem.notas_admin}</div>
-                        </div>
-                    `;
-                }
-                
-                document.getElementById('modalBody').innerHTML = html;
-                document.getElementById('modalDetalle').style.display = 'flex';
-            }
-        }
-
-        async function actualizarEstado() {
-            const nuevoEstado = document.getElementById('estadoSelect').value;
-            const res = await fetch(`${API_URL}/casos/${currentItem.id}/estado`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo })
-            });
-            if (res.ok) {
-                alert('Estado actualizado');
-                cerrarModal();
-                cargarDashboard();
-                cargarRegistrosRecientes();
-            } else {
-                alert('Error al actualizar');
-            }
-        }
-
-        async function eliminarRegistro() {
-            if (confirm('¿Eliminar este registro permanentemente?')) {
-                const res = await fetch(`${API_URL}/casos/${currentItem.id}`, {
-                    method: 'DELETE',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ tipo: currentTipo })
-                });
-                if (res.ok) {
-                    alert('Registro eliminado');
-                    cerrarModal();
-                    cargarDashboard();
-                    cargarRegistrosRecientes();
-                } else {
-                    alert('Error al eliminar');
-                }
-            }
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalDetalle').style.display = 'none';
-            currentItem = null;
-        }
-
-        function cerrarSesion() {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        }
-
-        cargarDashboard();
-        cargarRegistrosRecientes();
-    </script>
-</body>
-                        </html>
+                <a href="/admin/plantillas.html">
