@@ -75,8 +75,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
-        /* Estilos para el campo de hechos */
         .textarea-hechos {
             width: 100%;
             padding: 0.9rem;
@@ -96,8 +94,6 @@
             color: #666;
             font-style: italic;
         }
-        
-        /* Botón de micrófono */
         .audio-container {
             margin-top: 0.5rem;
             display: flex;
@@ -198,7 +194,6 @@
                 <textarea id="hechos" name="hechos" rows="6" class="textarea-hechos" placeholder="Por favor describa los hechos del caso a consultar..." required></textarea>
             </div>
             
-            <!-- SECCIÓN DE GRABACIÓN DE AUDIO -->
             <div class="input-group">
                 <label>🎙️ Grabar audio de los hechos (opcional)</label>
                 <div class="audio-container">
@@ -224,6 +219,10 @@
     </div>
 
     <script>
+        // CONFIGURACIÓN GLOBAL - USA LA URL COMPLETA DE RENDER
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        
         let archivosSeleccionados = [];
         let mediaRecorder = null;
         let audioChunks = [];
@@ -242,7 +241,7 @@
             return "Buenas noches";
         }
 
-        // ============ GRABACIÓN DE AUDIO ============
+        // Grabación de audio
         const btnMicrofono = document.getElementById('btnMicrofono');
         const tiempoGrabacion = document.getElementById('tiempoGrabacion');
         const audioPreview = document.getElementById('audioPreview');
@@ -272,7 +271,6 @@
                         <button type="button" class="btn-eliminar-audio" onclick="eliminarAudio()">✖</button>
                     `;
                     
-                    // Detener todas las pistas del stream
                     stream.getTracks().forEach(track => track.stop());
                 };
                 
@@ -282,7 +280,6 @@
                 btnMicrofono.classList.add('recording');
                 btnMicrofono.innerHTML = '🔴 Grabando... Detener';
                 
-                // Iniciar timer
                 timerInterval = setInterval(() => {
                     const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
                     const minutos = Math.floor(elapsed / 60);
@@ -321,7 +318,7 @@
             }
         });
 
-        // ============ ARCHIVOS ADJUNTOS ============
+        // Archivos adjuntos
         const uploadArea = document.getElementById('uploadArea');
         const archivosInput = document.getElementById('archivosInput');
 
@@ -360,7 +357,7 @@
             `).join('');
         }
 
-        // ============ ENVÍO DEL FORMULARIO ============
+        // Envío del formulario
         document.getElementById('formConsulta').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -381,9 +378,8 @@
             formData.append('hechos', hechos);
             formData.append('rama', tipoRama);
             
-            // Agregar audio grabado si existe
             if (audioBlob) {
-                formData.append('audio', audioBlob, 'grabacion_audio.webm');
+                formData.append('archivos', audioBlob, 'grabacion_audio.webm');
             }
             
             archivosSeleccionados.forEach((archivo) => {
@@ -395,7 +391,7 @@
             btn.disabled = true;
             
             try {
-                const res = await fetch('/api/consultas/nueva', {
+                const res = await fetch(API_URL + '/consultas/nueva', {
                     method: 'POST',
                     body: formData
                 });
@@ -414,13 +410,12 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('❌ Error de conexión con el servidor');
+                alert('❌ Error de conexión con el servidor: ' + error.message);
                 btn.innerHTML = '📤 Enviar Consulta';
                 btn.disabled = false;
             }
         });
 
-        // Menú responsive
         const menuToggle = document.getElementById('menuToggle');
         const navMenu = document.getElementById('navMenu');
         if (menuToggle) {
