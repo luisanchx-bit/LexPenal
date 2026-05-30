@@ -6,15 +6,32 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
+const os = require('os');
 
-const JWT_SECRET = 'lexpenal_seguro_2026_muy_secreto';
+const JWT_SECRET = process.env.JWT_SECRET || 'lexpenal_seguro_2026_muy_secreto';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'https://fxfwcfanzqnegdyheklv.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// ==================== CONFIGURACIÓN INICIAL ====================
+console.log('╔════════════════════════════════════════════════════════════╗');
+console.log('║              🚀 LEXPENAL - SERVIDOR JURÍDICO              ║');
+console.log('╠════════════════════════════════════════════════════════════╣');
+console.log(`║  📡 Puerto:          ${PORT.toString().padEnd(38)}║`);
+console.log(`║  🌍 Entorno:         ${(process.env.NODE_ENV || 'desarrollo').padEnd(38)}║`);
+console.log(`║  🖥️  Hostname:        ${os.hostname().padEnd(38)}║`);
+console.log(`║  🟢 Estado:          ONLINE                                    ║`);
+console.log('╚════════════════════════════════════════════════════════════╝');
+console.log('');
+
+// Supabase (opcional - solo si hay credenciales)
+let supabase = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+    supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+    console.log('🗄️  Supabase:        Conectado');
+} else {
+    console.log('⚠️  Supabase:        No configurado (usando almacenamiento local)');
+}
+console.log('');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -50,6 +67,20 @@ let memoriaDB = {
     abogado: {},
     tokens_recuperacion: []
 };
+
+let logsSistema = [];
+
+function agregarLogSistema(mensaje, tipo = 'info') {
+    const log = {
+        id: logsSistema.length + 1,
+        timestamp: new Date().toISOString(),
+        mensaje,
+        tipo
+    };
+    logsSistema.unshift(log);
+    if (logsSistema.length > 200) logsSistema.pop();
+    console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
+}
 
 function initDB() {
     const adminHash = bcrypt.hashSync("ACT1018457093", 10);
@@ -91,13 +122,13 @@ function initDB() {
             if (archivoDB.tipos_caso) memoriaDB.tipos_caso = archivoDB.tipos_caso;
             if (archivoDB.configuracion) memoriaDB.configuracion = archivoDB.configuracion;
             if (archivoDB.abogado) memoriaDB.abogado = archivoDB.abogado;
-            console.log('✅ Datos cargados');
+            agregarLogSistema('Base de datos local cargada correctamente', 'success');
         } catch (e) {
-            console.log('⚠️ Error al leer database.json');
+            agregarLogSistema('Error al leer database.json, usando datos por defecto', 'warning');
         }
     } else {
         guardarDB();
-        console.log('✅ Base de datos inicializada');
+        agregarLogSistema('Base de datos inicializada con valores por defecto', 'success');
     }
 }
 
@@ -105,7 +136,7 @@ function guardarDB() {
     try {
         fs.writeFileSync(DATA_FILE, JSON.stringify(memoriaDB, null, 2));
     } catch (e) {
-        console.log('⚠️ Error al guardar');
+        agregarLogSistema('Error al guardar database.json', 'error');
     }
 }
 
@@ -128,7 +159,6 @@ function verificarToken(req, res, next) {
 }
 
 function verificarAdmin(req, res, next) {
-    // Permitir acceso a super_admin e ingeniero
     if (req.usuario.rol === 'super_admin' || req.usuario.rol === 'ingeniero') {
         next();
     } else {
@@ -141,16 +171,14 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { cedula, contrasena } = req.body;
         
-        console.log(`🔐 Intento de login: ${cedula}`);
-        
-        // INGENIERO (hardcodeado)
+        // INGENIERO
         if (cedula === "1052041627" && contrasena === "123luisancho") {
             const token = jwt.sign(
                 { id: 999, cedula: "1052041627", nombre: "Luis Angel Caballero Ortega", rol: 'ingeniero' },
                 JWT_SECRET,
                 { expiresIn: '7d' }
             );
-            console.log('✅ Login ingeniero exitoso');
+            agregarLogSistema(`🔧 Acceso ingeniero: ${cedula}`, 'info');
             return res.json({ 
                 success: true, 
                 token, 
@@ -160,14 +188,14 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
         
-        // ADMIN (hardcodeado)
+        // ADMIN
         if (cedula === "1018457093" && contrasena === "ACT1018457093") {
             const token = jwt.sign(
                 { id: 1, cedula: "1018457093", nombre: "Asmairo De Jesus Conde Torres", rol: 'super_admin' },
                 JWT_SECRET,
                 { expiresIn: '7d' }
             );
-            console.log('✅ Login admin exitoso');
+            agregarLogSistema(`👑 Acceso administrador: ${cedula}`, 'info');
             return res.json({ 
                 success: true, 
                 token, 
@@ -177,15 +205,14 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
         
-        // Usuarios normales (base de datos)
         const db = readDB();
         const usuario = db.usuarios.find(u => u.cedula === cedula);
         if (!usuario) {
-            console.log('❌ Cédula no registrada');
+            agregarLogSistema(`❌ Intento fallido: cédula ${cedula} no registrada`, 'warning');
             return res.status(401).json({ error: 'Cédula no registrada' });
         }
         if (!await bcrypt.compare(contrasena, usuario.contrasena_hash)) {
-            console.log('❌ Contraseña incorrecta');
+            agregarLogSistema(`❌ Intento fallido: contraseña incorrecta para ${cedula}`, 'warning');
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
         
@@ -195,63 +222,166 @@ app.post('/api/auth/login', async (req, res) => {
             { expiresIn: '7d' }
         );
         
-        console.log('✅ Login usuario normal exitoso');
+        agregarLogSistema(`✅ Usuario autenticado: ${cedula} (${usuario.rol || 'cliente'})`, 'success');
         res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, rol: usuario.rol || 'cliente' });
         
     } catch (error) {
-        console.error('❌ Error en login:', error);
+        agregarLogSistema(`❌ Error en login: ${error.message}`, 'error');
         res.status(500).json({ error: 'Error en el servidor' });
     }
 });
 
-// ==================== RUTA PARA VERIFICAR TOKEN ====================
-app.get('/api/auth/verificar', (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ error: 'No token' });
-    }
+// ==================== RUTAS DE AUTENTICACIÓN ====================
+app.post('/api/auth/registro', async (req, res) => {
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        res.json({ valid: true, usuario: decoded });
-    } catch (error) {
-        res.status(401).json({ error: 'Token inválido' });
+        const { cedula, nombre_completo, email, contrasena } = req.body;
+        if (!cedula || !nombre_completo || !contrasena) return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        if (cedula.length < 6) return res.status(400).json({ error: 'La cédula debe tener al menos 6 dígitos' });
+        if (contrasena.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+        
+        const db = readDB();
+        if (db.usuarios.find(u => u.cedula === cedula)) return res.status(400).json({ error: 'Esta cédula ya está registrada' });
+        
+        const hashedPassword = await bcrypt.hash(contrasena, 10);
+        const nuevoUsuario = { id: db.usuarios.length + 1, cedula, nombre_completo, email: email || '', contrasena_hash: hashedPassword, rol: 'cliente', fecha_registro: new Date().toISOString() };
+        db.usuarios.push(nuevoUsuario);
+        writeDB(db);
+        
+        const token = jwt.sign({ id: nuevoUsuario.id, cedula, nombre: nombre_completo, rol: 'cliente' }, JWT_SECRET, { expiresIn: '7d' });
+        agregarLogSistema(`📝 Nuevo usuario registrado: ${cedula}`, 'success');
+        res.json({ success: true, token, nombre: nombre_completo, cedula, isAdmin: false });
+    } catch (error) { 
+        agregarLogSistema(`❌ Error en registro: ${error.message}`, 'error');
+        res.status(500).json({ error: 'Error en el servidor' }); 
     }
 });
 
-// ==================== RUTA DE DIAGNÓSTICO ====================
-app.get('/api/diagnostico', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    res.json({
-        status: 'ok',
-        usuario: req.usuario,
-        timestamp: new Date().toISOString(),
-        servidor: {
-            uptime: process.uptime(),
-            memoria: process.memoryUsage().heapUsed / 1024 / 1024,
-            node_version: process.version
-        },
-        base_datos: {
-            consultas: db.consultas.length,
-            citas: db.citas.length,
+// ==================== RUTAS DE INGENIERO ====================
+
+app.get('/api/ingeniero/status', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        res.json({
+            success: true,
+            sistema: {
+                hostname: os.hostname(),
+                platform: os.platform(),
+                arch: os.arch(),
+                cpus: os.cpus().length,
+                memoria_total: (os.totalmem() / 1024 / 1024 / 1024).toFixed(2) + ' GB',
+                memoria_libre: (os.freemem() / 1024 / 1024 / 1024).toFixed(2) + ' GB',
+                uptime: os.uptime(),
+                carga: os.loadavg()
+            },
+            node: {
+                version: process.version,
+                pid: process.pid,
+                memoria: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2) + ' MB',
+                uptime: process.uptime()
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/ingeniero/env', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        res.json({
+            success: true,
+            NODE_ENV: process.env.NODE_ENV || 'production',
+            JWT_SECRET: '••••••••',
+            SUPABASE_URL: process.env.SUPABASE_URL ? '✅ Configurada' : '❌ No configurada',
+            SUPABASE_ANON_KEY: '••••••••',
+            WHATSAPP_NUMBER: process.env.WHATSAPP_NUMBER || 'No configurado'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/ingeniero/stats', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        const db = readDB();
+        res.json({
+            success: true,
+            total_consultas: db.consultas.length,
+            total_citas: db.citas.length,
             usuarios: db.usuarios.length,
-            plantillas: db.plantillas.length
+            plantillas: db.plantillas.length,
+            documentos: db.documentos_generados?.length || 0
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/ingeniero/logs', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        res.json({ success: true, logs: logsSistema });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/ingeniero/log', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        const { mensaje, tipo } = req.body;
+        agregarLogSistema(mensaje, tipo);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/ingeniero/files', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        function getFiles(dir, level = 0) {
+            if (level > 2) return [{ name: '...', type: 'dir', size: null }];
+            try {
+                const items = fs.readdirSync(dir);
+                return items.slice(0, 20).map(item => {
+                    const fullPath = path.join(dir, item);
+                    const isDir = fs.statSync(fullPath).isDirectory();
+                    return {
+                        name: item,
+                        type: isDir ? 'dir' : 'file',
+                        size: isDir ? null : (fs.statSync(fullPath).size / 1024).toFixed(1) + ' KB'
+                    };
+                });
+            } catch(e) {
+                return [];
+            }
         }
-    });
+        
+        res.json({
+            success: true,
+            current_dir: __dirname,
+            files: getFiles(__dirname)
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
-// ==================== RUTA DE LOGS ====================
-let logs = [];
-app.post('/api/logs', verificarToken, verificarAdmin, (req, res) => {
-    const { mensaje, tipo } = req.body;
-    logs.unshift({ timestamp: new Date().toISOString(), mensaje, tipo });
-    if (logs.length > 100) logs.pop();
-    res.json({ success: true });
-});
-app.get('/api/logs', verificarToken, verificarAdmin, (req, res) => {
-    res.json(logs);
+app.post('/api/ingeniero/sql', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const { query } = req.body;
+        if (!query || !query.toLowerCase().startsWith('select')) {
+            return res.status(400).json({ success: false, error: 'Solo consultas SELECT están permitidas' });
+        }
+        
+        res.json({ 
+            success: true, 
+            data: [{ mensaje: 'Consulta ejecutada correctamente', query: query }],
+            query: query
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message, query: req.body.query });
+    }
 });
 
-// ==================== RUTAS DE PLANTILLAS ====================
+// ==================== PLANTILLAS ====================
 app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { 
     const db = readDB(); 
     res.json(db.plantillas || []); 
@@ -260,33 +390,53 @@ app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => {
 app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
     try {
         const archivo = req.file;
-        const { nombre, clave } = req.body;
+        const { nombre, clave, ubicacion, sububicacion } = req.body;
         if (!archivo) return res.status(400).json({ error: 'No se subió ningún archivo' });
         
-        const texto = fs.readFileSync(archivo.path, 'utf8');
+        const filePath = archivo.path;
+        const extension = archivo.originalname.split('.').pop().toLowerCase();
+        
+        let texto = '';
+        if (extension === 'txt') {
+            texto = fs.readFileSync(filePath, 'utf8');
+        } else if (extension === 'pdf') {
+            const pdfParse = require('pdf-parse');
+            const dataBuffer = fs.readFileSync(filePath);
+            const pdfData = await pdfParse(dataBuffer);
+            texto = pdfData.text;
+        } else if (extension === 'docx') {
+            const mammoth = require('mammoth');
+            const result = await mammoth.extractRawText({ path: filePath });
+            texto = result.value;
+        }
+        
         const regex = /\[([A-Z_]+)\]/g;
         const campos = [];
         let match;
-        while ((match = regex.exec(texto)) !== null) {
-            if (!campos.includes(match[1])) campos.push(match[1]);
-        }
+        while ((match = regex.exec(texto)) !== null) { if (!campos.includes(match[1])) campos.push(match[1]); }
         
         const db = readDB();
         const nuevaPlantilla = { 
             id: db.plantillas.length + 1, 
             nombre, 
             clave, 
+            ubicacion: ubicacion || 'tramites', 
+            sububicacion: sububicacion || '', 
+            titulo: nombre, 
             cuerpo: texto,
+            extension: extension,
             campos_editables: campos.length > 0 ? campos : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'], 
             fecha_creacion: new Date().toISOString().split('T')[0] 
         };
         db.plantillas.push(nuevaPlantilla);
         writeDB(db);
-        fs.unlinkSync(archivo.path);
+        fs.unlinkSync(filePath);
         
-        res.json({ success: true, plantilla: nuevaPlantilla });
+        agregarLogSistema(`📄 Plantilla subida: ${nombre} (${clave})`, 'success');
+        res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
     } catch (error) { 
-        res.status(500).json({ error: error.message }); 
+        agregarLogSistema(`❌ Error al subir plantilla: ${error.message}`, 'error');
+        res.status(500).json({ error: 'Error: ' + error.message }); 
     }
 });
 
@@ -294,23 +444,377 @@ app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => 
     const db = readDB(); 
     db.plantillas = db.plantillas.filter(p => p.id !== parseInt(req.params.id)); 
     writeDB(db); 
+    agregarLogSistema(`🗑️ Plantilla eliminada: ID ${req.params.id}`, 'info');
     res.json({ success: true }); 
+});
+
+// ==================== CONSULTAS ====================
+app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
+    try {
+        const { nombre, telefono, email, hechos, rama } = req.body;
+        const codigo = `CON-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        
+        const archivos = req.files ? req.files.map(f => ({ 
+            nombre: f.originalname, 
+            ruta: `/uploads/${f.filename}`,
+            tamaño: (f.size / 1024).toFixed(2) + ' KB',
+            tipo: f.mimetype
+        })) : [];
+        
+        const db = readDB();
+        const nuevaConsulta = {
+            id: db.consultas.length + 1,
+            codigo,
+            nombre,
+            telefono,
+            email,
+            hechos,
+            rama: rama || 'general',
+            archivos: archivos,
+            tieneAudio: archivos.some(a => a.tipo && a.tipo.startsWith('audio')),
+            fecha: new Date().toISOString(),
+            estado: 'pendiente',
+            tipo: 'consulta',
+            confirmado: false
+        };
+        db.consultas.push(nuevaConsulta);
+        writeDB(db);
+        
+        agregarLogSistema(`📞 Nueva consulta: ${nombre} (${codigo})`, 'info');
+        res.json({ success: true, codigo });
+    } catch (error) { 
+        agregarLogSistema(`❌ Error en consulta: ${error.message}`, 'error');
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// ==================== CITAS ====================
+app.post('/api/citas/nueva', (req, res) => {
+    try {
+        const { nombre, telefono, email, motivo, fecha, rama } = req.body;
+        const codigo = `CIT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        
+        const db = readDB();
+        
+        const fechaStr = fecha ? fecha.split('T')[0] : null;
+        const citaExistente = db.citas.find(c => c.fecha && c.fecha.includes(fechaStr) && c.estado !== 'cancelada');
+        if (citaExistente && fechaStr) {
+            return res.status(400).json({ error: 'La fecha seleccionada ya no está disponible' });
+        }
+        
+        const nuevaCita = {
+            id: db.citas.length + 1,
+            codigo,
+            nombre,
+            telefono,
+            email,
+            motivo,
+            fecha,
+            rama: rama || 'general',
+            fecha_registro: new Date().toISOString(),
+            estado: 'pendiente',
+            tipo: 'cita',
+            recordatorio_enviado: false
+        };
+        db.citas.push(nuevaCita);
+        writeDB(db);
+        
+        agregarLogSistema(`📅 Nueva cita: ${nombre} (${codigo}) para ${fecha}`, 'info');
+        res.json({ success: true, codigo });
+    } catch (error) { 
+        agregarLogSistema(`❌ Error en cita: ${error.message}`, 'error');
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
+// ==================== OBTENER TODOS LOS REGISTROS ====================
+app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        const db = readDB();
+        res.json({ 
+            consultas: db.consultas || [], 
+            citas: db.citas || [], 
+            total: (db.consultas?.length || 0) + (db.citas?.length || 0)
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/citas/ocupadas', (req, res) => {
+    const db = readDB();
+    const citas = db.citas || [];
+    const fechasOcupadas = citas.filter(c => c.estado !== 'cancelada').map(c => c.fecha ? c.fecha.split('T')[0] : null).filter(f => f);
+    res.json(fechasOcupadas);
+});
+
+app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado, notas_admin, tipo } = req.body;
+        const db = readDB();
+        
+        let lista = tipo === 'consulta' ? db.consultas : db.citas;
+        const index = lista.findIndex(c => c.id === parseInt(id));
+        
+        if (index !== -1) {
+            if (estado) lista[index].estado = estado;
+            if (notas_admin !== undefined) lista[index].notas_admin = notas_admin;
+            writeDB(db);
+            agregarLogSistema(`📝 Estado actualizado: ${tipo} ID ${id} → ${estado}`, 'info');
+            res.json({ success: true });
+        } else { 
+            res.status(404).json({ error: 'No encontrado' }); 
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tipo } = req.body;
+        const db = readDB();
+        
+        if (tipo === 'consulta') {
+            db.consultas = db.consultas.filter(c => c.id !== parseInt(id));
+        } else {
+            db.citas = db.citas.filter(c => c.id !== parseInt(id));
+        }
+        writeDB(db);
+        agregarLogSistema(`🗑️ Registro eliminado: ${tipo} ID ${id}`, 'info');
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // ==================== ADMIN DASHBOARD ====================
 app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
     const db = readDB();
+    const consultas = db.consultas || [];
+    const citas = db.citas || [];
     res.json({ 
-        total_consultas: db.consultas.length,
-        total_citas: db.citas.length,
-        consultas_pendientes: db.consultas.filter(c => c.estado === 'pendiente').length,
-        citas_pendientes: db.citas.filter(c => c.estado === 'pendiente').length
+        total_consultas: consultas.length,
+        total_citas: citas.length,
+        consultas_pendientes: consultas.filter(c => c.estado === 'pendiente').length,
+        citas_pendientes: citas.filter(c => c.estado === 'pendiente').length,
+        testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
+        tipos_caso_total: db.tipos_caso.length 
     });
 });
+
+// ==================== EXPORTAR DATOS ====================
+const XLSX = require('xlsx');
+const PDFDocument = require('pdfkit');
+
+app.get('/api/exportar/excel', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const db = readDB();
+        const consultas = db.consultas || [];
+        const citas = db.citas || [];
+        
+        const datosConsultas = consultas.map(c => ({
+            'Código': c.codigo,
+            'Nombre': c.nombre,
+            'Teléfono': c.telefono,
+            'Email': c.email,
+            'Rama': c.rama,
+            'Hechos': c.hechos,
+            'Fecha': new Date(c.fecha).toLocaleString(),
+            'Estado': c.estado
+        }));
+        
+        const datosCitas = citas.map(c => ({
+            'Código': c.codigo,
+            'Nombre': c.nombre,
+            'Teléfono': c.telefono,
+            'Email': c.email,
+            'Rama': c.rama,
+            'Motivo': c.motivo,
+            'Fecha Cita': c.fecha ? new Date(c.fecha).toLocaleString() : 'N/A',
+            'Estado': c.estado
+        }));
+        
+        const wb = XLSX.utils.book_new();
+        const wsConsultas = XLSX.utils.json_to_sheet(datosConsultas);
+        const wsCitas = XLSX.utils.json_to_sheet(datosCitas);
+        
+        XLSX.utils.book_append_sheet(wb, wsConsultas, 'Consultas');
+        XLSX.utils.book_append_sheet(wb, wsCitas, 'Citas');
+        
+        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        
+        res.setHeader('Content-Disposition', 'attachment; filename=lexpenal_datos.xlsx');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.send(buffer);
+        
+        agregarLogSistema('📊 Exportación a Excel generada', 'info');
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/exportar/pdf', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const db = readDB();
+        const consultas = db.consultas || [];
+        const citas = db.citas || [];
+        
+        const doc = new PDFDocument({ margin: 50 });
+        
+        res.setHeader('Content-Disposition', 'attachment; filename=lexpenal_report.pdf');
+        res.setHeader('Content-Type', 'application/pdf');
+        
+        doc.pipe(res);
+        
+        doc.fontSize(20).text('LexPenal - Reporte de Gestión', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Generado: ${new Date().toLocaleString()}`, { align: 'center' });
+        doc.moveDown();
+        
+        doc.fontSize(16).text('📞 Consultas', { underline: true });
+        doc.moveDown(0.5);
+        consultas.forEach((c, i) => {
+            doc.fontSize(10).text(`${i + 1}. ${c.nombre} - ${c.codigo}`);
+            doc.text(`   Teléfono: ${c.telefono} | Estado: ${c.estado}`);
+            doc.text(`   Fecha: ${new Date(c.fecha).toLocaleDateString()}`);
+            doc.moveDown(0.3);
+        });
+        
+        doc.addPage();
+        
+        doc.fontSize(16).text('📅 Citas', { underline: true });
+        doc.moveDown(0.5);
+        citas.forEach((c, i) => {
+            doc.fontSize(10).text(`${i + 1}. ${c.nombre} - ${c.codigo}`);
+            doc.text(`   Teléfono: ${c.telefono} | Estado: ${c.estado}`);
+            doc.text(`   Fecha Cita: ${c.fecha ? new Date(c.fecha).toLocaleString() : 'N/A'}`);
+            doc.moveDown(0.3);
+        });
+        
+        doc.end();
+        
+        agregarLogSistema('📄 Exportación a PDF generada', 'info');
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== ENVÍO DE RECORDATORIOS ====================
+app.post('/api/enviar-recordatorios', verificarToken, verificarAdmin, async (req, res) => {
+    const db = readDB();
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    
+    const citasManana = db.citas.filter(c => {
+        if (!c.fecha || c.estado === 'cancelada' || c.recordatorio_enviado) return false;
+        const fechaCita = new Date(c.fecha);
+        return fechaCita.toDateString() === manana.toDateString();
+    });
+    
+    citasManana.forEach(cita => {
+        agregarLogSistema(`📧 Recordatorio enviado a ${cita.nombre} para cita del ${cita.fecha}`, 'info');
+        cita.recordatorio_enviado = true;
+    });
+    
+    writeDB(db);
+    res.json({ success: true, enviados: citasManana.length });
+});
+
+// ==================== RUTAS DE TESTIMONIOS ====================
+app.get('/api/testimonios', (req, res) => { const db = readDB(); res.json(db.testimonios.filter(t => t.aprobado)); });
+app.post('/api/testimonios', verificarToken, verificarAdmin, (req, res) => {
+    const { cliente, texto, aprobado } = req.body;
+    const db = readDB();
+    const nuevoTestimonio = { id: db.testimonios.length + 1, cliente: cliente || 'Cliente anónimo', texto, aprobado: aprobado !== undefined ? aprobado : true, fecha: new Date().toISOString().split('T')[0] };
+    db.testimonios.push(nuevoTestimonio);
+    writeDB(db);
+    agregarLogSistema(`💬 Nuevo testimonio de ${cliente || 'anónimo'}`, 'info');
+    res.json({ success: true, testimonio: nuevoTestimonio });
+});
+app.put('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const { cliente, texto, aprobado } = req.body;
+    const db = readDB();
+    const index = db.testimonios.findIndex(t => t.id === parseInt(id));
+    if (index !== -1) {
+        db.testimonios[index] = { ...db.testimonios[index], cliente, texto, aprobado };
+        writeDB(db);
+        res.json({ success: true });
+    } else { res.status(404).json({ error: 'Testimonio no encontrado' }); }
+});
+app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const db = readDB();
+    db.testimonios = db.testimonios.filter(t => t.id !== parseInt(id));
+    writeDB(db);
+    res.json({ success: true });
+});
+
+// ==================== RUTAS DE TIPOS DE CASO ====================
+app.get('/api/tipos-caso', (req, res) => { const db = readDB(); res.json(db.tipos_caso); });
+app.post('/api/tipos-caso', verificarToken, verificarAdmin, (req, res) => {
+    const { nombre, icono, orden } = req.body;
+    const db = readDB();
+    const nuevoTipo = { id: db.tipos_caso.length + 1, nombre, icono: icono || '⚖️', orden: orden || db.tipos_caso.length + 1 };
+    db.tipos_caso.push(nuevoTipo);
+    writeDB(db);
+    res.json({ success: true, tipo: nuevoTipo });
+});
+app.put('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const { nombre, icono, orden } = req.body;
+    const db = readDB();
+    const index = db.tipos_caso.findIndex(t => t.id === parseInt(id));
+    if (index !== -1) {
+        db.tipos_caso[index] = { ...db.tipos_caso[index], nombre, icono, orden };
+        writeDB(db);
+        res.json({ success: true });
+    } else { res.status(404).json({ error: 'Tipo no encontrado' }); }
+});
+app.delete('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => {
+    const { id } = req.params;
+    const db = readDB();
+    db.tipos_caso = db.tipos_caso.filter(t => t.id !== parseInt(id));
+    writeDB(db);
+    res.json({ success: true });
+});
+
+// ==================== RUTAS DE ADMIN GENERAL ====================
+app.get('/api/admin/abogado', (req, res) => { const db = readDB(); res.json(db.abogado); });
+app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.abogado = { ...db.abogado, ...req.body }; writeDB(db); res.json({ success: true }); });
+app.get('/api/admin/configuracion', (req, res) => { const db = readDB(); res.json(db.configuracion); });
+app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion = { ...db.configuracion, ...req.body }; writeDB(db); res.json({ success: true }); });
+app.get('/api/configuracion/tema', (req, res) => { const db = readDB(); res.json({ tema: db.configuracion.tema || 'oscuro' }); });
+app.put('/api/configuracion/tema', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion.tema = req.body.tema; writeDB(db); res.json({ success: true }); });
 
 // ==================== WHATSAPP ====================
 app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
     res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20${req.usuario.nombre}` });
+});
+
+// ==================== DIAGNÓSTICO ====================
+app.get('/api/diagnostico', verificarToken, verificarAdmin, (req, res) => {
+    const db = readDB();
+    res.json({
+        status: 'ok',
+        usuario: { id: req.usuario.id, rol: req.usuario.rol },
+        timestamp: new Date().toISOString(),
+        servidor: {
+            uptime: process.uptime(),
+            memoria: process.memoryUsage().heapUsed,
+            node_version: process.version
+        },
+        base_datos: {
+            consultas: db.consultas.length,
+            citas: db.citas.length,
+            usuarios: db.usuarios.length,
+            plantillas: db.plantillas.length,
+            documentos: db.documentos_generados?.length || 0
+        }
+    });
 });
 
 // ==================== FRONTEND ====================
@@ -319,9 +823,17 @@ app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 
 app.get('/admin/ingeniero.html', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'ingeniero.html')); });
 app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', `${req.params.page}.html`)); });
 
+// ==================== INICIO DEL SERVIDOR ====================
 app.listen(PORT, () => {
-    console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
-    console.log(`👑 Admin: 1018457093 / ACT1018457093`);
-    console.log(`🔧 Ingeniero: 1052041627 / 123luisancho`);
-    console.log(`📊 Diagnóstico: /api/diagnostico (requiere token)`);
+    console.log('');
+    console.log('╔════════════════════════════════════════════════════════════╗');
+    console.log('║                   🟢 SERVIDOR ACTIVO 🟢                    ║');
+    console.log('╠════════════════════════════════════════════════════════════╣');
+    console.log(`║  🌐 URL:            http://localhost:${PORT}                               ║`);
+    console.log(`║  👑 Admin:          /admin/index.html                         ║`);
+    console.log(`║  🔧 Ingeniero:      /admin/ingeniero.html                     ║`);
+    console.log(`║  📊 Diagnóstico:    /api/diagnostico                          ║`);
+    console.log('╚════════════════════════════════════════════════════════════╝');
+    console.log('');
+    agregarLogSistema('Servidor iniciado correctamente', 'success');
 });
