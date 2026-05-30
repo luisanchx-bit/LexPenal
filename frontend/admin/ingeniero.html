@@ -1,4 +1,4 @@
-4<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -273,19 +273,41 @@
     <script>
         const API_BASE_URL = window.location.origin;
         const API_URL = API_BASE_URL + '/api';
-        let token = localStorage.getItem('token');
-        let rol = localStorage.getItem('rol');
         
-        if (!token) {
-            window.location.href = '/login.html';
+        // Función para verificar y renovar token
+        async function verificarToken() {
+            let token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return false;
+            }
+            
+            try {
+                const res = await fetch(API_URL + '/auth/verificar', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.valid) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return false;
+                }
+                return true;
+            } catch(e) {
+                localStorage.clear();
+                window.location.href = '/login.html';
+                return false;
+            }
         }
         
-        if (rol !== 'ingeniero') {
-            alert('Acceso denegado');
-            window.location.href = '/login.html';
+        async function getToken() {
+            let token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return null;
+            }
+            return token;
         }
-        
-        document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
         
         let logsLocales = [];
         
@@ -309,12 +331,20 @@
         }
         
         async function cargarStatus() {
+            const token = await getToken();
+            if (!token) return;
+            
             const container = document.getElementById('systemStatus');
             container.innerHTML = '<div class="log-line info">Cargando...</div>';
             try {
                 const res = await fetch(API_URL + '/ingeniero/status', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return;
+                }
                 const data = await res.json();
                 if (data.success) {
                     container.innerHTML = `
@@ -337,12 +367,20 @@
         }
         
         async function cargarStats() {
+            const token = await getToken();
+            if (!token) return;
+            
             const container = document.getElementById('stats');
             container.innerHTML = '<div class="log-line info">Cargando...</div>';
             try {
                 const res = await fetch(API_URL + '/ingeniero/stats', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return;
+                }
                 const data = await res.json();
                 if (data.success) {
                     container.innerHTML = `
@@ -363,11 +401,19 @@
         }
         
         async function probarAPI() {
+            const token = await getToken();
+            if (!token) return;
+            
             document.getElementById('actionResult').innerHTML = '<div class="log-line info">Probando API...</div>';
             try {
                 const res = await fetch(API_URL + '/admin/dashboard', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return;
+                }
                 if (res.ok) {
                     document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ API OK</div>';
                     agregarLog('API probada exitosamente', 'success');
@@ -380,9 +426,17 @@
         }
         
         async function respaldarDB() {
+            const token = await getToken();
+            if (!token) return;
+            
             document.getElementById('actionResult').innerHTML = '<div class="log-line info">Generando backup...</div>';
             try {
                 const res = await fetch(API_URL + '/exportar/excel?token=' + token);
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return;
+                }
                 if (res.ok) {
                     const blob = await res.blob();
                     const url = URL.createObjectURL(blob);
@@ -433,14 +487,18 @@
             window.location.href = '/login.html';
         }
         
-        agregarLog('Panel de ingeniero iniciado', 'success');
-        cargarStatus();
-        cargarStats();
-        
-        setInterval(() => {
+        // Inicialización
+        verificarToken().then(() => {
+            document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
+            agregarLog('Panel de ingeniero iniciado', 'success');
             cargarStatus();
             cargarStats();
-        }, 30000);
+            
+            setInterval(() => {
+                cargarStatus();
+                cargarStats();
+            }, 30000);
+        });
         
         window.cargarStatus = cargarStatus;
         window.cargarStats = cargarStats;
