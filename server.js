@@ -157,24 +157,12 @@ app.post('/api/auth/registro', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
 });
 
+// ==================== LOGIN UNIFICADO ====================
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { cedula, contrasena } = req.body;
-        const db = readDB();
-        const usuario = db.usuarios.find(u => u.cedula === cedula);
-        if (!usuario) return res.status(401).json({ error: 'Cédula no registrada' });
-        if (!await bcrypt.compare(contrasena, usuario.contrasena_hash)) return res.status(401).json({ error: 'Contraseña incorrecta' });
         
-        const token = jwt.sign({ id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol }, JWT_SECRET, { expiresIn: '7d' });
-        res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, isAdmin: usuario.rol === 'super_admin' });
-    } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
-});
-
-// ==================== LOGIN PARA INGENIERO ====================
-app.post('/api/auth/login-ingeniero', async (req, res) => {
-    try {
-        const { cedula, contrasena } = req.body;
-        
+        // Verificar si es el ingeniero (hardcodeado)
         const INGENIERO_CEDULA = "1052041627";
         const INGENIERO_PASSWORD = "123luisancho";
         const INGENIERO_NOMBRE = "Luis Angel Caballero Ortega";
@@ -190,25 +178,55 @@ app.post('/api/auth/login-ingeniero', async (req, res) => {
                 token, 
                 nombre: INGENIERO_NOMBRE, 
                 cedula: INGENIERO_CEDULA, 
-                rol: 'ingeniero' 
+                rol: 'ingeniero',
+                esIngeniero: true 
             });
         }
         
-        const db = readDB();
-        const usuario = db.usuarios.find(u => u.cedula === cedula && u.rol === 'ingeniero');
+        // Verificar si es el administrador (hardcodeado)
+        const ADMIN_CEDULA = "1018457093";
+        const ADMIN_PASSWORD = "ACT1018457093";
+        const ADMIN_NOMBRE = "Asmairo De Jesus Conde Torres";
         
-        if (usuario && await bcrypt.compare(contrasena, usuario.contrasena_hash)) {
+        if (cedula === ADMIN_CEDULA && contrasena === ADMIN_PASSWORD) {
             const token = jwt.sign(
-                { id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol },
+                { id: 1, cedula: ADMIN_CEDULA, nombre: ADMIN_NOMBRE, rol: 'super_admin' },
                 JWT_SECRET,
                 { expiresIn: '7d' }
             );
-            return res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, rol: usuario.rol });
+            return res.json({ 
+                success: true, 
+                token, 
+                nombre: ADMIN_NOMBRE, 
+                cedula: ADMIN_CEDULA, 
+                rol: 'super_admin',
+                esAdmin: true 
+            });
         }
         
-        res.status(401).json({ error: 'Credenciales incorrectas' });
+        // Buscar en la base de datos para otros usuarios
+        const db = readDB();
+        const usuario = db.usuarios.find(u => u.cedula === cedula);
+        if (!usuario) return res.status(401).json({ error: 'Cédula no registrada' });
+        if (!await bcrypt.compare(contrasena, usuario.contrasena_hash)) return res.status(401).json({ error: 'Contraseña incorrecta' });
+        
+        const token = jwt.sign(
+            { id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol || 'cliente' },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        res.json({ 
+            success: true, 
+            token, 
+            nombre: usuario.nombre_completo, 
+            cedula: usuario.cedula, 
+            rol: usuario.rol || 'cliente' 
+        });
+        
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'Error en el servidor' });
     }
 });
 
@@ -526,6 +544,34 @@ app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
         citas_pendientes: citas.filter(c => c.estado === 'pendiente').length,
         testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
         tipos_caso_total: db.tipos_caso.length 
+    });
+});
+
+// ==================== DIAGNÓSTICO ====================
+app.get('/api/diagnostico', verificarToken, verificarAdmin, (req, res) => {
+    const db = readDB();
+    const consultas = db.consultas || [];
+    const citas = db.citas || [];
+    
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        servidor: {
+            uptime: process.uptime(),
+            memoria: process.memoryUsage(),
+            node_version: process.version
+        },
+        base_datos: {
+            consultas: consultas.length,
+            citas: citas.length,
+            usuarios: db.usuarios.length,
+            plantillas: db.plantillas.length,
+            documentos: db.documentos_generados?.length || 0
+        },
+        supabase: {
+            configurada: !!process.env.SUPABASE_URL,
+            url: process.env.SUPABASE_URL ? '✅ Configurada' : '❌ No configurada'
+        }
     });
 });
 
