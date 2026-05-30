@@ -115,7 +115,6 @@
                 return;
             }
             
-            // Mostrar loading
             const btn = document.querySelector('.btn-login-submit');
             const originalText = btn.innerHTML;
             btn.innerHTML = '⏳ Verificando...';
@@ -129,36 +128,40 @@
                 });
                 
                 const data = await response.json();
-                console.log('Respuesta del servidor:', data);
                 
                 if (data.success) {
+                    // Guardar en localStorage
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('nombre', data.nombre);
                     localStorage.setItem('cedula', data.cedula);
                     localStorage.setItem('rol', data.rol);
+                    
+                    console.log('Login exitoso. Rol:', data.rol);
                     
                     // INGENIERO
                     if (data.rol === 'ingeniero') {
                         mostrarMensaje('🔧 Acceso Ingeniero - Expansión de Dominio', 'exito');
                         await mostrarAnimacion();
                         reproducirAudio();
-                        setTimeout(() => {
-                            window.location.href = '/admin/ingeniero.html';
-                        }, 1000);
+                        // Redirección directa
+                        window.location.replace('/admin/ingeniero.html');
+                        return;
                     } 
                     // ADMIN
                     else if (data.rol === 'super_admin') {
                         mostrarMensaje('👑 Bienvenido Administrador', 'exito');
                         setTimeout(() => {
-                            window.location.href = '/admin/index.html';
+                            window.location.replace('/admin/index.html');
                         }, 1000);
+                        return;
                     }
                     // CLIENTE
                     else {
                         mostrarMensaje('¡Bienvenido!', 'exito');
                         setTimeout(() => {
-                            window.location.href = '/';
+                            window.location.replace('/');
                         }, 1000);
+                        return;
                     }
                 } else {
                     mostrarMensaje(data.error || 'Credenciales incorrectas', 'error');
