@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Documentos Generados - Admin LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+    <style>
+        .sidebar { transition: transform 0.3s ease; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); position: fixed; z-index: 1001; width: 260px; background: #0a0a0a; height: 100vh; overflow-y: auto; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; padding: 1rem; margin-top: 60px; }
+            .menu-toggle-btn { display: block !important; position: fixed; top: 15px; left: 15px; z-index: 1002; background: #C8A951; border: none; color: #000; font-size: 1.5rem; padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; }
+            .table-container { overflow-x: auto; }
+        }
+        @media (min-width: 769px) { .menu-toggle-btn { display: none; } .main-content { margin-left: 280px; } }
+        .menu-toggle-btn { display: none; }
+        .btn-primary { background: #C8A951; color: #000; border: none; padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; }
+        .btn-danger { background: transparent; border: 1px solid #8B0000; color: #8B0000; padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1100; justify-content: center; align-items: center; }
+        .modal-content { background: #0a0a0a; border-radius: 15px; padding: 1.5rem; max-width: 700px; width: 90%; border: 1px solid #C8A951; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .close-modal { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+        .documento-contenido { background: #050505; padding: 1rem; border-radius: 10px; white-space: pre-wrap; font-family: monospace; font-size: 0.75rem; max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
+    <div class="admin-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/index.html'"><h2>⚖️ LexPenal</h2><p>Panel de Control</p></div>
+            <nav class="sidebar-nav">
+                <a href="/admin/index.html">📊 Dashboard</a>
+                <a href="/admin/citas.html">📅 Citas y Consultas</a>
+                <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/documentos.html" class="active">📁 Docs Generados</a>
+                <a href="/admin/configuracion.html">⚙️ Configuración</a>
+            </nav>
+            <div class="sidebar-footer"><p>Dr. Asmairo Conde Torres</p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem; background:transparent; border:1px solid #8B0000; color:#8B0000; padding:0.3rem 0.8rem; border-radius:5px; cursor:pointer;">Cerrar sesión</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="admin-header"><h1>📁 Documentos Generados</h1></div>
+            <div class="table-container">
+                <table><thead><tr><th>ID</th><th>Usuario</th><th>Plantilla</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                <tbody id="listaDocumentos"><tr><td colspan="5">Cargando...<\/td><\/tr><\/tbody>
+            </table>
+        </main>
+    </div>
+
+    <div id="modalVer" class="modal"><div class="modal-content"><div class="modal-header"><h3>📄 Contenido del Documento</h3><button class="close-modal" onclick="cerrarModalVer()">&times;</button></div><div id="modalContenido" class="documento-contenido"></div><div style="margin-top:1rem; display:flex; gap:1rem;"><button class="btn-primary" id="btnWhatsApp" onclick="enviarPorWhatsApp()">📱 Enviar por WhatsApp</button><button class="btn-danger" onclick="eliminarDocumento()">🗑️ Eliminar</button></div></div></div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        let token = localStorage.getItem('token');
+        let documentos = [];
+        let documentoActual = null;
+
+        if (!token) window.location.href = '/login.html';
+
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const sidebar = document.getElementById('sidebar');
+        menuToggleBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+        document.querySelectorAll('.sidebar-nav a').forEach(link => { link.addEventListener('click', () => sidebar.classList.remove('mobile-open')); });
+
+        async function cargarDocumentos() {
+            const res = await fetch(API_URL + '/documentos-generados', { headers: { 'Authorization': `Bearer ${token}` } });
+            documentos = await res.json();
+            const tbody = document.getElementById('listaDocumentos');
+            if (documentos.length === 0) { tbody.innerHTML = '<tr><td colspan="5">No hay documentos generados<\/td><\/tr>'; return; }
+            tbody.innerHTML = documentos.map(d => `<tr>
+                <td>${d.id}<\/td>
+                <td>${d.usuario_nombre || 'Anónimo'}<\/td>
+                <td>${d.plantilla_nombre}<\/td>
+                <td>${new Date(d.fecha_generacion).toLocaleString()}<\/td>
+                <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDocumento(${d.id})">👁️ Ver<\/button><button class="btn-danger" style="padding:0.3rem 0.6rem;" onclick="eliminarDocumento(${d.id})">🗑️<\/button><\/td>
+            </tr>`).join('');
+        }
+
+        function verDocumento(id) {
+            documentoActual = documentos.find(d => d.id === id);
+            if (documentoActual) {
+                document.getElementById('modalContenido').innerHTML = documentoActual.contenido || 'Sin contenido';
+                document.getElementById('modalVer').style.display = 'flex';
+            }
+        }
+
+        function cerrarModalVer() { document.getElementById('modalVer').style.display = 'none'; documentoActual = null; }
+
+        async function eliminarDocumento(id) {
+            if (confirm('¿Eliminar este documento permanentemente?')) {
+                await fetch(API_URL + '/documentos-generados/' + (id || documentoActual.id), { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                alert('Documento eliminado');
+                cerrarModalVer();
+                cargarDocumentos();
+            }
+        }
+
+        function enviarPorWhatsApp() {
+            if (!documentoActual) return;
+            const mensaje = encodeURIComponent(`📄 *DOCUMENTO LEGAL GENERADO* 📄\n\n${documentoActual.contenido.substring(0, 2000)}...\n\nDocumento completo disponible en el panel.`);
+            window.open(`https://wa.me/573145879875?text=${mensaje}`, '_blank');
+        }
+
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        cargarDocumentos();
+    </script>
+</body>
+</html>
