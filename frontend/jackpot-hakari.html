@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expansión de Dominio | Jackpot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #0a0f1e 0%, #03060c 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', 'Impact', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fondo de energía maldita */
+        .cursed-energy {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0, 255, 255, 0.02) 0px,
+                rgba(0, 255, 255, 0.02) 2px,
+                transparent 2px,
+                transparent 8px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Contenedor principal */
+        .domain-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 750px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 2rem;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            animation: borderPulse 2s infinite alternate;
+        }
+
+        @keyframes borderPulse {
+            0% { border-color: #00ffff; box-shadow: 0 0 20px cyan; }
+            100% { border-color: #ff00ff; box-shadow: 0 0 50px magenta; }
+        }
+
+        /* Título */
+        .domain-title {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #00ffff;
+            text-shadow: 0 0 10px cyan, 0 0 20px blue;
+            margin-bottom: 2rem;
+            font-family: 'Impact', 'Courier New', monospace;
+        }
+
+        /* Slot machine */
+        .slot-machine {
+            background: #1a1a2e;
+            border-radius: 30px;
+            padding: 2rem;
+            border: 3px solid gold;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .reels {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .reel {
+            background: #000;
+            border-radius: 20px;
+            padding: 15px;
+            flex: 1;
+            text-align: center;
+            border: 2px solid #ffd700;
+            box-shadow: inset 0 0 15px rgba(255,215,0,0.5), 0 5px 15px rgba(0,0,0,0.7);
+        }
+
+        .reel-symbol {
+            font-size: 5rem;
+            line-height: 1.2;
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+
+        .spinning .reel-symbol {
+            animation: spinFast 0.1s linear infinite;
+        }
+
+        @keyframes spinFast {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-20px); opacity: 0.8; }
+        }
+
+        /* Botón de giro */
+        .spin-btn {
+            display: block;
+            width: 80%;
+            margin: 1rem auto;
+            padding: 15px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: monospace;
+            background: radial-gradient(circle at 30% 10%, #ffd700, #b8860b);
+            border: none;
+            border-radius: 60px;
+            color: #1a1a1a;
+            text-shadow: 0 1px 2px white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 0 #7a5c00;
+        }
+
+        .spin-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #7a5c00;
+        }
+
+        /* Mensaje de resultado */
+        .result-message {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            background: rgba(0,0,0,0.7);
+            padding: 1rem;
+            border-radius: 40px;
+            font-family: monospace;
+        }
+
+        .jackpot-text {
+            color: gold;
+            text-shadow: 0 0 10px orange, 0 0 20px red;
+            animation: jackpotGlow 0.5s infinite alternate;
+        }
+
+        @keyframes jackpotGlow {
+            from { text-shadow: 0 0 5px red; }
+            to { text-shadow: 0 0 30px gold; }
+        }
+
+        /* Efecto de luz estroboscópica para jackpot */
+        .jackpot-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, gold, transparent);
+            pointer-events: none;
+            z-index: 999;
+            animation: flashBang 0.6s ease-out forwards;
+        }
+
+        @keyframes flashBang {
+            0% { opacity: 0.9; background: radial-gradient(circle, gold, orange);}
+            100% { opacity: 0; background: transparent; }
+        }
+
+        /* Partículas de celebración */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 20px;
+            background: gold;
+            position: absolute;
+            top: -20px;
+            animation: fall 2s linear forwards;
+            z-index: 1000;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="cursed-energy"></div>
+<div class="domain-container">
+    <div class="domain-title">⚡ DOMAIN EXPANSION ⚡<br>🏮 IDLE DEATH GAMBLE 🏮</div>
+    <div class="slot-machine">
+        <div class="reels">
+            <div class="reel" id="reel1">
+                <div class="reel-symbol" id="symbol1">🎰</div>
+            </div>
+            <div class="reel" id="reel2">
+                <div class="reel-symbol" id="symbol2">🎰</div>
+            </div>
+            <div class="reel" id="reel3">
+                <div class="reel-symbol" id="symbol3">🎰</div>
+            </div>
+        </div>
+        <button class="spin-btn" id="spinBtn">🎲 GIRAR 🎲</button>
+        <div class="result-message" id="resultMessage">Presiona GIRAR y busca el JACKPOT</div>
+    </div>
+</div>
+
+<script>
+    const symbols = ["💀", "🎰", "7️⃣", "⭐", "🔥", "💎", "🌀", "💰", "👑", "⚡"];
+    const jackpotSymbol = "7️⃣";  // Siete dorado, la gloria
+    let spinning = false;
+    let interval1, interval2, interval3;
+
+    const reel1El = document.getElementById("symbol1");
+    const reel2El = document.getElementById("symbol2");
+    const reel3El = document.getElementById("symbol3");
+    const spinBtn = document.getElementById("spinBtn");
+    const resultMsg = document.getElementById("resultMessage");
+
+    // Función para cambiar símbolo rápido durante el giro
+    function fastChange(reelElement) {
+        const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+        reelElement.innerText = randomSymbol;
+    }
+
+    // Parar un reel con un símbolo final
+    function stopReel(reelElement, finalSymbol, delay, callback) {
+        setTimeout(() => {
+            reelElement.innerText = finalSymbol;
+            if (callback) callback();
+        }, delay);
+    }
+
+    // Generar partículas de confeti
+    function createConfetti() {
+        for (let i = 0; i < 150; i++) {
+            const conf = document.createElement("div");
+            conf.classList.add("confetti");
+            conf.style.left = Math.random() * 100 + "%";
+            conf.style.width = Math.random() * 8 + 4 + "px";
+            conf.style.height = Math.random() * 15 + 5 + "px";
+            conf.style.background = `hsl(${Math.random() * 60 + 40}, 100%, 60%)`;
+            conf.style.animationDuration = Math.random() * 1.5 + 1 + "s";
+            document.body.appendChild(conf);
+            setTimeout(() => conf.remove(), 2500);
+        }
+    }
+
+    // Efecto de flash y mensaje jackpot
+    function triggerJackpot() {
+        // Flash de luz
+        const flash = document.createElement("div");
+        flash.classList.add("jackpot-flash");
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 800);
+        // Confeti
+        createConfetti();
+        // Mensaje épico
+        resultMsg.innerHTML = "✨✨✨ JACKPOT !!! ✨✨✨<br>🔮 PREMIO MAYOR 🔮";
+        resultMsg.classList.add("jackpot-text");
+        // Sonido opcional si tienes el archivo (comentado)
+        // let audio = new Audio('/assets/audio/jackpot.mp3');
+        // audio.play().catch(e => console.log("Audio no cargado"));
+        // Redirigir después de la emoción (2.5 segundos)
+        setTimeout(() => {
+            window.location.href = "/admin/ingeniero.html";
+        }, 2500);
+    }
+
+    // Lógica principal
+    async function startSpin() {
+        if (spinning) return;
+        spinning = true;
+        spinBtn.disabled = true;
+        resultMsg.innerHTML = "🌀 GIRANDO... 🌀";
+        resultMsg.classList.remove("jackpot-text");
+
+        // Animación rápida en los tres reels
+        const reel1Int = setInterval(() => fastChange(reel1El), 70);
+        const reel2Int = setInterval(() => fastChange(reel2El), 70);
+        const reel3Int = setInterval(() => fastChange(reel3El), 70);
+
+        // Simular parada escalonada
+        setTimeout(() => { clearInterval(reel1Int); }, 800);
+        setTimeout(() => { clearInterval(reel2Int); }, 1000);
+        setTimeout(() => { clearInterval(reel3Int); }, 1200);
+
+        // Símbolos aleatorios finales
+        const final1 = symbols[Math.floor(Math.random() * symbols.length)];
+        const final2 = symbols[Math.floor(Math.random() * symbols.length)];
+        const final3 = symbols[Math.floor(Math.random() * symbols.length)];
+
+        // Asignar símbolos finales después de cada intervalo
+        setTimeout(() => { reel1El.innerText = final1; }, 800);
+        setTimeout(() => { reel2El.innerText = final2; }, 1000);
+        setTimeout(() => { reel3El.innerText = final3; }, 1200);
+
+        // Evaluar si es JACKPOT (tres sietes)
+        setTimeout(() => {
+            const isJackpot = (final1 === jackpotSymbol && final2 === jackpotSymbol && final3 === jackpotSymbol);
+            if (isJackpot) {
+                resultMsg.innerHTML = "✨✨✨ JACKPOT !!! ✨✨✨<br>🔮 PREMIO MAYOR 🔮";
+                resultMsg.classList.add("jackpot-text");
+                createConfetti();
+                const flash = document.createElement("div");
+                flash.classList.add("jackpot-flash");
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 800);
+                // Redirigir
+                setTimeout(() => {
+                    window.location.href = "/admin/ingeniero.html";
+                }, 2000);
+            } else {
+                resultMsg.innerHTML = "❌ SIN SUERTE... ❌<br>Intenta de nuevo, el destino espera";
+                spinBtn.disabled = false;
+                spinning = false;
+            }
+        }, 1300);
+    }
+
+    spinBtn.addEventListener("click", startSpin);
+</script>
+</body>
+</html>
