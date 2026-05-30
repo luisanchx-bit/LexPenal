@@ -23,7 +23,7 @@
             overflow-x: hidden;
         }
 
-        /* ==================== FONDO GEOMÉTRICO ==================== */
+        /* Fondo geométrico */
         .geometric-bg {
             position: fixed;
             top: 0;
@@ -33,7 +33,6 @@
             z-index: 0;
             overflow: hidden;
         }
-
         .hexagon {
             width: 120px;
             height: 138px;
@@ -43,14 +42,12 @@
             position: absolute;
             animation: rotateSlow 30s infinite linear;
         }
-
         .circle-ring {
             position: absolute;
             border: 1px solid rgba(200, 169, 81, 0.15);
             border-radius: 50%;
             animation: pulseRing 6s infinite alternate;
         }
-
         .law-line {
             position: absolute;
             height: 2px;
@@ -59,23 +56,11 @@
             transform: rotate(45deg);
             animation: slideLine 14s infinite linear;
         }
+        @keyframes rotateSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.2; } 100% { transform: scale(1.5); opacity: 0.05; } }
+        @keyframes slideLine { 0% { transform: translateX(-50%) rotate(25deg); } 100% { transform: translateX(50%) rotate(25deg); } }
 
-        @keyframes rotateSlow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes pulseRing {
-            0% { transform: scale(1); opacity: 0.2; }
-            100% { transform: scale(1.5); opacity: 0.05; }
-        }
-
-        @keyframes slideLine {
-            0% { transform: translateX(-50%) rotate(25deg); }
-            100% { transform: translateX(50%) rotate(25deg); }
-        }
-
-        /* ==================== LOGIN CARD ==================== */
+        /* Login card */
         .login-wrapper {
             position: relative;
             z-index: 10;
@@ -84,7 +69,6 @@
             margin: 2rem;
             transition: filter 0.4s;
         }
-
         .login-card {
             background: rgba(10, 10, 15, 0.85);
             backdrop-filter: blur(12px);
@@ -92,14 +76,8 @@
             padding: 2.5rem 2rem;
             border: 1px solid rgba(200, 169, 81, 0.5);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            transition: transform 0.3s ease;
         }
-
-        .brand {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
+        .brand { text-align: center; margin-bottom: 2rem; }
         .brand h1 {
             font-size: 2.5rem;
             font-family: 'Playfair Display', serif;
@@ -108,24 +86,9 @@
             background-clip: text;
             color: transparent;
         }
-
-        .justice-icon {
-            font-size: 3rem;
-            filter: drop-shadow(0 0 6px gold);
-        }
-
-        .input-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .input-group label {
-            display: block;
-            color: #C8A951;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-        }
-
+        .justice-icon { font-size: 3rem; filter: drop-shadow(0 0 6px gold); }
+        .input-group { margin-bottom: 1.5rem; }
+        .input-group label { display: block; color: #C8A951; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.5rem; }
         .input-field {
             width: 100%;
             padding: 0.9rem 1.2rem;
@@ -137,12 +100,7 @@
             transition: 0.2s;
             outline: none;
         }
-
-        .input-field:focus {
-            border-color: #C8A951;
-            box-shadow: 0 0 12px rgba(200, 169, 81, 0.3);
-        }
-
+        .input-field:focus { border-color: #C8A951; box-shadow: 0 0 12px rgba(200, 169, 81, 0.3); }
         .btn-login {
             width: 100%;
             padding: 0.9rem;
@@ -151,134 +109,177 @@
             border-radius: 60px;
             font-weight: bold;
             font-size: 1rem;
-            color: #020202;
             cursor: pointer;
             transition: 0.3s;
         }
+        .btn-login:hover { transform: scale(1.02); }
+        .mensaje { margin-top: 1rem; padding: 0.8rem; border-radius: 60px; text-align: center; font-size: 0.8rem; }
 
-        .btn-login:hover {
-            transform: scale(1.02);
-            background: linear-gradient(95deg, #dbb95c, #b38f3a);
-        }
-
-        .mensaje {
-            margin-top: 1rem;
-            padding: 0.8rem;
-            border-radius: 60px;
-            text-align: center;
-            font-size: 0.8rem;
-        }
-
-        /* ==================== MODAL TRAGAMONEDAS ==================== */
-        .slot-overlay {
+        /* MODAL PRINCIPAL (DOMINIO + TRAGAMONEDAS + HAKARI) */
+        .domain-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
+            background: black;
             z-index: 2000;
             display: flex;
             align-items: center;
             justify-content: center;
             visibility: hidden;
             opacity: 0;
-            transition: visibility 0s, opacity 0.5s;
+            transition: visibility 0s, opacity 0.6s;
+        }
+        .domain-overlay.active { visibility: visible; opacity: 1; }
+
+        /* Acto 1: Texto japonés */
+        .hakari-text {
+            text-align: center;
+            animation: fadeOutIn 4s forwards;
+        }
+        .japanese {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd966;
+            text-shadow: 0 0 15px gold;
+            letter-spacing: 8px;
+            margin-bottom: 1rem;
+        }
+        .sub {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+        @keyframes fadeOutIn {
+            0% { opacity: 0; transform: scale(0.9);}
+            20% { opacity: 1; transform: scale(1);}
+            80% { opacity: 1; transform: scale(1);}
+            100% { opacity: 0; transform: scale(0.9); visibility: hidden;}
         }
 
-        .slot-overlay.active {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .slot-machine {
-            background: #0f0f1a;
+        /* Acto 2: Máquina tragamonedas */
+        .slot-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 650px;
+            background: #1a1a2a;
             border-radius: 48px;
             padding: 2rem;
-            max-width: 650px;
-            width: 90%;
-            border: 3px solid #ffd966;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+            border: 4px solid #e6b422;
+            box-shadow: 0 0 40px rgba(255,215,0,0.6);
             text-align: center;
-            position: relative;
-            animation: fadeInUp 0.6s;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.4s;
         }
-
-        @keyframes fadeInUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .slot-title {
-            font-size: 1.8rem;
-            color: #ffd966;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 6px orange;
-        }
-
-        .reels {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
+        .slot-wrapper.visible { visibility: visible; opacity: 1; }
+        .reels { display: flex; justify-content: center; gap: 2rem; margin: 2rem 0; }
         .reel {
             background: #000;
             border-radius: 20px;
             padding: 20px;
             width: 100px;
-            text-align: center;
-            border: 2px solid gold;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.7);
+            border: 2px solid #ffd700;
         }
+        .reel-symbol { font-size: 4rem; transition: 0.05s linear; display: inline-block; }
+        .spinning .reel-symbol { animation: spinFast 0.08s infinite linear; }
+        @keyframes spinFast { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); opacity: 0.9; } }
 
-        .reel-symbol {
-            font-size: 4rem;
-            display: inline-block;
-            transition: 0.05s linear;
-        }
-
-        .spinning .reel-symbol {
-            animation: reelSpin 0.1s infinite linear;
-        }
-
-        @keyframes reelSpin {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-15px); opacity: 0.9; }
-        }
-
-        /* palanca */
-        .lever-area {
-            margin: 1rem 0;
-        }
-
+        .lever-area { margin: 1rem 0; }
         .lever {
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle at 30% 20%, #c0a040, #7a5a00);
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(#e6b422, #8b691b);
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             cursor: pointer;
             transition: 0.1s linear;
             box-shadow: 0 8px 0 #4a3a00;
         }
+        .lever:active { transform: translateY(5px); box-shadow: 0 2px 0 #4a3a00; }
 
-        .lever:active {
-            transform: translateY(6px);
-            box-shadow: 0 2px 0 #4a3a00;
+        .result-jackpot { font-size: 2rem; font-weight: bold; color: gold; text-shadow: 0 0 8px red; margin-top: 1rem; display: none; }
+
+        /* Acto 3: Cara de Hakari (estilo manga con CSS) */
+        .hakari-face {
+            text-align: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.5s;
+            margin-top: 2rem;
         }
-
-        .result-jackpot {
+        .hakari-face.visible { visibility: visible; opacity: 1; }
+        .manga-face {
+            width: 180px;
+            height: 180px;
+            background: #f5e6d3;
+            margin: 0 auto;
+            border-radius: 50%;
+            position: relative;
+            border: 3px solid #2c2c2c;
+            box-shadow: 0 0 0 6px #ffd966;
+        }
+        .eyes {
+            position: absolute;
+            top: 50px;
+            left: 30px;
+            width: 120px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .eye {
+            width: 35px;
+            height: 35px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid black;
+            position: relative;
+        }
+        .pupil {
+            width: 18px;
+            height: 18px;
+            background: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 8px;
+            left: 8px;
+        }
+        .mouth {
+            position: absolute;
+            bottom: 45px;
+            left: 60px;
+            width: 60px;
+            height: 25px;
+            background: black;
+            border-radius: 0 0 30px 30px;
+        }
+        .hair {
+            position: absolute;
+            top: -15px;
+            left: 25px;
+            width: 130px;
+            height: 40px;
+            background: #2c2c2c;
+            border-radius: 50% 50% 0 0;
+        }
+        .hakari-name {
+            margin-top: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffd966;
+            letter-spacing: 3px;
+        }
+        .jackpot-word {
             font-size: 2rem;
             font-weight: bold;
             color: gold;
-            text-shadow: 0 0 8px red;
-            margin-top: 1rem;
+            text-shadow: 0 0 10px red;
         }
 
         .confetti {
@@ -290,222 +291,163 @@
             animation: fall 2.5s linear forwards;
             z-index: 2100;
         }
-
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-        }
-
-        @media (max-width: 600px) {
-            .reel { width: 70px; padding: 10px; }
-            .reel-symbol { font-size: 2.5rem; }
-            .slot-title { font-size: 1.2rem; }
-        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
     </style>
 </head>
 <body>
 
-<!-- Fondo geométrico -->
 <div class="geometric-bg">
-    <div class="hexagon" style="top: 15%; left: -30px; width: 180px; height: 200px;"></div>
-    <div class="hexagon" style="bottom: 5%; right: -20px; width: 240px; height: 270px; opacity: 0.6;"></div>
+    <div class="hexagon" style="top: 15%; left: -30px;"></div>
+    <div class="hexagon" style="bottom: 5%; right: -20px;"></div>
     <div class="circle-ring" style="top: 20%; right: 5%; width: 150px; height: 150px;"></div>
-    <div class="circle-ring" style="bottom: 30%; left: -50px; width: 300px; height: 300px;"></div>
-    <div class="law-line" style="top: 40%; left: -20%;"></div>
-    <div class="law-line" style="bottom: 20%; right: -10%; transform: rotate(-35deg);"></div>
+    <div class="law-line"></div>
 </div>
 
-<!-- LOGIN CARD -->
 <div class="login-wrapper" id="loginWrapper">
     <div class="login-card">
-        <div class="brand">
-            <div class="justice-icon">⚖️</div>
-            <h1>LEX PENAL</h1>
-            <p>puertas de la justicia · acceso restringido</p>
-        </div>
-        <form id="loginForm">
-            <div class="input-group">
-                <label>📜 NÚMERO DE CÉDULA</label>
-                <input type="text" id="cedula" class="input-field" placeholder="ej. 1018457093" required>
-            </div>
-            <div class="input-group">
-                <label>🔒 CONTRASEÑA</label>
-                <input type="password" id="password" class="input-field" placeholder="••••••••" required>
-            </div>
-            <button type="button" class="btn-login" id="btnLogin">🎖️ INGRESAR AL SISTEMA 🎖️</button>
-        </form>
+        <div class="brand"><div class="justice-icon">⚖️</div><h1>LEX PENAL</h1><p>puertas de la justicia</p></div>
+        <div class="input-group"><label>📜 CÉDULA</label><input type="text" id="cedula" class="input-field" placeholder="1018457093"></div>
+        <div class="input-group"><label>🔒 CONTRASEÑA</label><input type="password" id="password" class="input-field" placeholder="••••••"></div>
+        <button class="btn-login" id="btnLogin">🎖️ INGRESAR</button>
         <div id="mensaje" class="mensaje"></div>
-        <div class="footer-note" style="text-align:center; margin-top:1.5rem; font-size:0.65rem; color:#777;">
-            ⚖️ Administración de Justicia | Despacho Dr. Asmairo Conde
-        </div>
     </div>
 </div>
 
-<!-- MODAL TRAGAMONEDAS (invisible al inicio) -->
-<div id="slotModal" class="slot-overlay">
-    <div class="slot-machine">
-        <div class="slot-title">🎰 DOMINIO EXPANSIVO 🎰</div>
+<div id="domainModal" class="domain-overlay">
+    <!-- FASE 1: Hakari texto -->
+    <div id="hakariText" class="hakari-text">
+        <div class="japanese">ドメイン拡大</div>
+        <div class="japanese">「坐殺博徒」</div>
+        <div class="sub">DOMAIN EXPANSION · IDLE DEATH GAMBLE</div>
+    </div>
+    <!-- FASE 2: Máquina tragamonedas -->
+    <div id="slotMachine" class="slot-wrapper">
         <div class="reels">
             <div class="reel" id="reel1"><div class="reel-symbol" id="symbol1">🎰</div></div>
             <div class="reel" id="reel2"><div class="reel-symbol" id="symbol2">🎰</div></div>
             <div class="reel" id="reel3"><div class="reel-symbol" id="symbol3">🎰</div></div>
         </div>
-        <div class="lever-area">
-            <div class="lever" id="leverBtn">🎰</div>
+        <div class="lever-area"><div class="lever" id="leverBtn">🎰</div></div>
+        <div id="slotResult" class="result-jackpot">✨ JACKPOT ✨</div>
+        <div id="hakariFaceContainer" class="hakari-face">
+            <div class="manga-face">
+                <div class="hair"></div>
+                <div class="eyes"><div class="eye"><div class="pupil"></div></div><div class="eye"><div class="pupil"></div></div></div>
+                <div class="mouth"></div>
+            </div>
+            <div class="hakari-name">HAKARI KINJI</div>
+            <div class="jackpot-word">JACKPOT !!!</div>
         </div>
-        <div id="slotResult" class="result-jackpot" style="display: none;">✨ JACKPOT ✨</div>
     </div>
 </div>
 
 <script>
     const API_URL = '/api/auth';
-    // Elementos
     const loginWrapper = document.getElementById('loginWrapper');
-    const slotModal = document.getElementById('slotModal');
-    const btnLogin = document.getElementById('btnLogin');
-    const mensajeDiv = document.getElementById('mensaje');
-
-    const lever = document.getElementById('leverBtn');
-    const reel1El = document.getElementById('symbol1');
-    const reel2El = document.getElementById('symbol2');
-    const reel3El = document.getElementById('symbol3');
-    const slotResultDiv = document.getElementById('slotResult');
-
+    const modal = document.getElementById('domainModal');
+    const hakariTextDiv = document.getElementById('hakariText');
+    const slotMachine = document.getElementById('slotMachine');
+    const leverBtn = document.getElementById('leverBtn');
+    const reel1 = document.getElementById('symbol1');
+    const reel2 = document.getElementById('symbol2');
+    const reel3 = document.getElementById('symbol3');
+    const slotResult = document.getElementById('slotResult');
+    const hakariFace = document.getElementById('hakariFaceContainer');
+    
     let spinning = false;
     let interval1, interval2, interval3;
 
-    // ---- Funciones de la máquina tragamonedas (jackpot garantizado) ----
-    function startSpinning() {
+    async function startSlotMachine() {
         if (spinning) return;
         spinning = true;
-        lever.style.transform = "translateY(6px)";
-        setTimeout(() => { lever.style.transform = ""; }, 150);
+        leverBtn.style.transform = "translateY(5px)";
+        setTimeout(() => leverBtn.style.transform = "", 150);
         
-        // Añadir clase spinning
         document.getElementById('reel1').classList.add('spinning');
         document.getElementById('reel2').classList.add('spinning');
         document.getElementById('reel3').classList.add('spinning');
         
-        // Cambio rápido de símbolos
-        interval1 = setInterval(() => {
-            const symbols = ["💀", "🎰", "7️⃣", "⭐", "🔥", "💎", "🌀"];
-            reel1El.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-        }, 70);
-        interval2 = setInterval(() => {
-            const symbols = ["💀", "🎰", "7️⃣", "⭐", "🔥", "💎", "🌀"];
-            reel2El.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-        }, 70);
-        interval3 = setInterval(() => {
-            const symbols = ["💀", "🎰", "7️⃣", "⭐", "🔥", "💎", "🌀"];
-            reel3El.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-        }, 70);
+        const symbols = ["💀", "🎰", "7️⃣", "⭐", "🔥", "💎", "🌀"];
+        interval1 = setInterval(() => reel1.innerText = symbols[Math.floor(Math.random()*symbols.length)], 70);
+        interval2 = setInterval(() => reel2.innerText = symbols[Math.floor(Math.random()*symbols.length)], 70);
+        interval3 = setInterval(() => reel3.innerText = symbols[Math.floor(Math.random()*symbols.length)], 70);
         
-        // Parada programada: primero segundo y tercero, todos terminan en 7️⃣
-        setTimeout(() => { clearInterval(interval1); reel1El.innerText = "7️⃣"; }, 800);
-        setTimeout(() => { clearInterval(interval2); reel2El.innerText = "7️⃣"; }, 1000);
-        setTimeout(() => { clearInterval(interval3); reel3El.innerText = "7️⃣"; }, 1200);
+        setTimeout(() => { clearInterval(interval1); reel1.innerText = "7️⃣"; }, 800);
+        setTimeout(() => { clearInterval(interval2); reel2.innerText = "7️⃣"; }, 1000);
+        setTimeout(() => { clearInterval(interval3); reel3.innerText = "7️⃣"; }, 1200);
         
-        // Detener animación y mostrar JACKPOT
         setTimeout(() => {
             document.getElementById('reel1').classList.remove('spinning');
             document.getElementById('reel2').classList.remove('spinning');
             document.getElementById('reel3').classList.remove('spinning');
             spinning = false;
-            // Mostrar mensaje jackpot
-            slotResultDiv.style.display = "block";
+            slotResult.style.display = "block";
             // Confeti
-            for (let i=0; i<120; i++) {
-                const conf = document.createElement('div');
-                conf.classList.add('confetti');
-                conf.style.left = Math.random() * 100 + "%";
-                conf.style.width = Math.random() * 8 + 4 + "px";
-                conf.style.height = Math.random() * 12 + 6 + "px";
-                conf.style.background = `hsl(${Math.random() * 60 + 40}, 100%, 60%)`;
-                conf.style.animationDuration = Math.random() * 1.5 + 1 + "s";
-                document.body.appendChild(conf);
-                setTimeout(() => conf.remove(), 2500);
+            for (let i=0;i<120;i++) {
+                let c = document.createElement('div');
+                c.classList.add('confetti');
+                c.style.left = Math.random()*100+"%";
+                c.style.width = Math.random()*8+4+"px";
+                c.style.background = `hsl(${Math.random()*60+40},100%,60%)`;
+                document.body.appendChild(c);
+                setTimeout(()=>c.remove(),2500);
             }
-            // Redirigir después de 2 segundos
+            // Mostramos la cara de Hakari y ocultamos los rodillos y la palanca
+            setTimeout(() => {
+                document.querySelector('.reels').style.display = 'none';
+                leverBtn.style.display = 'none';
+                slotResult.style.display = 'none';
+                hakariFace.classList.add('visible');
+            }, 500);
+            // Redirigir después de 2.5s
             setTimeout(() => {
                 window.location.href = "/admin/ingeniero.html";
-            }, 2200);
-        }, 1250);
+            }, 3500);
+        }, 1300);
     }
 
-    // Iniciar máquina automáticamente al abrir el modal
-    function autoStartSlot() {
-        if (!spinning) startSpinning();
+    async function doDomainExpansion() {
+        modal.classList.add('active');
+        // La animación del texto dura 4s (fadeOutIn)
+        setTimeout(() => {
+            hakariTextDiv.style.display = 'none';
+            slotMachine.classList.add('visible');
+            startSlotMachine(); // Arranca la máquina automáticamente
+        }, 3800);
     }
 
-    // ---- LOGICA DE LOGIN ----
+    // LOGIN
     async function iniciarSesion() {
         const cedula = document.getElementById('cedula').value.trim();
         const contrasena = document.getElementById('password').value.trim();
-
-        if (!cedula || !contrasena) {
-            mensajeDiv.innerText = "❌ Complete todos los campos";
-            mensajeDiv.className = "mensaje error";
-            return;
-        }
-
-        btnLogin.disabled = true;
-        btnLogin.innerText = "⏳ VERIFICANDO...";
-        mensajeDiv.innerText = "";
-
+        const msg = document.getElementById('mensaje');
+        if (!cedula || !contrasena) { msg.innerText="❌ Complete campos"; msg.className="mensaje error"; return; }
+        const btn = document.getElementById('btnLogin');
+        btn.disabled=true; btn.innerText="⏳";
         try {
-            const response = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cedula, contrasena })
-            });
-            const data = await response.json();
-
-            if (data.success) {
+            const res = await fetch(`${API_URL}/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({cedula,contrasena}) });
+            const data = await res.json();
+            if(data.success) {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('nombre', data.nombre);
                 localStorage.setItem('cedula', data.cedula);
                 localStorage.setItem('rol', data.rol);
-
-                if (data.rol === 'ingeniero') {
-                    // Ocultar el login y mostrar tragamonedas
-                    loginWrapper.style.filter = "blur(4px)";
-                    slotModal.classList.add('active');
-                    // Iniciar automáticamente la máquina tragamonedas
-                    autoStartSlot();
-                } 
-                else if (data.rol === 'super_admin') {
-                    mensajeDiv.innerText = "👑 BIENVENIDO ADMINISTRADOR";
-                    mensajeDiv.className = "mensaje exito";
-                    setTimeout(() => window.location.href = '/admin/index.html', 1000);
+                if(data.rol === 'ingeniero') {
+                    loginWrapper.style.filter = "blur(6px)";
+                    doDomainExpansion();
+                } else if(data.rol === 'super_admin') {
+                    msg.innerText="👑 ADMIN"; msg.className="mensaje exito";
+                    setTimeout(()=>window.location.href='/admin/index.html',1000);
+                } else {
+                    msg.innerText="✅ ACCESO"; msg.className="mensaje exito";
+                    setTimeout(()=>window.location.href='/',800);
                 }
-                else {
-                    mensajeDiv.innerText = "✅ ACCESO CONCEDIDO";
-                    mensajeDiv.className = "mensaje exito";
-                    setTimeout(() => window.location.href = '/', 800);
-                }
-            } else {
-                mensajeDiv.innerText = "❌ " + (data.error || "Credenciales inválidas");
-                mensajeDiv.className = "mensaje error";
-                btnLogin.disabled = false;
-                btnLogin.innerText = "🎖️ INGRESAR AL SISTEMA 🎖️";
-            }
-        } catch (err) {
-            console.error(err);
-            mensajeDiv.innerText = "⚠️ ERROR DE CONEXIÓN";
-            mensajeDiv.className = "mensaje error";
-            btnLogin.disabled = false;
-            btnLogin.innerText = "🎖️ INGRESAR AL SISTEMA 🎖️";
-        }
+            } else { msg.innerText="❌ "+data.error; msg.className="mensaje error"; btn.disabled=false; btn.innerText="🎖️ INGRESAR"; }
+        } catch(e) { msg.innerText="⚠️ ERROR"; msg.className="mensaje error"; btn.disabled=false; btn.innerText="🎖️ INGRESAR"; }
     }
 
-    // Eventos
-    btnLogin.addEventListener('click', iniciarSesion);
-    lever.addEventListener('click', () => {
-        if (!spinning) startSpinning();
-    });
-
-    // Permitir Enter en inputs
-    document.getElementById('cedula').addEventListener('keypress', (e) => { if (e.key === 'Enter') iniciarSesion(); });
-    document.getElementById('password').addEventListener('keypress', (e) => { if (e.key === 'Enter') iniciarSesion(); });
+    document.getElementById('btnLogin').addEventListener('click', iniciarSesion);
+    leverBtn.addEventListener('click', () => { if(!spinning) startSlotMachine(); });
 </script>
 </body>
 </html>
