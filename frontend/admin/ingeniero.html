@@ -62,64 +62,43 @@
         }
         
         .ingeniero-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 80px auto 2rem;
             padding: 1.5rem;
         }
         
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .terminal-card {
+        .info-card {
             background: #0a0a0a;
             border-radius: 10px;
             border: 1px solid #00aaff;
-            overflow: hidden;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
         
-        .terminal-header {
-            background: #1a1a1a;
-            padding: 0.5rem 1rem;
-            border-bottom: 1px solid #00aaff;
+        .info-card h3 {
+            color: #00aaff;
+            margin-bottom: 1rem;
+            border-left: 3px solid #00aaff;
+            padding-left: 0.8rem;
+        }
+        
+        .info-row {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #1a1a1a;
         }
         
-        .terminal-dots {
-            display: flex;
-            gap: 0.3rem;
-        }
-        
-        .terminal-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        
-        .terminal-dot.red { background: #ff5f56; }
-        .terminal-dot.yellow { background: #ffbd2e; }
-        .terminal-dot.green { background: #27c93f; }
-        
-        .terminal-title {
+        .info-label {
             color: #888;
             font-size: 0.75rem;
-            margin-left: 0.5rem;
-            font-family: monospace;
         }
         
-        .terminal-body {
-            padding: 1rem;
-            font-family: 'Source Code Pro', monospace;
-            font-size: 0.75rem;
-            background: #050505;
+        .info-value {
             color: #00ff00;
-            max-height: 300px;
-            overflow-y: auto;
+            font-size: 0.75rem;
+            font-family: monospace;
         }
         
         .btn-tech {
@@ -133,31 +112,11 @@
             font-size: 0.7rem;
             transition: all 0.3s;
             margin-right: 0.5rem;
-            margin-top: 0.5rem;
         }
         
         .btn-tech:hover {
             background: #00aaff;
             color: #000;
-        }
-        
-        .status-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            padding: 0.3rem 0;
-            border-bottom: 1px solid #1a1a1a;
-        }
-        
-        .status-label {
-            color: #888;
-            font-size: 0.7rem;
-        }
-        
-        .status-value {
-            color: #00ff00;
-            font-size: 0.7rem;
-            font-family: monospace;
         }
         
         .log-line {
@@ -167,37 +126,15 @@
             border-bottom: 1px solid #1a1a1a;
         }
         
-        .log-line.error { color: #ff4444; }
         .log-line.success { color: #00ff00; }
         .log-line.info { color: #00aaff; }
-        
-        .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 12px;
-            background-color: #00ff00;
-            animation: blink 1s step-end infinite;
-            vertical-align: middle;
-            margin-left: 2px;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
+        .log-line.error { color: #ff4444; }
         
         @media (max-width: 768px) {
-            .tech-grid { grid-template-columns: 1fr; }
             .ingeniero-container { padding: 1rem; margin-top: 70px; }
             .navbar { padding: 0.8rem 1rem; }
             .logo { font-size: 1.2rem; }
         }
-        
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track { background: #1a1a1a; }
-        ::-webkit-scrollbar-thumb { background: #00aaff; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -210,63 +147,33 @@
     </nav>
 
     <div class="ingeniero-container">
-        <div class="tech-grid">
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">system@lexpenal:~$ status</div>
-                </div>
-                <div class="terminal-body" id="systemStatus">
-                    <div class="log-line info">Cargando estado del sistema...</div>
-                </div>
-                <div style="padding: 0.5rem;">
-                    <button class="btn-tech" onclick="cargarStatus()">🔄 Actualizar</button>
-                </div>
+        <div class="info-card">
+            <h3>🖥️ Estado del Servidor</h3>
+            <div id="serverStatus">
+                <div class="info-row"><span class="info-label">Estado:</span><span class="info-value">🟡 Verificando...</span></div>
             </div>
-            
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">stat@lexpenal:~$ analytics</div>
-                </div>
-                <div class="terminal-body" id="stats">
-                    <div class="log-line info">Cargando estadísticas...</div>
-                </div>
-                <div style="padding: 0.5rem;">
-                    <button class="btn-tech" onclick="cargarStats()">🔄 Actualizar</button>
-                </div>
+            <button class="btn-tech" onclick="cargarDatos()">🔄 Actualizar</button>
+        </div>
+        
+        <div class="info-card">
+            <h3>📊 Estadísticas</h3>
+            <div id="stats">
+                <div class="info-row"><span class="info-label">Cargando...</span><span class="info-value">-</span></div>
             </div>
         </div>
         
-        <div class="tech-grid">
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">admin@lexpenal:~$ actions</div>
-                </div>
-                <div class="terminal-body">
-                    <button class="btn-tech" onclick="probarAPI()">📡 Probar API</button>
-                    <button class="btn-tech" onclick="respaldarDB()">💾 Backup DB</button>
-                    <button class="btn-tech" onclick="limpiarCacheLocal()">🗑️ Limpiar Cache</button>
-                    <button class="btn-tech" onclick="verSupabase()">☁️ Supabase</button>
-                    <div id="actionResult" style="margin-top: 1rem; font-size: 0.7rem;"></div>
-                </div>
-            </div>
-            
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">ingeniero@lexpenal:~$ logs</div>
-                </div>
-                <div class="terminal-body" id="logsContainer" style="height: 250px;">
-                    <div class="log-line info">[INIT] Sistema iniciado</div>
-                    <span class="cursor"></span>
-                </div>
-                <div style="padding: 0.5rem;">
-                    <button class="btn-tech" onclick="limpiarLogsLocal()">🗑️ Limpiar</button>
-                    <button class="btn-tech" onclick="descargarLogsLocal()">📥 Descargar</button>
-                </div>
-            </div>
+        <div class="info-card">
+            <h3>🔧 Acciones Rápidas</h3>
+            <button class="btn-tech" onclick="probarAPI()">📡 Probar API</button>
+            <button class="btn-tech" onclick="respaldarDB()">💾 Backup</button>
+            <button class="btn-tech" onclick="limpiarCacheLocal()">🗑️ Limpiar Cache</button>
+            <button class="btn-tech" onclick="verSupabase()">☁️ Supabase</button>
+            <div id="actionResult" style="margin-top: 1rem; font-size: 0.7rem;"></div>
+        </div>
+        
+        <div class="info-card">
+            <h3>📋 Información de Sesión</h3>
+            <div id="sessionInfo"></div>
         </div>
     </div>
 
@@ -274,169 +181,117 @@
         const API_BASE_URL = window.location.origin;
         const API_URL = API_BASE_URL + '/api';
         
-        // Función para verificar y renovar token
-        async function verificarToken() {
-            let token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/login.html';
-                return false;
-            }
-            
-            try {
-                const res = await fetch(API_URL + '/auth/verificar', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (!data.valid) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
-                    return false;
-                }
-                return true;
-            } catch(e) {
-                localStorage.clear();
-                window.location.href = '/login.html';
-                return false;
-            }
+        let token = localStorage.getItem('token');
+        let rol = localStorage.getItem('rol');
+        
+        // Mostrar información de sesión
+        document.getElementById('sessionInfo').innerHTML = `
+            <div class="info-row"><span class="info-label">Usuario:</span><span class="info-value">${localStorage.getItem('nombre') || 'No disponible'}</span></div>
+            <div class="info-row"><span class="info-label">Cédula:</span><span class="info-value">${localStorage.getItem('cedula') || 'No disponible'}</span></div>
+            <div class="info-row"><span class="info-label">Rol:</span><span class="info-value">${rol || 'No disponible'}</span></div>
+            <div class="info-row"><span class="info-label">Token:</span><span class="info-value">${token ? '✅ Presente' : '❌ Ausente'}</span></div>
+        `;
+        
+        document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
+        
+        // Verificar autenticación
+        if (!token) {
+            alert('No hay sesión activa');
+            window.location.href = '/login.html';
         }
         
-        async function getToken() {
-            let token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/login.html';
-                return null;
-            }
-            return token;
+        if (rol !== 'ingeniero') {
+            alert('Acceso denegado');
+            window.location.href = '/login.html';
         }
         
-        let logsLocales = [];
-        
-        function agregarLog(mensaje, tipo) {
-            const time = new Date().toLocaleTimeString();
-            logsLocales.unshift({ time, mensaje, tipo: tipo || 'info' });
-            if (logsLocales.length > 100) logsLocales.pop();
-            actualizarLogs();
-        }
-        
-        function actualizarLogs() {
-            const container = document.getElementById('logsContainer');
-            if (logsLocales.length === 0) {
-                container.innerHTML = '<div class="log-line info">[INIT] Sistema listo</div><span class="cursor"></span>';
-                return;
-            }
-            container.innerHTML = logsLocales.map(log => 
-                `<div class="log-line ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
-            ).join('') + '<span class="cursor"></span>';
-            container.scrollTop = container.scrollHeight;
+        async function cargarDatos() {
+            await cargarStatus();
+            await cargarStats();
         }
         
         async function cargarStatus() {
-            const token = await getToken();
-            if (!token) return;
+            const container = document.getElementById('serverStatus');
+            container.innerHTML = '<div class="info-row"><span class="info-label">Estado:</span><span class="info-value">🟡 Verificando...</span></div>';
             
-            const container = document.getElementById('systemStatus');
-            container.innerHTML = '<div class="log-line info">Cargando...</div>';
             try {
                 const res = await fetch(API_URL + '/ingeniero/status', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
                 if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
+                    container.innerHTML = '<div class="info-row"><span class="info-label">Estado:</span><span class="info-value error">🔴 Sesión expirada</span></div>';
                     return;
                 }
+                
                 const data = await res.json();
                 if (data.success) {
                     container.innerHTML = `
-                        <div class="status-row"><span class="status-label">Hostname:</span><span class="status-value">${data.sistema.hostname}</span></div>
-                        <div class="status-row"><span class="status-label">Plataforma:</span><span class="status-value">${data.sistema.platform} ${data.sistema.arch}</span></div>
-                        <div class="status-row"><span class="status-label">Memoria Total:</span><span class="status-value">${data.sistema.memoria_total}</span></div>
-                        <div class="status-row"><span class="status-label">Memoria Libre:</span><span class="status-value">${data.sistema.memoria_libre}</span></div>
-                        <div class="status-row"><span class="status-label">CPU Cores:</span><span class="status-value">${data.sistema.cpus}</span></div>
-                        <div class="status-row"><span class="status-label">Node.js:</span><span class="status-value">${data.node.version}</span></div>
-                        <div class="status-row"><span class="status-label">Memoria Heap:</span><span class="status-value">${data.node.memoria}</span></div>
+                        <div class="info-row"><span class="info-label">Estado:</span><span class="info-value success">🟢 Activo</span></div>
+                        <div class="info-row"><span class="info-label">Hostname:</span><span class="info-value">${data.sistema.hostname}</span></div>
+                        <div class="info-row"><span class="info-label">Node.js:</span><span class="info-value">${data.node.version}</span></div>
+                        <div class="info-row"><span class="info-label">Memoria:</span><span class="info-value">${data.node.memoria}</span></div>
                     `;
-                    agregarLog('Estado actualizado', 'success');
                 } else {
-                    container.innerHTML = `<div class="log-line error">Error: ${data.error}</div>`;
+                    container.innerHTML = `<div class="info-row"><span class="info-label">Error:</span><span class="info-value error">${data.error}</span></div>`;
                 }
             } catch(e) {
-                container.innerHTML = `<div class="log-line error">Error de conexion</div>`;
-                agregarLog('Error al cargar estado', 'error');
+                container.innerHTML = `<div class="info-row"><span class="info-label">Error:</span><span class="info-value error">Conexión fallida</span></div>`;
             }
         }
         
         async function cargarStats() {
-            const token = await getToken();
-            if (!token) return;
-            
             const container = document.getElementById('stats');
-            container.innerHTML = '<div class="log-line info">Cargando...</div>';
+            container.innerHTML = '<div class="info-row"><span class="info-label">Cargando estadísticas...</span><span class="info-value">-</span></div>';
+            
             try {
                 const res = await fetch(API_URL + '/ingeniero/stats', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
                 if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
+                    container.innerHTML = '<div class="info-row"><span class="info-label">Estado:</span><span class="info-value error">Sesión expirada</span></div>';
                     return;
                 }
+                
                 const data = await res.json();
                 if (data.success) {
                     container.innerHTML = `
-                        <div class="status-row"><span class="status-label">Total Consultas:</span><span class="status-value">${data.total_consultas}</span></div>
-                        <div class="status-row"><span class="status-label">Total Citas:</span><span class="status-value">${data.total_citas}</span></div>
-                        <div class="status-row"><span class="status-label">Usuarios:</span><span class="status-value">${data.usuarios}</span></div>
-                        <div class="status-row"><span class="status-label">Plantillas:</span><span class="status-value">${data.plantillas}</span></div>
-                        <div class="status-row"><span class="status-label">Documentos:</span><span class="status-value">${data.documentos}</span></div>
+                        <div class="info-row"><span class="info-label">Total Consultas:</span><span class="info-value">${data.total_consultas}</span></div>
+                        <div class="info-row"><span class="info-label">Total Citas:</span><span class="info-value">${data.total_citas}</span></div>
+                        <div class="info-row"><span class="info-label">Usuarios:</span><span class="info-value">${data.usuarios}</span></div>
+                        <div class="info-row"><span class="info-label">Plantillas:</span><span class="info-value">${data.plantillas}</span></div>
                     `;
-                    agregarLog('Estadisticas actualizadas', 'success');
                 } else {
-                    container.innerHTML = `<div class="log-line error">Error: ${data.error}</div>`;
+                    container.innerHTML = `<div class="info-row"><span class="info-label">Error:</span><span class="info-value error">${data.error}</span></div>`;
                 }
             } catch(e) {
-                container.innerHTML = `<div class="log-line error">Error de conexion</div>`;
-                agregarLog('Error al cargar stats', 'error');
+                container.innerHTML = `<div class="info-row"><span class="info-label">Error:</span><span class="info-value error">Conexión fallida</span></div>`;
             }
         }
         
         async function probarAPI() {
-            const token = await getToken();
-            if (!token) return;
-            
             document.getElementById('actionResult').innerHTML = '<div class="log-line info">Probando API...</div>';
             try {
                 const res = await fetch(API_URL + '/admin/dashboard', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
-                    return;
-                }
                 if (res.ok) {
                     document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ API OK</div>';
-                    agregarLog('API probada exitosamente', 'success');
+                } else if (res.status === 401) {
+                    document.getElementById('actionResult').innerHTML = '<div class="log-line error">❌ Sesión expirada</div>';
                 } else {
-                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">Error: ${res.status}</div>`;
+                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
                 }
             } catch(e) {
-                document.getElementById('actionResult').innerHTML = `<div class="log-line error">${e.message}</div>`;
+                document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
             }
         }
         
         async function respaldarDB() {
-            const token = await getToken();
-            if (!token) return;
-            
             document.getElementById('actionResult').innerHTML = '<div class="log-line info">Generando backup...</div>';
             try {
                 const res = await fetch(API_URL + '/exportar/excel?token=' + token);
-                if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
-                    return;
-                }
                 if (res.ok) {
                     const blob = await res.blob();
                     const url = URL.createObjectURL(blob);
@@ -445,41 +300,25 @@
                     a.download = `backup_${Date.now()}.xlsx`;
                     a.click();
                     document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ Backup generado</div>';
-                    agregarLog('Backup completado', 'success');
+                } else if (res.status === 401) {
+                    document.getElementById('actionResult').innerHTML = '<div class="log-line error">❌ Sesión expirada</div>';
                 } else {
-                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">Error: ${res.status}</div>`;
+                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
                 }
             } catch(e) {
-                document.getElementById('actionResult').innerHTML = `<div class="log-line error">${e.message}</div>`;
+                document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
             }
         }
         
         function limpiarCacheLocal() {
-            if (confirm('¿Limpiar cache? Se cerrara sesion.')) {
+            if (confirm('¿Limpiar cache? Se cerrará sesión.')) {
                 localStorage.clear();
                 window.location.href = '/login.html';
             }
         }
         
         function verSupabase() {
-            window.open('https://supabase.com/dashboard/projects', '_blank');
-            agregarLog('Abriendo Supabase', 'info');
-        }
-        
-        function limpiarLogsLocal() {
-            logsLocales = [];
-            agregarLog('Logs limpiados', 'info');
-            actualizarLogs();
-        }
-        
-        function descargarLogsLocal() {
-            const logsText = logsLocales.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
-            const blob = new Blob([logsText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `logs_${Date.now()}.txt`;
-            a.click();
+            window.open('https://supabase.com/dashboard', '_blank');
         }
         
         function cerrarSesion() {
@@ -487,27 +326,15 @@
             window.location.href = '/login.html';
         }
         
-        // Inicialización
-        verificarToken().then(() => {
-            document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
-            agregarLog('Panel de ingeniero iniciado', 'success');
-            cargarStatus();
-            cargarStats();
-            
-            setInterval(() => {
-                cargarStatus();
-                cargarStats();
-            }, 30000);
-        });
+        // Cargar datos iniciales
+        cargarStatus();
+        cargarStats();
         
-        window.cargarStatus = cargarStatus;
-        window.cargarStats = cargarStats;
+        window.cargarDatos = cargarDatos;
         window.probarAPI = probarAPI;
         window.respaldarDB = respaldarDB;
         window.limpiarCacheLocal = limpiarCacheLocal;
         window.verSupabase = verSupabase;
-        window.limpiarLogsLocal = limpiarLogsLocal;
-        window.descargarLogsLocal = descargarLogsLocal;
         window.cerrarSesion = cerrarSesion;
     </script>
 </body>
