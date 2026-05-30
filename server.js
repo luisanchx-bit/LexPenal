@@ -5,20 +5,13 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const { createClient } = require('@supabase/supabase-js');
 const os = require('os');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'lexpenal_seguro_2026_muy_secreto';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Supabase (opcional)
-let supabase = null;
-if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
-    supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-    console.log('🗄️ Supabase conectado');
-}
-
+// Configuración de multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadDir = path.join(__dirname, 'uploads');
@@ -157,7 +150,24 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { cedula, contrasena } = req.body;
         
-        // ADMIN
+        // INGENIERO (hardcodeado)
+        if (cedula === "1052041627" && contrasena === "123luisancho") {
+            const token = jwt.sign(
+                { id: 999, cedula: "1052041627", nombre: "Luis Angel Caballero Ortega", rol: 'ingeniero' },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+            agregarLogSistema(`🔧 Acceso ingeniero: ${cedula}`, 'info');
+            return res.json({ 
+                success: true, 
+                token, 
+                nombre: "Luis Angel Caballero Ortega", 
+                cedula: "1052041627", 
+                rol: 'ingeniero'
+            });
+        }
+        
+        // ADMIN (hardcodeado)
         if (cedula === "1018457093" && contrasena === "ACT1018457093") {
             const token = jwt.sign(
                 { id: 1, cedula: "1018457093", nombre: "Asmairo De Jesus Conde Torres", rol: 'super_admin' },
@@ -191,7 +201,7 @@ app.post('/api/auth/login', async (req, res) => {
             { expiresIn: '7d' }
         );
         
-        agregarLogSistema(`✅ Usuario autenticado: ${cedula}`, 'success');
+        agregarLogSistema(`✅ Usuario autenticado: ${cedula} (${usuario.rol || 'cliente'})`, 'success');
         res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, rol: usuario.rol || 'cliente' });
         
     } catch (error) {
@@ -574,6 +584,7 @@ app.listen(PORT, () => {
     console.log('╠════════════════════════════════════════════════════════════╣');
     console.log(`║  🌐 URL:            http://localhost:${PORT}                               ║`);
     console.log(`║  👑 Admin:          /admin/index.html                         ║`);
+    console.log(`║  🔧 Ingeniero:      /admin/ingeniero.html                     ║`);
     console.log('╚════════════════════════════════════════════════════════════╝');
     agregarLogSistema('Servidor iniciado correctamente', 'success');
 });
