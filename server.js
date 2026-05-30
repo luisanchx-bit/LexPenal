@@ -781,4 +781,18 @@ app.get('/api/diagnostico', verificarToken, verificarAdmin, (req, res) => {
 // ==================== FRONTEND ====================
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'index.html')); });
 app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'index.html')); });
-app.get
+app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', `${req.params.page}.html`)); });
+app.get('/evangelion-domain.html', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'evangelion-domain.html')); });
+
+// ==================== INICIO DEL SERVIDOR ====================
+app.listen(PORT, () => {
+    console.log('');
+    console.log('╔════════════════════════════════════════════════════════════╗');
+    console.log('║                   🟢 SERVIDOR ACTIVO 🟢                    ║');
+    console.log('╠════════════════════════════════════════════════════════════╣');
+    console.log(`║  🌐 URL:            http://localhost:${PORT}                               ║`);
+    console.log(`║  👑 Admin:          /admin/index.html                         ║`);
+    console.log(`║  🔧 Ingeniero:      /admin/ingeniero.html                     ║`);
+    console.log('╚════════════════════════════════════════════════════════════╝');
+    agregarLogSistema('Servidor iniciado correctamente', 'success');
+});
