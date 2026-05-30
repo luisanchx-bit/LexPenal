@@ -365,14 +365,14 @@
                 msgDiv.innerText = "❌ " + (data.error || "Credenciales inválidas");
                 msgDiv.className = "mensaje error";
                 btn.disabled = false;
-                btn.innerText = "🎖️ INGRESAR";
+                btn.innerText = "INGRESAR";
             }
         } catch (err) {
             console.error(err);
             msgDiv.innerText = "⚠️ ERROR DE CONEXIÓN";
             msgDiv.className = "mensaje error";
             btn.disabled = false;
-            btn.innerText = "🎖️ INGRESAR";
+            btn.innerText = "INGRESAR";
         }
     }
 
