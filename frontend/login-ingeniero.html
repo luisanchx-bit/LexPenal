@@ -16,7 +16,6 @@
             position: relative;
             z-index: 10;
         }
-        
         .dominio-overlay {
             position: fixed;
             top: 0;
@@ -32,23 +31,19 @@
             opacity: 0;
             transition: visibility 0s, opacity 0.5s ease;
         }
-        
         .dominio-overlay.active {
             visibility: visible;
             opacity: 1;
         }
-        
         .dominio-contenido {
             text-align: center;
             animation: expandir 2s ease-out;
         }
-        
         @keyframes expandir {
             0% { transform: scale(0.1); opacity: 0; filter: blur(10px); }
             50% { transform: scale(1.2); opacity: 1; filter: blur(0px); }
             100% { transform: scale(1); opacity: 1; }
         }
-        
         .dominio-texto {
             font-size: 3rem;
             font-weight: bold;
@@ -56,18 +51,15 @@
             text-shadow: 0 0 20px #C8A951;
             font-family: 'Playfair Display', serif;
         }
-        
         .dominio-subtexto {
             font-size: 1.2rem;
             color: #fff;
             margin-top: 1rem;
         }
-        
         @media (max-width: 768px) {
             .dominio-texto { font-size: 1.8rem; }
             .dominio-subtexto { font-size: 0.9rem; }
         }
-        
         .btn-ingeniero {
             background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
             border: 1px solid #C8A951;
@@ -79,21 +71,20 @@
             color: #C8A951;
             transition: all 0.3s;
         }
-        
         .btn-ingeniero:hover {
             background: #C8A951;
             color: #000;
         }
-        
         .badge-ingeniero {
             display: inline-block;
-            background: rgba(200, 169, 81, 0.2);
+            background: rgba(0, 170, 255, 0.2);
             padding: 0.2rem 0.8rem;
             border-radius: 20px;
             font-size: 0.8rem;
             margin-bottom: 1rem;
             text-align: center;
             width: 100%;
+            color: #00aaff;
         }
     </style>
 </head>
@@ -111,7 +102,7 @@
             <h2>⚖️ LexPenal</h2>
             <h3>Acceso Ingeniero</h3>
         </div>
-        <div class="badge-ingeniero">🔧 Acceso restringido - Personal autorizado</div>
+        <div class="badge-ingeniero">🔧 Acceso restringido - Personal técnico autorizado</div>
         
         <form id="loginForm" onsubmit="event.preventDefault(); iniciarSesion();">
             <div class="input-group">
@@ -125,14 +116,18 @@
             <button type="submit" class="btn-ingeniero" id="btnLogin">🔧 Acceder al Panel Técnico</button>
         </form>
         <div id="mensaje" class="mensaje"></div>
+        <div style="margin-top: 1rem; text-align: center;">
+            <a href="/login.html" style="color: #C8A951; font-size: 0.8rem;">← Volver al acceso de administrador</a>
+        </div>
     </div>
 
     <script>
-        const API_URL = '/api';
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
         
         function reproducirAudio() {
             const audio = new Audio('/assets/audio/dominio.mp3');
-            audio.play().catch(e => console.log('Audio no disponible aún:', e));
+            audio.play().catch(e => console.log('Audio no disponible:', e));
         }
         
         function mostrarAnimacion() {
@@ -179,10 +174,11 @@
                         window.location.href = '/admin/ingeniero.html';
                     }, 1500);
                 } else {
-                    mostrarMensaje('Credenciales incorrectas', 'error');
+                    mostrarMensaje('Credenciales incorrectas o acceso no autorizado', 'error');
                 }
             } catch (error) {
-                mostrarMensaje('Error de conexión', 'error');
+                console.error('Error:', error);
+                mostrarMensaje('Error de conexión con el servidor', 'error');
             }
         }
         
