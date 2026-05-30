@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>LexPenal | Dr. Asmairo Conde Torres</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/estilo.css">
     <style>
         * {
             margin: 0;
@@ -17,11 +16,10 @@
             background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
             font-family: 'Lato', sans-serif;
             color: #e8e8e8;
-            position: relative;
             overflow-x: hidden;
         }
 
-        /* Fondo geométrico */
+        /* Fondo geométrico sutil */
         .geometric-bg {
             position: fixed;
             top: 0;
@@ -29,32 +27,23 @@
             width: 100%;
             height: 100%;
             z-index: 0;
-            overflow: hidden;
             pointer-events: none;
+            overflow: hidden;
         }
 
         .hexagon {
             position: absolute;
-            background: rgba(200, 169, 81, 0.08);
+            background: rgba(200, 169, 81, 0.06);
             clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-            border: 1px solid rgba(200, 169, 81, 0.4);
+            border: 1px solid rgba(200, 169, 81, 0.3);
             animation: rotateSlow 30s infinite linear;
         }
 
         .circle-ring {
             position: absolute;
-            border: 2px solid rgba(200, 169, 81, 0.2);
+            border: 1px solid rgba(200, 169, 81, 0.15);
             border-radius: 50%;
             animation: pulseRing 8s infinite alternate;
-        }
-
-        .law-line {
-            position: absolute;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(200, 169, 81, 0.5), transparent);
-            width: 200%;
-            transform: rotate(45deg);
-            animation: slideLine 14s infinite linear;
         }
 
         @keyframes rotateSlow {
@@ -67,95 +56,37 @@
             100% { transform: scale(1.5); opacity: 0.05; }
         }
 
-        @keyframes slideLine {
-            0% { transform: translateX(-50%) rotate(25deg); }
-            100% { transform: translateX(50%) rotate(25deg); }
-        }
-
-        /* Navbar */
-        .navbar {
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
+        /* Navbar solo con botón de admin */
+        .admin-bar {
             position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(200, 169, 81, 0.5);
+            top: 20px;
+            right: 20px;
+            z-index: 100;
         }
 
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .logo h2 {
+        .btn-admin {
+            background: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(200, 169, 81, 0.5);
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
             color: #C8A951;
-            font-size: 1.8rem;
-            cursor: pointer;
-        }
-
-        .menu-toggle {
-            display: none;
-            font-size: 1.8rem;
-            color: #C8A951;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-menu a {
-            color: #e8e8e8;
             text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .nav-menu a:hover {
-            color: #C8A951;
-        }
-
-        .btn-acceso {
-            background: transparent;
-            border: 1px solid #C8A951;
-            border-radius: 30px;
-            padding: 0.5rem 1.5rem;
-            color: #C8A951 !important;
+            font-size: 0.85rem;
+            font-weight: 500;
             transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .btn-acceso:hover {
+        .btn-admin:hover {
             background: #C8A951;
-            color: #000 !important;
+            color: #000;
+            border-color: #C8A951;
         }
 
-        @media (max-width: 768px) {
-            .menu-toggle { display: block; }
-            .nav-menu {
-                display: none;
-                width: 100%;
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem 0;
-                margin-top: 1rem;
-                border-top: 1px solid rgba(200, 169, 81, 0.3);
-            }
-            .nav-menu.active { display: flex; }
-            .nav-menu li { width: 100%; text-align: center; }
-        }
-
-        /* Hero con nombre del abogado */
+        /* Hero con burbuja griega */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -163,75 +94,131 @@
             justify-content: center;
             text-align: center;
             position: relative;
-            z-index: 1;
-            padding-top: 80px;
+            z-index: 2;
+            padding: 2rem;
         }
 
-        .hero-content h1 {
-            font-size: 4rem;
-            margin-bottom: 1rem;
+        .bubble {
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 2.5rem 3rem;
+            border: 1px solid rgba(200, 169, 81, 0.4);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(200, 169, 81, 0.1);
+            max-width: 700px;
+            width: 90%;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bubble h1 {
+            font-size: 3rem;
             font-family: 'Playfair Display', serif;
-        }
-
-        .hero-content .abogado {
-            font-size: 2rem;
             color: #C8A951;
-            margin-bottom: 1.5rem;
             letter-spacing: 2px;
+            margin-bottom: 0.5rem;
         }
 
-        .dorado {
-            color: #C8A951;
-        }
-
-        .hero-content p {
+        .bubble .subtitle {
             font-size: 1.2rem;
-            margin-bottom: 2rem;
             color: #ccc;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            margin-bottom: 1rem;
+            font-style: italic;
         }
 
-        .btn-principal {
-            background: #C8A951;
-            color: #000;
-            padding: 0.8rem 2rem;
-            border-radius: 40px;
-            text-decoration: none;
+        .greek-border {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #C8A951, #C8A951, transparent);
+            margin: 1rem auto;
+        }
+
+        .bubble .abogado {
+            font-size: 1.5rem;
             font-weight: bold;
-            transition: all 0.3s;
-            display: inline-block;
+            color: #e8e8e8;
+            margin-top: 1rem;
         }
 
-        .btn-principal:hover {
-            background: #b8960c;
-            transform: translateY(-3px);
+        .bubble .abogado span {
+            color: #C8A951;
+            font-weight: bold;
         }
 
-        /* Contenedor de menús */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .scroll-indicator svg {
+            width: 30px;
+            height: 30px;
+            stroke: #C8A951;
+            fill: none;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* Contenedor de menús progresivos */
         .menu-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 4rem 2rem;
             position: relative;
-            z-index: 1;
+            z-index: 2;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            color: #C8A951;
+            margin-bottom: 2rem;
+            font-family: 'Playfair Display', serif;
         }
 
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
-            margin-top: 2rem;
         }
 
+        /* ========== ANIMACIONES DE APARICIÓN ========== */
         .menu-card {
             background: rgba(10, 10, 15, 0.85);
             backdrop-filter: blur(8px);
-            border-radius: 15px;
+            border-radius: 20px;
             border: 1px solid rgba(200, 169, 81, 0.3);
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .menu-card.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Animación alternada: algunos desde la derecha */
+        .menu-card:nth-child(even) {
+            transform: translateX(40px);
+        }
+
+        .menu-card:nth-child(even).visible {
+            transform: translateX(0);
         }
 
         .menu-card:hover {
@@ -326,45 +313,19 @@
             padding: 2rem;
             border-top: 1px solid rgba(200, 169, 81, 0.3);
             position: relative;
-            z-index: 1;
-        }
-
-        .faq-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
-            border: 2px solid #C8A951;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(200, 169, 81, 0.3);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .faq-btn:hover {
-            transform: scale(1.1);
-            border-color: #fff;
-            box-shadow: 0 0 20px rgba(200, 169, 81, 0.8);
-        }
-
-        .faq-btn-text {
-            color: #C8A951;
-            font-size: 1rem;
-            font-weight: bold;
-            text-align: center;
+            z-index: 2;
+            font-size: 0.8rem;
         }
 
         @media (max-width: 768px) {
-            .hero-content h1 { font-size: 2.2rem; }
-            .hero-content .abogado { font-size: 1.2rem; }
-            .faq-btn { width: 50px; height: 50px; bottom: 20px; right: 20px; }
-            .faq-btn-text { font-size: 0.8rem; }
+            .bubble { padding: 1.5rem; }
+            .bubble h1 { font-size: 1.8rem; }
+            .bubble .abogado { font-size: 1rem; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .admin-bar { top: 10px; right: 10px; }
+            .btn-admin { padding: 0.3rem 0.8rem; font-size: 0.7rem; }
+            .menu-card { transform: translateX(0); }
+            .menu-card:nth-child(even) { transform: translateX(0); }
         }
     </style>
 </head>
@@ -376,33 +337,33 @@
     <div class="hexagon" style="top: 40%; left: 10%; width: 100px; height: 115px;"></div>
     <div class="circle-ring" style="top: 15%; right: 10%; width: 200px; height: 200px;"></div>
     <div class="circle-ring" style="bottom: 20%; left: -60px; width: 300px; height: 300px;"></div>
-    <div class="law-line" style="top: 30%; left: -20%;"></div>
-    <div class="law-line" style="bottom: 40%; right: -20%; transform: rotate(-35deg);"></div>
 </div>
 
-<nav class="navbar">
-    <div class="nav-container">
-        <div class="logo" onclick="window.location.href='/'"><h2>⚖️ LexPenal</h2></div>
-        <button class="menu-toggle" id="menuToggle">☰</button>
-        <ul class="nav-menu" id="navMenu">
-            <li><a href="#inicio">Inicio</a></li>
-            <li><a href="#servicios">Servicios</a></li>
-            <li><a href="/login.html" class="btn-acceso">🔐 Acceder</a></li>
-        </ul>
-    </div>
-</nav>
+<!-- Botón de administración (esquina superior derecha) -->
+<div class="admin-bar">
+    <a href="/login.html" class="btn-admin">⚖️ Acceso Administrativo</a>
+</div>
 
-<section id="inicio" class="hero">
-    <div class="hero-content">
-        <h1>Defensa Penal <span class="dorado">Estratégica</span></h1>
-        <div class="abogado">Dr. Asmairo Conde Torres</div>
-        <p>Más de 6 años protegiendo tus derechos con excelencia y compromiso</p>
-        <a href="/login.html" class="btn-principal">Comenzar ahora</a>
+<!-- Hero con burbuja griega -->
+<section class="hero">
+    <div class="bubble">
+        <h1>LEX PENAL</h1>
+        <div class="greek-border"></div>
+        <div class="subtitle">Defensa Penal Estratégica</div>
+        <div class="abogado">⚖️ <span>Dr. Asmairo Conde Torres</span> ⚖️</div>
+    </div>
+    <div class="scroll-indicator" onclick="scrollToMenus()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path d="M12 5v14M8 15l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
     </div>
 </section>
 
+<!-- Menús progresivos (área del usuario) -->
 <div id="servicios" class="menu-container">
+    <h2 class="section-title">📜 Servicios Legales</h2>
     <div class="menu-grid">
+        <!-- Derecho Penal -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('penalMenu')">
                 <h2>⚖️ Derecho Penal</h2>
@@ -415,6 +376,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Derecho Civil -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('civilMenu')">
                 <h2>📜 Derecho Civil</h2>
@@ -427,6 +390,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Trámites Legales -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('tramitesMenu')">
                 <h2>📋 Trámites Legales</h2>
@@ -446,6 +411,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Víctimas y Migrantes -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('victimasMenu')">
                 <h2>🕊️ Víctimas y Migrantes</h2>
@@ -458,6 +425,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- JAC y Veedurías -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('jacMenu')">
                 <h2>👥 JAC y Veedurías</h2>
@@ -477,8 +446,6 @@
     <div class="container"><p>© 2026 Dr. Asmairo Conde Torres - Derecho Penal Estratégico</p><p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p></div>
 </footer>
 
-<div class="faq-btn" onclick="window.location.href='/faq.html'"><div class="faq-btn-text">❓ FAQ</div></div>
-
 <script>
     function toggleMenu(menuId) {
         document.getElementById(menuId).classList.toggle('active');
@@ -491,9 +458,24 @@
         localStorage.setItem('tipo', tipo);
         window.location.href = '/generar-documento.html';
     }
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
-    if (menuToggle) menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+    function scrollToMenus() {
+        document.getElementById('servicios').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ========== ANIMACIONES AL SCROLL ==========
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                // Dejar de observar después de animar
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.2, rootMargin: "0px 0px -50px 0px" });
+
+    document.querySelectorAll('.menu-card').forEach(card => {
+        observer.observe(card);
+    });
 </script>
 </body>
 </html>
