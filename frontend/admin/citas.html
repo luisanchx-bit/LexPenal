@@ -7,108 +7,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/admin.css">
     <style>
-        .sidebar {
-            transition: transform 0.3s ease;
-        }
+        .sidebar { transition: transform 0.3s ease; }
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 1001;
-                width: 260px;
-            }
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0 !important;
-                padding: 1rem;
-                margin-top: 60px;
-            }
-            .menu-toggle-btn {
-                display: block !important;
-                position: fixed;
-                top: 15px;
-                left: 15px;
-                z-index: 1002;
-                background: #C8A951;
-                border: none;
-                color: #000;
-                font-size: 1.5rem;
-                padding: 0.5rem 0.8rem;
-                border-radius: 8px;
-                cursor: pointer;
-            }
-            .table-container {
-                overflow-x: auto;
-            }
-            table {
-                font-size: 0.7rem;
-            }
-            th, td {
-                padding: 0.3rem !important;
-            }
-            .tabs {
-                flex-wrap: wrap;
-            }
+            .sidebar { transform: translateX(-100%); position: fixed; z-index: 1001; width: 260px; background: #0a0a0a; height: 100vh; overflow-y: auto; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; padding: 1rem; margin-top: 60px; }
+            .menu-toggle-btn { display: block !important; position: fixed; top: 15px; left: 15px; z-index: 1002; background: #C8A951; border: none; color: #000; font-size: 1.5rem; padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; }
+            .tabs { flex-wrap: wrap; }
+            .table-container { overflow-x: auto; }
+            table { font-size: 0.75rem; }
         }
-        @media (min-width: 769px) {
-            .menu-toggle-btn {
-                display: none;
-            }
-            .main-content {
-                margin-left: 280px;
-            }
-        }
-        .menu-toggle-btn {
-            display: none;
-        }
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #C8A95133;
-            padding-bottom: 0.5rem;
-        }
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: #888;
-            padding: 0.5rem 1.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        .tab-btn.active {
-            color: #C8A951;
-            border-bottom: 2px solid #C8A951;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .badge {
-            padding: 0.2rem 0.5rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
+        @media (min-width: 769px) { .menu-toggle-btn { display: none; } .main-content { margin-left: 280px; } }
+        .menu-toggle-btn { display: none; }
+        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #C8A95133; padding-bottom: 0.5rem; }
+        .tab-btn { background: transparent; border: none; color: #888; padding: 0.5rem 1.5rem; cursor: pointer; font-size: 1rem; transition: all 0.3s; }
+        .tab-btn.active { color: #C8A951; border-bottom: 2px solid #C8A951; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .badge { padding: 0.2rem 0.5rem; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
         .badge-pendiente { background: #ff9800; color: #000; }
         .badge-en_proceso { background: #2196f3; color: #fff; }
         .badge-resuelto { background: #4caf50; color: #fff; }
         .badge-cancelada { background: #f44336; color: #fff; }
-        .audio-player {
-            background: #0a0a0a;
-            border-radius: 10px;
-            padding: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        .audio-player audio {
-            max-width: 100%;
-            height: 40px;
-        }
+        .btn-primary { background: #C8A951; color: #000; border: none; padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; }
+        .btn-danger { background: transparent; border: 1px solid #8B0000; color: #8B0000; padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1100; justify-content: center; align-items: center; }
+        .modal-content { background: #0a0a0a; border-radius: 15px; padding: 1.5rem; max-width: 500px; width: 90%; border: 1px solid #C8A951; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .close-modal { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+        .audio-player { background: #0a0a0a; border-radius: 10px; padding: 0.5rem; margin-top: 0.5rem; }
+        .audio-player audio { max-width: 100%; height: 40px; }
     </style>
 </head>
 <body>
@@ -124,12 +52,12 @@
                 <a href="/admin/index.html">📊 Dashboard</a>
                 <a href="/admin/citas.html" class="active">📅 Citas y Consultas</a>
                 <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/documentos.html">📁 Docs Generados</a>
                 <a href="/admin/configuracion.html">⚙️ Configuración</a>
-                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(200,169,81,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
             </nav>
             <div class="sidebar-footer">
                 <p>Dr. Asmairo Conde Torres</p>
-                <p><button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button></p>
+                <button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem; background:transparent; border:1px solid #8B0000; color:#8B0000; padding:0.3rem 0.8rem; border-radius:5px; cursor:pointer;">Cerrar sesión</button>
             </div>
         </aside>
 
@@ -145,57 +73,37 @@
 
             <div id="tabConsultas" class="tab-content active">
                 <div class="table-container">
-                    <table class="tabla-datos">
-                        <thead>
-                            <tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
-                        </thead>
-                        <tbody id="listaConsultas">
-                            <tr><td colspan="7">Cargando...</td></tr>
-                        </tbody>
-                    </table>
+                    <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="listaConsultas"><tr><td colspan="7">Cargando...</td></tr></tbody></table>
                 </div>
             </div>
 
             <div id="tabCitas" class="tab-content">
                 <div class="table-container">
-                    <table class="tabla-datos">
-                        <thead>
-                            <tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr>
-                        </thead>
-                        <tbody id="listaCitas">
-                            <tr><td colspan="7">Cargando...</td></tr>
-                        </tbody>
-                    </table>
+                    <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="listaCitas"><tr><td colspan="7">Cargando...</td></tr></tbody></table>
                 </div>
             </div>
         </main>
     </div>
 
     <div id="modalDetalle" class="modal">
-        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
-            <div class="modal-header">
-                <h3>📋 Detalles</h3>
-                <button class="close-modal" onclick="cerrarModal()">&times;</button>
-            </div>
+        <div class="modal-content">
+            <div class="modal-header"><h3>📋 Detalles</h3><button class="close-modal" onclick="cerrarModal()">&times;</button></div>
             <div id="modalBody"></div>
-            <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 1rem;">
-                <select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:5px;">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="en_proceso">En Proceso</option>
-                    <option value="resuelto">Resuelto</option>
-                    <option value="cancelada">Cancelada</option>
+            <div style="margin-top:1rem; display:flex; gap:1rem;">
+                <select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:5px;">
+                    <option value="pendiente">Pendiente</option><option value="en_proceso">En Proceso</option><option value="resuelto">Resuelto</option><option value="cancelada">Cancelada</option>
                 </select>
-                <button class="btn-primary" onclick="actualizarEstado()">Actualizar Estado</button>
+                <button class="btn-primary" onclick="actualizarEstado()">Actualizar</button>
                 <button class="btn-danger" onclick="eliminarRegistro()">Eliminar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN GLOBAL
         const API_BASE_URL = window.location.origin;
         const API_URL = API_BASE_URL + '/api';
-        
         let token = localStorage.getItem('token');
         let currentItem = null;
         let currentTipo = null;
@@ -204,216 +112,77 @@
 
         const menuToggleBtn = document.getElementById('menuToggleBtn');
         const sidebar = document.getElementById('sidebar');
-        menuToggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('mobile-open');
-        });
+        menuToggleBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
         document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                sidebar.classList.remove('mobile-open');
-            });
+            link.addEventListener('click', () => sidebar.classList.remove('mobile-open'));
         });
 
         async function cargarDatos() {
             try {
-                const res = await fetch(API_URL + '/casos/todos', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(API_URL + '/casos/todos', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.status === 401) { cerrarSesion(); return; }
                 const data = await res.json();
-                
                 const consultas = data.consultas || [];
                 const citas = data.citas || [];
                 
-                const tbodyConsultas = document.getElementById('listaConsultas');
-                if (consultas.length === 0) {
-                    tbodyConsultas.innerHTML = '<tr><td colspan="7">No hay consultas registradas</td></tr>';
-                } else {
-                    tbodyConsultas.innerHTML = consultas.map(c => `
-                        <tr>
-                            <td><code>${c.codigo || 'N/A'}</code></td>
-                            <td>${c.nombre || '-'}</td>
-                            <td>${c.telefono || '-'}</td>
-                            <td>${c.rama || 'general'}</td>
-                            <td>${new Date(c.fecha).toLocaleDateString()}</td>
-                            <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                            <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td>
-                        </tr>
-                    `).join('');
-                }
+                document.getElementById('listaConsultas').innerHTML = consultas.map(c => `
+                    <tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${new Date(c.fecha).toLocaleDateString()}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td></tr>
+                `).join('');
                 
-                const tbodyCitas = document.getElementById('listaCitas');
-                if (citas.length === 0) {
-                    tbodyCitas.innerHTML = '<tr><td colspan="7">No hay citas registradas</td></tr>';
-                } else {
-                    tbodyCitas.innerHTML = citas.map(c => `
-                        <tr>
-                            <td><code>${c.codigo || 'N/A'}</code></td>
-                            <td>${c.nombre || '-'}</td>
-                            <td>${c.telefono || '-'}</td>
-                            <td>${c.rama || 'general'}</td>
-                            <td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td>
-                            <td><span class="badge badge-${c.estado || 'pendiente'}">${c.estado || 'pendiente'}</span></td>
-                            <td><button class="btn-primary" style="padding:0.3rem 0.6rem;" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error al cargar datos:', error);
-                alert('Error al cargar los datos. Asegúrate de estar conectado.');
-            }
+                document.getElementById('listaCitas').innerHTML = citas.map(c => `
+                    <tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td></tr>
+                `).join('');
+            } catch (error) { console.error('Error:', error); }
         }
 
         async function verDetalle(id, tipo) {
             currentTipo = tipo;
             try {
-                const res = await fetch(API_URL + '/casos/todos', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(API_URL + '/casos/todos', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 const items = tipo === 'consulta' ? data.consultas : data.citas;
                 currentItem = items.find(i => i.id === id);
-                
                 if (currentItem) {
-                    const modalBody = document.getElementById('modalBody');
                     document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
-                    
-                    let html = `
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📌 Código</div>
-                            <div style="color: #fff;">${currentItem.codigo || 'N/A'}</div>
-                        </div>
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">👤 Nombre</div>
-                            <div style="color: #fff;">${currentItem.nombre || 'N/A'}</div>
-                        </div>
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">📞 Teléfono</div>
-                            <div style="color: #fff;">${currentItem.telefono || 'N/A'}</div>
-                        </div>
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">✉️ Email</div>
-                            <div style="color: #fff;">${currentItem.email || 'N/A'}</div>
-                        </div>
-                        <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                            <div style="color: #C8A951; font-weight: bold;">⚖️ Rama</div>
-                            <div style="color: #fff;">${currentItem.rama || 'general'}</div>
-                        </div>
-                    `;
-                    
+                    let html = `<div><strong>Código:</strong> ${currentItem.codigo}</div><div><strong>Nombre:</strong> ${currentItem.nombre}</div><div><strong>Teléfono:</strong> ${currentItem.telefono}</div><div><strong>Email:</strong> ${currentItem.email}</div><div><strong>Rama:</strong> ${currentItem.rama}</div>`;
                     if (tipo === 'consulta') {
-                        html += `
-                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                                <div style="color: #C8A951; font-weight: bold;">📝 Hechos del caso</div>
-                                <div style="color: #fff; white-space: pre-wrap;">${currentItem.hechos || 'N/A'}</div>
-                            </div>
-                        `;
-                        
-                        if (currentItem.archivos && currentItem.archivos.length > 0) {
-                            const audios = currentItem.archivos.filter(a => a.tipo && a.tipo.startsWith('audio'));
-                            if (audios.length > 0) {
-                                html += `
-                                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                                        <div style="color: #C8A951; font-weight: bold;">🎙️ Grabaciones de audio</div>
-                                `;
-                                audios.forEach(audio => {
-                                    const audioUrl = API_BASE_URL + audio.ruta;
-                                    html += `
-                                        <div class="audio-player">
-                                            <audio controls src="${audioUrl}"></audio>
-                                            <div style="font-size:0.7rem; color:#888; margin-top:0.3rem;">${audio.nombre} (${audio.tamaño})</div>
-                                        </div>
-                                    `;
-                                });
-                                html += `</div>`;
-                            }
-                            
-                            const otrosArchivos = currentItem.archivos.filter(a => !a.tipo || !a.tipo.startsWith('audio'));
-                            if (otrosArchivos.length > 0) {
-                                html += `
-                                    <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                                        <div style="color: #C8A951; font-weight: bold;">📎 Archivos adjuntos</div>
-                                        <div style="color: #fff;">
-                                `;
-                                otrosArchivos.forEach(arch => {
-                                    html += `<div>📄 ${arch.nombre} (${arch.tamaño})</div>`;
-                                });
-                                html += `</div></div>`;
-                            }
+                        html += `<div><strong>Hechos:</strong><br>${currentItem.hechos || 'N/A'}</div>`;
+                        if (currentItem.archivos?.length) {
+                            const audios = currentItem.archivos.filter(a => a.tipo?.startsWith('audio'));
+                            audios.forEach(a => { html += `<div><strong>🎙️ Audio:</strong><br><audio controls src="${API_BASE_URL + a.ruta}" style="max-width:100%"></audio></div>`; });
                         }
                     } else {
-                        html += `
-                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                                <div style="color: #C8A951; font-weight: bold;">📝 Motivo de la cita</div>
-                                <div style="color: #fff; white-space: pre-wrap;">${currentItem.motivo || 'N/A'}</div>
-                            </div>
-                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                                <div style="color: #C8A951; font-weight: bold;">📅 Fecha de la cita</div>
-                                <div style="color: #fff;">${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>
-                            </div>
-                        `;
+                        html += `<div><strong>Motivo:</strong> ${currentItem.motivo}</div><div><strong>Fecha Cita:</strong> ${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>`;
                     }
-                    
-                    if (currentItem.notas_admin) {
-                        html += `
-                            <div style="margin-bottom: 0.8rem; border-left: 2px solid #C8A951; padding-left: 1rem;">
-                                <div style="color: #C8A951; font-weight: bold;">📝 Notas del abogado</div>
-                                <div style="color: #fff; white-space: pre-wrap;">${currentItem.notas_admin}</div>
-                            </div>
-                        `;
-                    }
-                    
-                    modalBody.innerHTML = html;
+                    if (currentItem.notas_admin) html += `<div><strong>Notas:</strong> ${currentItem.notas_admin}</div>`;
+                    document.getElementById('modalBody').innerHTML = html;
                     document.getElementById('modalDetalle').style.display = 'flex';
                 }
-            } catch (error) {
-                console.error('Error al ver detalle:', error);
-                alert('Error al cargar los detalles');
-            }
+            } catch (error) { alert('Error al cargar detalles'); }
         }
 
         async function actualizarEstado() {
             const nuevoEstado = document.getElementById('estadoSelect').value;
-            try {
-                const res = await fetch(API_URL + '/casos/' + currentItem.id + '/estado', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo })
-                });
-                if (res.ok) {
-                    alert('Estado actualizado');
-                    cerrarModal();
-                    cargarDatos();
-                } else {
-                    alert('Error al actualizar');
-                }
-            } catch (error) {
-                alert('Error de conexión');
-            }
+            await fetch(API_URL + `/casos/${currentItem.id}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ estado: nuevoEstado, tipo: currentTipo })
+            });
+            alert('Estado actualizado');
+            cerrarModal();
+            cargarDatos();
         }
 
         async function eliminarRegistro() {
-            if (confirm('¿Eliminar este registro permanentemente?')) {
-                try {
-                    const res = await fetch(API_URL + '/casos/' + currentItem.id, {
-                        method: 'DELETE',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}` 
-                        },
-                        body: JSON.stringify({ tipo: currentTipo })
-                    });
-                    if (res.ok) {
-                        alert('Registro eliminado');
-                        cerrarModal();
-                        cargarDatos();
-                    } else {
-                        alert('Error al eliminar');
-                    }
-                } catch (error) {
-                    alert('Error de conexión');
-                }
+            if (confirm('¿Eliminar?')) {
+                await fetch(API_URL + `/casos/${currentItem.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ tipo: currentTipo })
+                });
+                alert('Eliminado');
+                cerrarModal();
+                cargarDatos();
             }
         }
 
@@ -429,15 +198,8 @@
             }
         }
 
-        function cerrarModal() {
-            document.getElementById('modalDetalle').style.display = 'none';
-            currentItem = null;
-        }
-
-        function cerrarSesion() {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        }
+        function cerrarModal() { document.getElementById('modalDetalle').style.display = 'none'; }
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
 
         cargarDatos();
     </script>
