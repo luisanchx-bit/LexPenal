@@ -34,7 +34,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const DATA_FILE = path.join(__dirname, 'database.json');
 
-// Datos en memoria con valores iniciales
+// Datos en memoria
 let memoriaDB = {
     usuarios: [],
     consultas: [],
@@ -89,7 +89,6 @@ function initDB() {
     memoriaDB.documentos_generados = [];
     memoriaDB.tokens_recuperacion = [];
 
-    // Intentar cargar datos existentes
     if (fs.existsSync(DATA_FILE)) {
         try {
             const data = fs.readFileSync(DATA_FILE, 'utf8');
@@ -103,7 +102,7 @@ function initDB() {
             if (archivoDB.tipos_caso) memoriaDB.tipos_caso = archivoDB.tipos_caso;
             if (archivoDB.configuracion) memoriaDB.configuracion = archivoDB.configuracion;
             if (archivoDB.abogado) memoriaDB.abogado = archivoDB.abogado;
-            agregarLogSistema('Base de datos local cargada', 'success');
+            agregarLogSistema('Base de datos cargada', 'success');
         } catch (e) {
             agregarLogSistema('Error al leer database.json', 'warning');
         }
@@ -216,7 +215,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// ==================== ADMIN DASHBOARD (ESTADÍSTICAS REALES) ====================
+// ==================== ADMIN DASHBOARD ====================
 app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
     try {
         const db = readDB();
@@ -232,7 +231,7 @@ app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
             tipos_caso_total: db.tipos_caso.length
         };
         
-        console.log('📊 Dashboard data enviada:', dashboardData);
+        console.log('📊 Dashboard data:', dashboardData);
         res.json(dashboardData);
     } catch (error) {
         console.error('❌ Error en dashboard:', error);
@@ -257,6 +256,176 @@ app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
     } catch (error) {
         console.error('❌ Error en /casos/todos:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== RUTAS DE INGENIERO ====================
+
+// Estado del sistema
+app.get('/api/ingeniero/status', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        res.json({
+            success: true,
+            sistema: {
+                hostname: os.hostname(),
+                platform: os.platform(),
+                arch: os.arch(),
+                cpus: os.cpus().length,
+                memoria_total: (os.totalmem() / 1024 / 1024 / 1024).toFixed(2) + ' GB',
+                memoria_libre: (os.freemem() / 1024 / 1024 / 1024).toFixed(2) + ' GB',
+                uptime: os.uptime(),
+                carga: os.loadavg()
+            },
+            node: {
+                version: process.version,
+                pid: process.pid,
+                memoria: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2) + ' MB',
+                uptime: process.uptime()
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Estadísticas
+app.get('/api/ingeniero/stats', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        const db = readDB();
+        res.json({
+            success: true,
+            total_consultas: db.consultas.length,
+            total_citas: db.citas.length,
+            usuarios: db.usuarios.length,
+            plantillas: db.plantillas.length,
+            documentos: db.documentos_generados?.length || 0
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Variables de entorno
+app.get('/api/ingeniero/env', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        res.json({
+            success: true,
+            NODE_ENV: process.env.NODE_ENV || 'production',
+            JWT_SECRET: '••••••••',
+            SUPABASE_URL: process.env.SUPABASE_URL ? '✅ Configurada' : '❌ No configurada',
+            WHATSAPP_NUMBER: process.env.WHATSAPP_NUMBER || 'No configurado'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Ejecutar SQL (simulado pero con datos reales)
+app.post('/api/ingeniero/sql', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        const { query } = req.body;
+        if (!query || !query.toLowerCase().startsWith('select')) {
+            return res.status(400).json({ success: false, error: 'Solo consultas SELECT están permitidas' });
+        }
+        
+        const db = readDB();
+        let resultado = [];
+        
+        if (query.toLowerCase().includes('consultas')) {
+            resultado = db.consultas.slice(0, 5);
+        } else if (query.toLowerCase().includes('citas')) {
+            resultado = db.citas.slice(0, 5);
+        } else {
+            resultado = [{ mensaje: 'Consulta ejecutada', registros: db.consultas.length + db.citas.length }];
+        }
+        
+        res.json({ 
+            success: true, 
+            data: resultado,
+            query: query
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Obtener logs
+app.get('/api/ingeniero/logs', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        res.json({ success: true, logs: logsSistema || [] });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Agregar log
+app.post('/api/ingeniero/log', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        const { mensaje, tipo } = req.body;
+        agregarLogSistema(mensaje, tipo || 'info');
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Obtener archivos
+app.get('/api/ingeniero/files', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        function getFiles(dir, level = 0) {
+            if (level > 2) return [{ name: '...', type: 'dir', size: null }];
+            try {
+                const items = fs.readdirSync(dir);
+                return items.slice(0, 20).map(item => {
+                    const fullPath = path.join(dir, item);
+                    const isDir = fs.statSync(fullPath).isDirectory();
+                    return {
+                        name: item,
+                        type: isDir ? 'dir' : 'file',
+                        size: isDir ? null : (fs.statSync(fullPath).size / 1024).toFixed(1) + ' KB'
+                    };
+                });
+            } catch(e) {
+                return [];
+            }
+        }
+        
+        res.json({
+            success: true,
+            current_dir: __dirname,
+            files: getFiles(__dirname)
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -612,17 +781,4 @@ app.get('/api/diagnostico', verificarToken, verificarAdmin, (req, res) => {
 // ==================== FRONTEND ====================
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'index.html')); });
 app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'index.html')); });
-app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', `${req.params.page}.html`)); });
-
-// ==================== INICIO DEL SERVIDOR ====================
-app.listen(PORT, () => {
-    console.log('');
-    console.log('╔════════════════════════════════════════════════════════════╗');
-    console.log('║                   🟢 SERVIDOR ACTIVO 🟢                    ║');
-    console.log('╠════════════════════════════════════════════════════════════╣');
-    console.log(`║  🌐 URL:            http://localhost:${PORT}                               ║`);
-    console.log(`║  👑 Admin:          /admin/index.html                         ║`);
-    console.log(`║  🔧 Ingeniero:      /admin/ingeniero.html                     ║`);
-    console.log('╚════════════════════════════════════════════════════════════╝');
-    agregarLogSistema('Servidor iniciado correctamente', 'success');
-});
+app.get
