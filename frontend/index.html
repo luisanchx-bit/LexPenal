@@ -86,62 +86,62 @@
             border-color: #C8A951;
         }
 
-        /* Hero con burbuja griega */
+        /* Hero compacto - burbuja arriba */
         .hero {
-            min-height: 100vh;
+            min-height: auto;
+            padding: 90px 2rem 1rem 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             position: relative;
             z-index: 2;
-            padding: 2rem;
         }
 
         .bubble {
             background: rgba(10, 10, 15, 0.6);
             backdrop-filter: blur(12px);
             border-radius: 60px;
-            padding: 2.5rem 3rem;
+            padding: 1.8rem 2.5rem;
             border: 1px solid rgba(200, 169, 81, 0.4);
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(200, 169, 81, 0.1);
-            max-width: 700px;
+            max-width: 650px;
             width: 90%;
-            animation: fadeInUp 1s ease-out;
+            animation: fadeInUp 0.8s ease-out;
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .bubble h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-family: 'Playfair Display', serif;
             color: #C8A951;
             letter-spacing: 2px;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
 
         .bubble .subtitle {
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: #ccc;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
             font-style: italic;
         }
 
         .greek-border {
-            width: 80px;
+            width: 60px;
             height: 2px;
             background: linear-gradient(90deg, transparent, #C8A951, #C8A951, transparent);
-            margin: 1rem auto;
+            margin: 0.8rem auto;
         }
 
         .bubble .abogado {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: bold;
             color: #e8e8e8;
-            margin-top: 1rem;
+            margin-top: 0.8rem;
         }
 
         .bubble .abogado span {
@@ -149,52 +149,35 @@
             font-weight: bold;
         }
 
+        /* Scroll indicator más pequeño */
         .scroll-indicator {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: bounce 2s infinite;
-            cursor: pointer;
-            z-index: 10;
+            display: none; /* Lo ocultamos porque ya no es necesario, el contenido está cerca */
         }
 
-        .scroll-indicator svg {
-            width: 30px;
-            height: 30px;
-            stroke: #C8A951;
-            fill: none;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(10px); }
-        }
-
-        /* Contenedor de menús progresivos */
+        /* Contenedor de menús progresivos - más cerca de la burbuja */
         .menu-container {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
+            margin: 1rem auto 2rem;
+            padding: 1rem 2rem 3rem;
             position: relative;
             z-index: 2;
         }
 
         .section-title {
             text-align: center;
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: #C8A951;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             font-family: 'Playfair Display', serif;
         }
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
 
-        /* ========== ANIMACIONES DE APARICIÓN ========== */
+        /* Animaciones de aparición */
         .menu-card {
             background: rgba(10, 10, 15, 0.85);
             backdrop-filter: blur(8px);
@@ -203,8 +186,8 @@
             overflow: hidden;
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             opacity: 0;
-            transform: translateX(-40px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
+            transform: translateX(-30px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
         .menu-card.visible {
@@ -212,9 +195,8 @@
             transform: translateX(0);
         }
 
-        /* Animación alternada: algunos desde la derecha */
         .menu-card:nth-child(even) {
-            transform: translateX(40px);
+            transform: translateX(30px);
         }
 
         .menu-card:nth-child(even).visible {
@@ -228,7 +210,7 @@
 
         .menu-header {
             background: linear-gradient(135deg, #0a1628, #050505);
-            padding: 1.5rem;
+            padding: 1.2rem;
             text-align: center;
             border-bottom: 1px solid rgba(200, 169, 81, 0.3);
             cursor: pointer;
@@ -236,13 +218,13 @@
 
         .menu-header h2 {
             color: #C8A951;
-            font-size: 1.6rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
         }
 
         .menu-header p {
             color: #888;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
         .menu-items {
@@ -261,7 +243,7 @@
         }
 
         .submenu-item {
-            padding: 0.8rem 1.5rem;
+            padding: 0.7rem 1.5rem;
             color: #e8e8e8;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -295,11 +277,11 @@
         }
 
         .sub-submenu-item {
-            padding: 0.6rem 1rem;
+            padding: 0.5rem 1rem;
             color: #aaa;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .sub-submenu-item:hover {
@@ -310,17 +292,19 @@
         footer {
             background: rgba(10, 22, 40, 0.9);
             text-align: center;
-            padding: 2rem;
+            padding: 1.5rem;
             border-top: 1px solid rgba(200, 169, 81, 0.3);
             position: relative;
             z-index: 2;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
         @media (max-width: 768px) {
-            .bubble { padding: 1.5rem; }
+            .hero { padding: 80px 1rem 1rem; }
+            .bubble { padding: 1.2rem 1.5rem; }
             .bubble h1 { font-size: 1.8rem; }
             .bubble .abogado { font-size: 1rem; }
+            .menu-container { padding: 1rem; }
             .menu-grid { grid-template-columns: 1fr; }
             .admin-bar { top: 10px; right: 10px; }
             .btn-admin { padding: 0.3rem 0.8rem; font-size: 0.7rem; }
@@ -339,12 +323,12 @@
     <div class="circle-ring" style="bottom: 20%; left: -60px; width: 300px; height: 300px;"></div>
 </div>
 
-<!-- Botón de administración (esquina superior derecha) -->
+<!-- Botón de administración -->
 <div class="admin-bar">
     <a href="/login.html" class="btn-admin">⚖️ Acceso Administrativo</a>
 </div>
 
-<!-- Hero con burbuja griega -->
+<!-- Hero con burbuja griega - Compacta arriba -->
 <section class="hero">
     <div class="bubble">
         <h1>LEX PENAL</h1>
@@ -352,15 +336,10 @@
         <div class="subtitle">Defensa Penal Estratégica</div>
         <div class="abogado">⚖️ <span>Dr. Asmairo Conde Torres</span> ⚖️</div>
     </div>
-    <div class="scroll-indicator" onclick="scrollToMenus()">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path d="M12 5v14M8 15l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </div>
 </section>
 
-<!-- Menús progresivos (área del usuario) -->
-<div id="servicios" class="menu-container">
+<!-- Menús progresivos (cerca de la burbuja) -->
+<div class="menu-container">
     <h2 class="section-title">📜 Servicios Legales</h2>
     <div class="menu-grid">
         <!-- Derecho Penal -->
@@ -443,7 +422,7 @@
 </div>
 
 <footer>
-    <div class="container"><p>© 2026 Dr. Asmairo Conde Torres - Derecho Penal Estratégico</p><p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p></div>
+    <div><p>© 2026 Dr. Asmairo Conde Torres - Derecho Penal Estratégico</p><p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p></div>
 </footer>
 
 <script>
@@ -458,20 +437,16 @@
         localStorage.setItem('tipo', tipo);
         window.location.href = '/generar-documento.html';
     }
-    function scrollToMenus() {
-        document.getElementById('servicios').scrollIntoView({ behavior: 'smooth' });
-    }
 
-    // ========== ANIMACIONES AL SCROLL ==========
+    // Animaciones al scroll
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                // Dejar de observar después de animar
                 observer.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.2, rootMargin: "0px 0px -50px 0px" });
+    }, { threshold: 0.15, rootMargin: "0px 0px -30px 0px" });
 
     document.querySelectorAll('.menu-card').forEach(card => {
         observer.observe(card);
