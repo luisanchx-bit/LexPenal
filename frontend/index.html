@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>LexPenal | Asesoría Legal</title>
+    <title>LexPenal | Dr. Asmairo Conde Torres</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/estilo.css">
     <style>
-        /* Estilos específicos para el menú progresivo y fondo geométrico */
         * {
             margin: 0;
             padding: 0;
@@ -22,7 +21,7 @@
             overflow-x: hidden;
         }
 
-        /* ========== FONDO GEOMÉTRICO MEJORADO ========== */
+        /* Fondo geométrico */
         .geometric-bg {
             position: fixed;
             top: 0;
@@ -46,7 +45,6 @@
             position: absolute;
             border: 2px solid rgba(200, 169, 81, 0.2);
             border-radius: 50%;
-            background: transparent;
             animation: pulseRing 8s infinite alternate;
         }
 
@@ -57,14 +55,6 @@
             width: 200%;
             transform: rotate(45deg);
             animation: slideLine 14s infinite linear;
-        }
-
-        .geo-square {
-            position: absolute;
-            border: 1px solid rgba(200, 169, 81, 0.25);
-            background: rgba(200, 169, 81, 0.03);
-            transform: rotate(45deg);
-            animation: floatSquare 20s infinite alternate;
         }
 
         @keyframes rotateSlow {
@@ -82,12 +72,7 @@
             100% { transform: translateX(50%) rotate(25deg); }
         }
 
-        @keyframes floatSquare {
-            0% { transform: translateY(0px) rotate(45deg); opacity: 0.1; }
-            100% { transform: translateY(-40px) rotate(45deg); opacity: 0.2; }
-        }
-
-        /* ========== NAVBAR ========== */
+        /* Navbar */
         .navbar {
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
@@ -156,9 +141,7 @@
         }
 
         @media (max-width: 768px) {
-            .menu-toggle {
-                display: block;
-            }
+            .menu-toggle { display: block; }
             .nav-menu {
                 display: none;
                 width: 100%;
@@ -168,31 +151,33 @@
                 margin-top: 1rem;
                 border-top: 1px solid rgba(200, 169, 81, 0.3);
             }
-            .nav-menu.active {
-                display: flex;
-            }
-            .nav-menu li {
-                width: 100%;
-                text-align: center;
-            }
+            .nav-menu.active { display: flex; }
+            .nav-menu li { width: 100%; text-align: center; }
         }
 
-        /* ========== HERO ========== */
+        /* Hero con nombre del abogado */
         .hero {
-            height: 100vh;
-            background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(10,22,40,0.8) 100%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             position: relative;
             z-index: 1;
+            padding-top: 80px;
         }
 
         .hero-content h1 {
-            font-size: 3.5rem;
+            font-size: 4rem;
             margin-bottom: 1rem;
             font-family: 'Playfair Display', serif;
+        }
+
+        .hero-content .abogado {
+            font-size: 2rem;
+            color: #C8A951;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
         }
 
         .dorado {
@@ -203,6 +188,9 @@
             font-size: 1.2rem;
             margin-bottom: 2rem;
             color: #ccc;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .btn-principal {
@@ -221,20 +209,13 @@
             transform: translateY(-3px);
         }
 
-        /* ========== CONTENEDOR PRINCIPAL ========== */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ========== MENÚ DE SERVICIOS ========== */
+        /* Contenedor de menús */
         .menu-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
 
         .menu-grid {
@@ -268,13 +249,13 @@
 
         .menu-header h2 {
             color: #C8A951;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             margin-bottom: 0.5rem;
         }
 
         .menu-header p {
             color: #888;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
         .menu-items {
@@ -339,64 +320,6 @@
             padding-left: 1.5rem;
         }
 
-        /* ========== PORTAFOLIO ========== */
-        .portafolio {
-            background: rgba(10, 22, 40, 0.7);
-            backdrop-filter: blur(4px);
-            border-top: 1px solid rgba(200, 169, 81, 0.3);
-            border-bottom: 1px solid rgba(200, 169, 81, 0.3);
-        }
-
-        .portafolio-contenido {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 3rem;
-            align-items: center;
-        }
-
-        .avatar-circle {
-            width: 250px;
-            height: 250px;
-            background: linear-gradient(135deg, #C8A951, #9E7F34);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 5rem;
-            margin: 0 auto;
-        }
-
-        .info-item {
-            margin-bottom: 1.5rem;
-            border-left: 3px solid #C8A951;
-            padding-left: 1.5rem;
-        }
-
-        .info-label {
-            color: #C8A951;
-            font-weight: bold;
-            font-size: 1.1rem;
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        /* ========== TESTIMONIOS ========== */
-        .testimonios {
-            background: transparent;
-        }
-
-        .testimonio-activo {
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(8px);
-            padding: 2rem;
-            border-radius: 20px;
-            border-left: 4px solid #C8A951;
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        /* ========== FOOTER ========== */
         footer {
             background: rgba(10, 22, 40, 0.9);
             text-align: center;
@@ -406,7 +329,6 @@
             z-index: 1;
         }
 
-        /* ========== BOTÓN FLOTANTE FAQ ========== */
         .faq-btn {
             position: fixed;
             bottom: 30px;
@@ -439,76 +361,48 @@
         }
 
         @media (max-width: 768px) {
-            .faq-btn {
-                width: 50px;
-                height: 50px;
-                bottom: 20px;
-                right: 20px;
-            }
-            .faq-btn-text {
-                font-size: 0.8rem;
-            }
-            .hero-content h1 {
-                font-size: 2rem;
-            }
-            .portafolio-contenido {
-                grid-template-columns: 1fr;
-            }
+            .hero-content h1 { font-size: 2.2rem; }
+            .hero-content .abogado { font-size: 1.2rem; }
+            .faq-btn { width: 50px; height: 50px; bottom: 20px; right: 20px; }
+            .faq-btn-text { font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- ========== FONDO GEOMÉTRICO MEJORADO ========== -->
 <div class="geometric-bg">
     <div class="hexagon" style="top: 10%; left: -50px; width: 150px; height: 170px;"></div>
     <div class="hexagon" style="bottom: 5%; right: -40px; width: 200px; height: 230px;"></div>
-    <div class="hexagon" style="top: 40%; left: 10%; width: 100px; height: 115px; animation-duration: 25s;"></div>
-    <div class="hexagon" style="bottom: 30%; right: 15%; width: 120px; height: 138px;"></div>
-    
+    <div class="hexagon" style="top: 40%; left: 10%; width: 100px; height: 115px;"></div>
     <div class="circle-ring" style="top: 15%; right: 10%; width: 200px; height: 200px;"></div>
-    <div class="circle-ring" style="bottom: 20%; left: -60px; width: 300px; height: 300px; animation-duration: 12s;"></div>
-    <div class="circle-ring" style="top: 50%; left: 40%; width: 120px; height: 120px;"></div>
-    
+    <div class="circle-ring" style="bottom: 20%; left: -60px; width: 300px; height: 300px;"></div>
     <div class="law-line" style="top: 30%; left: -20%;"></div>
     <div class="law-line" style="bottom: 40%; right: -20%; transform: rotate(-35deg);"></div>
-    <div class="law-line" style="top: 70%; left: -10%; transform: rotate(60deg);"></div>
-    
-    <div class="geo-square" style="top: 25%; left: 80%; width: 80px; height: 80px;"></div>
-    <div class="geo-square" style="bottom: 15%; left: 15%; width: 60px; height: 60px;"></div>
-    <div class="geo-square" style="top: 60%; left: 85%; width: 100px; height: 100px;"></div>
 </div>
 
-<!-- ========== NAVBAR ========== -->
 <nav class="navbar">
     <div class="nav-container">
-        <div class="logo" onclick="window.location.href='/'">
-            <h2>⚖️ LexPenal</h2>
-        </div>
+        <div class="logo" onclick="window.location.href='/'"><h2>⚖️ LexPenal</h2></div>
         <button class="menu-toggle" id="menuToggle">☰</button>
         <ul class="nav-menu" id="navMenu">
             <li><a href="#inicio">Inicio</a></li>
-            <li><a href="#casos">Servicios</a></li>
-            <li><a href="#portafolio">Abogado</a></li>
-            <li><a href="#testimonios">Testimonios</a></li>
+            <li><a href="#servicios">Servicios</a></li>
             <li><a href="/login.html" class="btn-acceso">🔐 Acceder</a></li>
         </ul>
     </div>
 </nav>
 
-<!-- ========== HERO ========== -->
 <section id="inicio" class="hero">
     <div class="hero-content">
         <h1>Defensa Penal <span class="dorado">Estratégica</span></h1>
+        <div class="abogado">Dr. Asmairo Conde Torres</div>
         <p>Más de 6 años protegiendo tus derechos con excelencia y compromiso</p>
         <a href="/login.html" class="btn-principal">Comenzar ahora</a>
     </div>
 </section>
 
-<!-- ========== MENÚ DE SERVICIOS ========== -->
-<div class="menu-container">
+<div id="servicios" class="menu-container">
     <div class="menu-grid">
-        <!-- CARD 1: DERECHO PENAL -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('penalMenu')">
                 <h2>⚖️ Derecho Penal</h2>
@@ -516,17 +410,11 @@
             </div>
             <div id="penalMenu" class="menu-items">
                 <div class="submenu">
-                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=penal'">
-                        📞 Consulta Legal <span class="arrow">→</span>
-                    </div>
-                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=penal'">
-                        📅 Agendar Cita <span class="arrow">→</span>
-                    </div>
+                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=penal'">📞 Consulta Legal <span class="arrow">→</span></div>
+                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=penal'">📅 Agendar Cita <span class="arrow">→</span></div>
                 </div>
             </div>
         </div>
-
-        <!-- CARD 2: DERECHO CIVIL -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('civilMenu')">
                 <h2>📜 Derecho Civil</h2>
@@ -534,17 +422,11 @@
             </div>
             <div id="civilMenu" class="menu-items">
                 <div class="submenu">
-                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=civil'">
-                        📞 Consulta Legal <span class="arrow">→</span>
-                    </div>
-                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=civil'">
-                        📅 Agendar Cita <span class="arrow">→</span>
-                    </div>
+                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=civil'">📞 Consulta Legal <span class="arrow">→</span></div>
+                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=civil'">📅 Agendar Cita <span class="arrow">→</span></div>
                 </div>
             </div>
         </div>
-
-        <!-- CARD 3: TRÁMITES LEGALES -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('tramitesMenu')">
                 <h2>📋 Trámites Legales</h2>
@@ -552,30 +434,18 @@
             </div>
             <div id="tramitesMenu" class="menu-items">
                 <div class="submenu">
-                    <div class="submenu-item" onclick="irAGenerarDocumento('peticion', 'derecho')">
-                        ✍️ Peticiones <span class="arrow">→</span>
-                    </div>
-                    <div class="submenu-item" onclick="irAGenerarDocumento('tutela', 'simple')">
-                        🛡️ Tutelas <span class="arrow">→</span>
-                    </div>
-                    <div class="submenu-item" onclick="toggleSubMenu('apelacionSub')">
-                        📄 Apelaciones <span class="arrow">▼</span>
-                    </div>
+                    <div class="submenu-item" onclick="irAGenerarDocumento('peticion', 'derecho')">✍️ Peticiones <span class="arrow">→</span></div>
+                    <div class="submenu-item" onclick="irAGenerarDocumento('tutela', 'simple')">🛡️ Tutelas <span class="arrow">→</span></div>
+                    <div class="submenu-item" onclick="toggleSubMenu('apelacionSub')">📄 Apelaciones <span class="arrow">▼</span></div>
                     <div id="apelacionSub" class="sub-submenu">
                         <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_multas', 'simple')">💰 Apelación de Multas</div>
                         <div class="sub-submenu-item" onclick="irAGenerarDocumento('apelacion_comparendo', 'simple')">🚗 Apelación de Comparendos</div>
                     </div>
-                    <div class="submenu-item" onclick="irAGenerarDocumento('reclamacion_servicios', 'simple')">
-                        🔧 Reclamación de Servicios <span class="arrow">→</span>
-                    </div>
-                    <div class="submenu-item" onclick="irAGenerarDocumento('elaboracion_contrato', 'simple')">
-                        📝 Elaboración de Contrato <span class="arrow">→</span>
-                    </div>
+                    <div class="submenu-item" onclick="irAGenerarDocumento('reclamacion_servicios', 'simple')">🔧 Reclamación de Servicios <span class="arrow">→</span></div>
+                    <div class="submenu-item" onclick="irAGenerarDocumento('elaboracion_contrato', 'simple')">📝 Elaboración de Contrato <span class="arrow">→</span></div>
                 </div>
             </div>
         </div>
-
-        <!-- CARD 4: VÍCTIMAS Y MIGRANTES -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('victimasMenu')">
                 <h2>🕊️ Víctimas y Migrantes</h2>
@@ -583,17 +453,11 @@
             </div>
             <div id="victimasMenu" class="menu-items">
                 <div class="submenu">
-                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=victimas'">
-                        📞 Consulta Legal <span class="arrow">→</span>
-                    </div>
-                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=victimas'">
-                        📅 Agendar Cita <span class="arrow">→</span>
-                    </div>
+                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=victimas'">📞 Consulta Legal <span class="arrow">→</span></div>
+                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=victimas'">📅 Agendar Cita <span class="arrow">→</span></div>
                 </div>
             </div>
         </div>
-
-        <!-- CARD 5: ASESORAMIENTO JAC Y VEEDURÍAS -->
         <div class="menu-card">
             <div class="menu-header" onclick="toggleMenu('jacMenu')">
                 <h2>👥 JAC y Veedurías</h2>
@@ -601,78 +465,35 @@
             </div>
             <div id="jacMenu" class="menu-items">
                 <div class="submenu">
-                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=jac'">
-                        📞 Consulta Legal <span class="arrow">→</span>
-                    </div>
-                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=jac'">
-                        📅 Agendar Cita <span class="arrow">→</span>
-                    </div>
+                    <div class="submenu-item" onclick="window.location.href='/consulta.html?tipo=jac'">📞 Consulta Legal <span class="arrow">→</span></div>
+                    <div class="submenu-item" onclick="window.location.href='/agendar-cita.html?tipo=jac'">📅 Agendar Cita <span class="arrow">→</span></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ========== PORTAFOLIO ========== -->
-<section id="portafolio" class="portafolio">
-    <div class="container">
-        <h2 style="text-align:center; font-size:2.5rem;">Dr. <span class="dorado">Asmairo Conde Torres</span></h2>
-        <div class="portafolio-contenido">
-            <div class="portafolio-imagen"><div class="avatar-circle">⚖️</div></div>
-            <div class="portafolio-info">
-                <div class="info-item"><span class="info-label">📜 Títulos:</span><p>Cursando Master en Ley</p><p>Curso actualización Derecho Privado - UDCA</p><p>Capacitación Prevención y Protección - Ministerio del Interior</p><p>Capacitación Plan de Contingencia para Víctimas</p></div>
-                <div class="info-item"><span class="info-label">⭐ Experiencia:</span><p>Más de 6 años en derecho penal</p><p>Personería, Alcaldía, Gobernación de Cundinamarca</p><p>Asesor Jurídico - Resbanc, Asistente Jurídico - Carbal</p></div>
-                <div class="info-item"><span class="info-label">📞 Contacto:</span><p>📱 WhatsApp: +57 3145879875</p><p>✉️ asmairo.conde.torres@hotmail.com</p></div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ========== TESTIMONIOS ========== -->
-<section id="testimonios" class="testimonios">
-    <div class="container">
-        <h2 style="text-align:center; font-size:2.5rem;">Lo que dicen <span class="dorado">nuestros clientes</span></h2>
-        <div class="carrusel"><div class="testimonio-activo"><p>"Excelente profesional, me ayudó en un caso muy complicado. Totalmente recomendado."</p><h4>- Cliente anónimo</h4></div></div>
-    </div>
-</section>
-
-<!-- ========== FOOTER ========== -->
 <footer>
-    <div class="container">
-        <p>© 2026 Asmairo Conde Torres - Derecho Penal Estratégico</p>
-        <p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p>
-        <p>⚖️ Defensa Penal en todas sus áreas</p>
-    </div>
+    <div class="container"><p>© 2026 Dr. Asmairo Conde Torres - Derecho Penal Estratégico</p><p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p></div>
 </footer>
 
-<!-- ========== BOTÓN FLOTANTE FAQ ========== -->
-<div class="faq-btn" onclick="window.location.href='/faq.html'">
-    <div class="faq-btn-text">❓ FAQ</div>
-</div>
+<div class="faq-btn" onclick="window.location.href='/faq.html'"><div class="faq-btn-text">❓ FAQ</div></div>
 
-<!-- ========== SCRIPTS ========== -->
 <script>
     function toggleMenu(menuId) {
-        const menu = document.getElementById(menuId);
-        menu.classList.toggle('active');
+        document.getElementById(menuId).classList.toggle('active');
     }
-    
     function toggleSubMenu(submenuId) {
-        const submenu = document.getElementById(submenuId);
-        submenu.classList.toggle('active');
+        document.getElementById(submenuId).classList.toggle('active');
     }
-    
     function irAGenerarDocumento(delito, tipo) {
         localStorage.setItem('delito', delito);
         localStorage.setItem('tipo', tipo);
         window.location.href = '/generar-documento.html';
     }
-    
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
-    }
+    if (menuToggle) menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
 </script>
 </body>
 </html>
