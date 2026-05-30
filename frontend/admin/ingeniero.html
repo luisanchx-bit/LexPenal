@@ -1,862 +1,581 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const { createClient } = require('@supabase/supabase-js');
-const os = require('os');
-
-const JWT_SECRET = 'lexpenal_seguro_2026_muy_secreto';
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'https://fxfwcfanzqnegdyheklv.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage: storage });
-
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'frontend')));
-app.use('/storage', express.static(path.join(__dirname, 'storage')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-const DATA_FILE = path.join(__dirname, 'database.json');
-
-let memoriaDB = {
-    usuarios: [],
-    consultas: [],
-    citas: [],
-    testimonios: [],
-    plantillas: [],
-    documentos_generados: [],
-    tipos_caso: [],
-    configuracion: {},
-    abogado: {},
-    tokens_recuperacion: []
-};
-
-function initDB() {
-    const adminHash = bcrypt.hashSync("ACT1018457093", 10);
-    
-    memoriaDB.usuarios = [
-        { id: 1, cedula: "1018457093", nombre_completo: "Asmairo De Jesus Conde Torres", email: "asmairo.conde.torres@hotmail.com", contrasena_hash: adminHash, rol: "super_admin", fecha_registro: new Date().toISOString() }
-    ];
-    memoriaDB.testimonios = [{ id: 1, cliente: "Cliente anónimo", texto: "Excelente profesional", aprobado: true, fecha: new Date().toISOString().split('T')[0] }];
-    memoriaDB.tipos_caso = [
-        { id: 1, nombre: "Homicidio", icono: "⚖️", orden: 1 },
-        { id: 2, nombre: "Violación", icono: "🛡️", orden: 2 },
-        { id: 3, nombre: "Robo", icono: "🔒", orden: 3 },
-        { id: 4, nombre: "Apelaciones", icono: "📄", orden: 4 },
-        { id: 5, nombre: "Citaciones", icono: "📅", orden: 5 },
-        { id: 6, nombre: "Trámites Legales", icono: "📋", orden: 6 }
-    ];
-    memoriaDB.configuracion = { 
-        colores: { dorado: "#C8A951", azul: "#0A1628", fondo: "#000000" }, 
-        textos: { hero_titulo: "Defensa Penal Estratégica", hero_subtitulo: "Más de 6 años protegiendo tus derechos" },
-        tema: 'oscuro'
-    };
-    memoriaDB.abogado = { nombre: "Asmairo Conde Torres", telefono: "573145879875", email: "asmairo.conde.torres@hotmail.com" };
-    memoriaDB.consultas = [];
-    memoriaDB.citas = [];
-    memoriaDB.plantillas = [];
-    memoriaDB.documentos_generados = [];
-    memoriaDB.tokens_recuperacion = [];
-
-    if (fs.existsSync(DATA_FILE)) {
-        try {
-            const data = fs.readFileSync(DATA_FILE, 'utf8');
-            const archivoDB = JSON.parse(data);
-            if (archivoDB.consultas) memoriaDB.consultas = archivoDB.consultas;
-            if (archivoDB.citas) memoriaDB.citas = archivoDB.citas;
-            if (archivoDB.usuarios) memoriaDB.usuarios = archivoDB.usuarios;
-            if (archivoDB.testimonios) memoriaDB.testimonios = archivoDB.testimonios;
-            if (archivoDB.plantillas) memoriaDB.plantillas = archivoDB.plantillas;
-            if (archivoDB.documentos_generados) memoriaDB.documentos_generados = archivoDB.documentos_generados;
-            if (archivoDB.tipos_caso) memoriaDB.tipos_caso = archivoDB.tipos_caso;
-            if (archivoDB.configuracion) memoriaDB.configuracion = archivoDB.configuracion;
-            if (archivoDB.abogado) memoriaDB.abogado = archivoDB.abogado;
-            console.log('✅ Datos cargados');
-        } catch (e) {
-            console.log('⚠️ Error al leer database.json');
-        }
-    } else {
-        guardarDB();
-        console.log('✅ Base de datos inicializada');
-    }
-}
-
-function guardarDB() {
-    try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(memoriaDB, null, 2));
-    } catch (e) {
-        console.log('⚠️ Error al guardar');
-    }
-}
-
-function readDB() { return memoriaDB; }
-function writeDB(data) { memoriaDB = data; guardarDB(); }
-
-initDB();
-
-function verificarToken(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'No autorizado' });
-    }
-    try {
-        req.usuario = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
-        next();
-    } catch (error) { 
-        return res.status(401).json({ error: 'Token inválido' }); 
-    }
-}
-
-function verificarAdmin(req, res, next) {
-    if (req.usuario.rol === 'super_admin' || req.usuario.rol === 'ingeniero') {
-        next();
-    } else {
-        return res.status(403).json({ error: 'Acceso denegado' });
-    }
-}
-
-// ==================== LOGIN UNIFICADO ====================
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { cedula, contrasena } = req.body;
-        
-        console.log(`🔐 Intento de login: ${cedula}`);
-        
-        // INGENIERO
-        if (cedula === "1052041627" && contrasena === "123luisancho") {
-            const token = jwt.sign(
-                { id: 999, cedula: "1052041627", nombre: "Luis Angel Caballero Ortega", rol: 'ingeniero' },
-                JWT_SECRET,
-                { expiresIn: '7d' }
-            );
-            console.log('✅ Login ingeniero exitoso');
-            return res.json({ 
-                success: true, 
-                token, 
-                nombre: "Luis Angel Caballero Ortega", 
-                cedula: "1052041627", 
-                rol: 'ingeniero'
-            });
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Panel de Ingeniero - LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Code+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        // ADMIN
-        if (cedula === "1018457093" && contrasena === "ACT1018457093") {
-            const token = jwt.sign(
-                { id: 1, cedula: "1018457093", nombre: "Asmairo De Jesus Conde Torres", rol: 'super_admin' },
-                JWT_SECRET,
-                { expiresIn: '7d' }
-            );
-            console.log('✅ Login admin exitoso');
-            return res.json({ 
-                success: true, 
-                token, 
-                nombre: "Asmairo De Jesus Conde Torres", 
-                cedula: "1018457093", 
-                rol: 'super_admin'
-            });
+        body {
+            background: #000000;
+            font-family: 'Source Code Pro', monospace;
+            color: #00ff00;
         }
         
-        const db = readDB();
-        const usuario = db.usuarios.find(u => u.cedula === cedula);
-        if (!usuario) {
-            return res.status(401).json({ error: 'Cédula no registrada' });
-        }
-        if (!await bcrypt.compare(contrasena, usuario.contrasena_hash)) {
-            return res.status(401).json({ error: 'Contraseña incorrecta' });
-        }
-        
-        const token = jwt.sign(
-            { id: usuario.id, cedula: usuario.cedula, nombre: usuario.nombre_completo, rol: usuario.rol || 'cliente' },
-            JWT_SECRET,
-            { expiresIn: '7d' }
-        );
-        
-        res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, rol: usuario.rol || 'cliente' });
-        
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error en el servidor' });
-    }
-});
-
-// ==================== RUTAS DE AUTENTICACIÓN ====================
-app.post('/api/auth/registro', async (req, res) => {
-    try {
-        const { cedula, nombre_completo, email, contrasena } = req.body;
-        if (!cedula || !nombre_completo || !contrasena) return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-        if (cedula.length < 6) return res.status(400).json({ error: 'La cédula debe tener al menos 6 dígitos' });
-        if (contrasena.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-        
-        const db = readDB();
-        if (db.usuarios.find(u => u.cedula === cedula)) return res.status(400).json({ error: 'Esta cédula ya está registrada' });
-        
-        const hashedPassword = await bcrypt.hash(contrasena, 10);
-        const nuevoUsuario = { id: db.usuarios.length + 1, cedula, nombre_completo, email: email || '', contrasena_hash: hashedPassword, rol: 'cliente', fecha_registro: new Date().toISOString() };
-        db.usuarios.push(nuevoUsuario);
-        writeDB(db);
-        
-        const token = jwt.sign({ id: nuevoUsuario.id, cedula, nombre: nombre_completo, rol: 'cliente' }, JWT_SECRET, { expiresIn: '7d' });
-        res.json({ success: true, token, nombre: nombre_completo, cedula, isAdmin: false });
-    } catch (error) { res.status(500).json({ error: 'Error en el servidor' }); }
-});
-
-// ==================== RECUPERACIÓN DE CONTRASEÑA ====================
-app.post('/api/auth/recuperar', async (req, res) => {
-    try {
-        const { email } = req.body;
-        const db = readDB();
-        const usuario = db.usuarios.find(u => u.email === email);
-        if (!usuario) return res.status(404).json({ error: 'Correo no registrado' });
-        
-        const token = crypto.randomBytes(32).toString('hex');
-        const expira = new Date();
-        expira.setHours(expira.getHours() + 1);
-        
-        db.tokens_recuperacion.push({ email, token, expira });
-        writeDB(db);
-        
-        console.log(`🔐 Token de recuperación para ${email}: ${token}`);
-        res.json({ success: true, mensaje: 'Si el correo está registrado, recibirás un enlace' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.post('/api/auth/restablecer', async (req, res) => {
-    try {
-        const { token, nuevaContrasena } = req.body;
-        const db = readDB();
-        const tokenObj = db.tokens_recuperacion.find(t => t.token === token && new Date(t.expira) > new Date());
-        if (!tokenObj) return res.status(400).json({ error: 'Token inválido o expirado' });
-        
-        const usuario = db.usuarios.find(u => u.email === tokenObj.email);
-        if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
-        
-        usuario.contrasena_hash = await bcrypt.hash(nuevaContrasena, 10);
-        db.tokens_recuperacion = db.tokens_recuperacion.filter(t => t.token !== token);
-        writeDB(db);
-        
-        res.json({ success: true, mensaje: 'Contraseña restablecida' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ==================== RUTAS DE PLANTILLAS ====================
-app.get('/api/plantillas', verificarToken, verificarAdmin, (req, res) => { 
-    const db = readDB(); 
-    res.json(db.plantillas || []); 
-});
-
-app.post('/api/plantillas/subir', verificarToken, verificarAdmin, upload.single('archivo'), async (req, res) => {
-    try {
-        const archivo = req.file;
-        const { nombre, clave, ubicacion, sububicacion } = req.body;
-        if (!archivo) return res.status(400).json({ error: 'No se subió ningún archivo' });
-        
-        const filePath = archivo.path;
-        const extension = archivo.originalname.split('.').pop().toLowerCase();
-        
-        let texto = '';
-        if (extension === 'txt') {
-            texto = fs.readFileSync(filePath, 'utf8');
-        } else if (extension === 'pdf') {
-            const pdfParse = require('pdf-parse');
-            const dataBuffer = fs.readFileSync(filePath);
-            const pdfData = await pdfParse(dataBuffer);
-            texto = pdfData.text;
-        } else if (extension === 'docx') {
-            const mammoth = require('mammoth');
-            const result = await mammoth.extractRawText({ path: filePath });
-            texto = result.value;
+        .navbar {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            border-bottom: 1px solid #00aaff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
         
-        const regex = /\[([A-Z_]+)\]/g;
-        const campos = [];
-        let match;
-        while ((match = regex.exec(texto)) !== null) { if (!campos.includes(match[1])) campos.push(match[1]); }
-        
-        const db = readDB();
-        const nuevaPlantilla = { 
-            id: db.plantillas.length + 1, 
-            nombre, 
-            clave, 
-            ubicacion: ubicacion || 'tramites', 
-            sububicacion: sububicacion || '', 
-            titulo: nombre, 
-            cuerpo: texto,
-            extension: extension,
-            campos_editables: campos.length > 0 ? campos : ['NOMBRE_CLIENTE', 'CEDULA_CLIENTE', 'DESCRIPCION_HECHOS'], 
-            fecha_creacion: new Date().toISOString().split('T')[0] 
-        };
-        db.plantillas.push(nuevaPlantilla);
-        writeDB(db);
-        fs.unlinkSync(filePath);
-        
-        res.json({ success: true, plantilla: nuevaPlantilla, campos_detectados: campos });
-    } catch (error) { 
-        res.status(500).json({ error: 'Error: ' + error.message }); 
-    }
-});
-
-app.delete('/api/plantillas/:id', verificarToken, verificarAdmin, (req, res) => { 
-    const db = readDB(); 
-    db.plantillas = db.plantillas.filter(p => p.id !== parseInt(req.params.id)); 
-    writeDB(db); 
-    res.json({ success: true }); 
-});
-
-// ==================== GENERAR DOCUMENTO ====================
-app.post('/api/generar-documento', verificarToken, async (req, res) => {
-    try {
-        const { plantillaId, datos, archivosPrueba } = req.body;
-        const db = readDB();
-        const plantilla = db.plantillas.find(p => p.id === plantillaId);
-        if (!plantilla) return res.status(404).json({ error: 'Plantilla no encontrada' });
-        
-        let documentoGenerado = plantilla.cuerpo;
-        for (const [key, value] of Object.entries(datos)) {
-            documentoGenerado = documentoGenerado.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00aaff;
+            cursor: pointer;
+            font-family: 'Playfair Display', serif;
         }
         
-        const nuevoDoc = {
-            id: db.documentos_generados.length + 1,
-            usuario_id: req.usuario.id,
-            usuario_nombre: req.usuario.nombre,
-            plantilla_id: plantillaId,
-            plantilla_nombre: plantilla.nombre,
-            contenido: documentoGenerado,
-            archivos_prueba: archivosPrueba || [],
-            fecha_generacion: new Date().toISOString()
-        };
-        db.documentos_generados.push(nuevoDoc);
-        writeDB(db);
-        
-        res.json({ success: true, documento: nuevoDoc });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/documentos-generados', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    res.json(db.documentos_generados || []);
-});
-
-app.delete('/api/documentos-generados/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const db = readDB();
-    db.documentos_generados = db.documentos_generados.filter(d => d.id !== parseInt(id));
-    writeDB(db);
-    res.json({ success: true });
-});
-
-// ==================== RUTAS DE CONSULTAS ====================
-app.post('/api/consultas/nueva', upload.array('archivos'), async (req, res) => {
-    try {
-        const { nombre, telefono, email, hechos, rama } = req.body;
-        const codigo = `CON-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-        
-        const archivos = req.files ? req.files.map(f => ({ 
-            nombre: f.originalname, 
-            ruta: `/uploads/${f.filename}`,
-            tamaño: (f.size / 1024).toFixed(2) + ' KB',
-            tipo: f.mimetype
-        })) : [];
-        
-        const db = readDB();
-        const nuevaConsulta = {
-            id: db.consultas.length + 1,
-            codigo,
-            nombre,
-            telefono,
-            email,
-            hechos,
-            rama: rama || 'general',
-            archivos: archivos,
-            tieneAudio: archivos.some(a => a.tipo && a.tipo.startsWith('audio')),
-            fecha: new Date().toISOString(),
-            estado: 'pendiente',
-            tipo: 'consulta',
-            confirmado: false
-        };
-        db.consultas.push(nuevaConsulta);
-        writeDB(db);
-        
-        res.json({ success: true, codigo });
-    } catch (error) { 
-        res.status(500).json({ error: error.message }); 
-    }
-});
-
-// ==================== RUTAS DE CITAS ====================
-app.post('/api/citas/nueva', (req, res) => {
-    try {
-        const { nombre, telefono, email, motivo, fecha, rama } = req.body;
-        const codigo = `CIT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-        
-        const db = readDB();
-        
-        const fechaStr = fecha ? fecha.split('T')[0] : null;
-        const citaExistente = db.citas.find(c => c.fecha && c.fecha.includes(fechaStr) && c.estado !== 'cancelada');
-        if (citaExistente && fechaStr) {
-            return res.status(400).json({ error: 'La fecha seleccionada ya no está disponible' });
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
         
-        const nuevaCita = {
-            id: db.citas.length + 1,
-            codigo,
-            nombre,
-            telefono,
-            email,
-            motivo,
-            fecha,
-            rama: rama || 'general',
-            fecha_registro: new Date().toISOString(),
-            estado: 'pendiente',
-            tipo: 'cita',
-            recordatorio_enviado: false
-        };
-        db.citas.push(nuevaCita);
-        writeDB(db);
-        
-        res.json({ success: true, codigo });
-    } catch (error) { 
-        res.status(500).json({ error: error.message }); 
-    }
-});
-
-// ==================== OBTENER TODOS LOS REGISTROS ====================
-app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
-    try {
-        const db = readDB();
-        res.json({ 
-            consultas: db.consultas || [], 
-            citas: db.citas || [], 
-            total: (db.consultas?.length || 0) + (db.citas?.length || 0)
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/citas/ocupadas', (req, res) => {
-    const db = readDB();
-    const citas = db.citas || [];
-    const fechasOcupadas = citas.filter(c => c.estado !== 'cancelada').map(c => c.fecha ? c.fecha.split('T')[0] : null).filter(f => f);
-    res.json(fechasOcupadas);
-});
-
-app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
-    try {
-        const { id } = req.params;
-        const { estado, notas_admin, tipo } = req.body;
-        const db = readDB();
-        
-        let lista = tipo === 'consulta' ? db.consultas : db.citas;
-        const index = lista.findIndex(c => c.id === parseInt(id));
-        
-        if (index !== -1) {
-            if (estado) lista[index].estado = estado;
-            if (notas_admin !== undefined) lista[index].notas_admin = notas_admin;
-            writeDB(db);
-            res.json({ success: true });
-        } else { 
-            res.status(404).json({ error: 'No encontrado' }); 
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
-    try {
-        const { id } = req.params;
-        const { tipo } = req.body;
-        const db = readDB();
-        
-        if (tipo === 'consulta') {
-            db.consultas = db.consultas.filter(c => c.id !== parseInt(id));
-        } else {
-            db.citas = db.citas.filter(c => c.id !== parseInt(id));
-        }
-        writeDB(db);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ==================== ADMIN DASHBOARD ====================
-app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    const consultas = db.consultas || [];
-    const citas = db.citas || [];
-    res.json({ 
-        total_consultas: consultas.length,
-        total_citas: citas.length,
-        consultas_pendientes: consultas.filter(c => c.estado === 'pendiente').length,
-        citas_pendientes: citas.filter(c => c.estado === 'pendiente').length,
-        testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
-        tipos_caso_total: db.tipos_caso.length 
-    });
-});
-
-// ==================== RUTAS DE INGENIERO ====================
-
-// Obtener estado del sistema
-app.get('/api/ingeniero/status', verificarToken, verificarAdmin, (req, res) => {
-    res.json({
-        sistema: {
-            hostname: os.hostname(),
-            platform: os.platform(),
-            arch: os.arch(),
-            cpus: os.cpus().length,
-            memoria_total: (os.totalmem() / 1024 / 1024 / 1024).toFixed(2) + ' GB',
-            memoria_libre: (os.freemem() / 1024 / 1024 / 1024).toFixed(2) + ' GB',
-            uptime: os.uptime(),
-            carga: os.loadavg()
-        },
-        node: {
-            version: process.version,
-            pid: process.pid,
-            memoria: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2) + ' MB',
-            uptime: process.uptime()
-        },
-        timestamp: new Date().toISOString()
-    });
-});
-
-// Ejecutar SQL en Supabase (solo SELECT)
-app.post('/api/ingeniero/sql', verificarToken, verificarAdmin, async (req, res) => {
-    try {
-        const { query } = req.body;
-        if (!query || !query.toLowerCase().startsWith('select')) {
-            return res.status(400).json({ error: 'Solo consultas SELECT están permitidas' });
+        .btn-cerrar {
+            background: transparent;
+            border: 1px solid #8B0000;
+            color: #8B0000;
+            padding: 0.3rem 0.8rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: monospace;
         }
         
-        const { data, error } = await supabase.from('_sql').rpc('exec_sql', { sql: query });
-        if (error) throw error;
-        res.json({ success: true, data, query });
-    } catch (error) {
-        res.json({ success: false, error: error.message, query });
-    }
-});
-
-// Logs del sistema
-let logsSistema = [];
-app.post('/api/ingeniero/log', verificarToken, verificarAdmin, (req, res) => {
-    const { mensaje, tipo } = req.body;
-    logsSistema.unshift({
-        id: logsSistema.length + 1,
-        timestamp: new Date().toISOString(),
-        mensaje,
-        tipo: tipo || 'info'
-    });
-    if (logsSistema.length > 200) logsSistema.pop();
-    res.json({ success: true });
-});
-
-app.get('/api/ingeniero/logs', verificarToken, verificarAdmin, (req, res) => {
-    res.json(logsSistema);
-});
-
-// Obtener estructura de archivos
-app.get('/api/ingeniero/files', verificarToken, verificarAdmin, (req, res) => {
-    function getFiles(dir, level = 0) {
-        if (level > 2) return '...';
-        try {
-            const items = fs.readdirSync(dir);
-            return items.slice(0, 20).map(item => {
-                const fullPath = path.join(dir, item);
-                const isDir = fs.statSync(fullPath).isDirectory();
-                return {
-                    name: item,
-                    type: isDir ? 'dir' : 'file',
-                    size: isDir ? null : (fs.statSync(fullPath).size / 1024).toFixed(1) + ' KB'
-                };
-            });
-        } catch(e) {
-            return [];
+        .btn-cerrar:hover {
+            background: #8B0000;
+            color: #fff;
         }
-    }
-    
-    res.json({
-        current_dir: __dirname,
-        files: getFiles(__dirname)
-    });
-});
-
-// Obtener estadísticas avanzadas
-app.get('/api/ingeniero/stats', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    const hoy = new Date();
-    const hace7Dias = new Date(hoy.setDate(hoy.getDate() - 7));
-    
-    const consultasRecientes = db.consultas.filter(c => new Date(c.fecha) > hace7Dias);
-    const citasRecientes = db.citas.filter(c => new Date(c.fecha_registro) > hace7Dias);
-    
-    res.json({
-        consultas_por_dia: consultasRecientes.length,
-        citas_por_dia: citasRecientes.length,
-        total_consultas: db.consultas.length,
-        total_citas: db.citas.length,
-        usuarios: db.usuarios.length,
-        plantillas: db.plantillas.length,
-        documentos: db.documentos_generados?.length || 0
-    });
-});
-
-// Obtener variables de entorno (ocultas)
-app.get('/api/ingeniero/env', verificarToken, verificarAdmin, (req, res) => {
-    res.json({
-        NODE_ENV: process.env.NODE_ENV || 'production',
-        JWT_SECRET: '••••••••',
-        SUPABASE_URL: process.env.SUPABASE_URL ? '✅ Configurada' : '❌ No configurada',
-        SUPABASE_ANON_KEY: '••••••••',
-        WHATSAPP_NUMBER: process.env.WHATSAPP_NUMBER || 'No configurado'
-    });
-});
-
-// ==================== DIAGNÓSTICO ====================
-app.get('/api/diagnostico', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    res.json({
-        status: 'ok',
-        usuario: req.usuario,
-        timestamp: new Date().toISOString(),
-        servidor: {
-            uptime: process.uptime(),
-            memoria: process.memoryUsage().heapUsed,
-            node_version: process.version
-        },
-        base_datos: {
-            consultas: db.consultas.length,
-            citas: db.citas.length,
-            usuarios: db.usuarios.length,
-            plantillas: db.plantillas.length,
-            documentos: db.documentos_generados?.length || 0
+        
+        .ingeniero-container {
+            max-width: 1600px;
+            margin: 80px auto 2rem;
+            padding: 1.5rem;
         }
-    });
-});
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .terminal-card {
+            background: #0a0a0a;
+            border-radius: 10px;
+            border: 1px solid #00aaff;
+            overflow: hidden;
+        }
+        
+        .terminal-header {
+            background: #1a1a1a;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #00aaff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .terminal-dots {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+        
+        .terminal-title {
+            color: #888;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            font-family: monospace;
+        }
+        
+        .terminal-body {
+            padding: 1rem;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.75rem;
+            background: #050505;
+            color: #00ff00;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .sql-editor {
+            background: #0a0a0a;
+            border: 1px solid #00aaff;
+            border-radius: 5px;
+            padding: 0.8rem;
+            width: 100%;
+            font-family: 'Source Code Pro', monospace;
+            color: #00ff00;
+            resize: vertical;
+            font-size: 0.75rem;
+        }
+        
+        .sql-editor:focus {
+            outline: none;
+            border-color: #00ff00;
+        }
+        
+        .btn-tech {
+            background: #1a1a1a;
+            border: 1px solid #00aaff;
+            border-radius: 5px;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            color: #00aaff;
+            font-family: monospace;
+            font-size: 0.7rem;
+            transition: all 0.3s;
+            margin-right: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .btn-tech:hover {
+            background: #00aaff;
+            color: #000;
+        }
+        
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        .status-label {
+            color: #888;
+            font-size: 0.7rem;
+        }
+        
+        .status-value {
+            color: #00ff00;
+            font-size: 0.7rem;
+            font-family: monospace;
+        }
+        
+        .log-line {
+            font-family: monospace;
+            font-size: 0.7rem;
+            padding: 0.2rem 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        .log-line.error { color: #ff4444; }
+        .log-line.warning { color: #ffaa00; }
+        .log-line.success { color: #00ff00; }
+        .log-line.info { color: #00aaff; }
+        
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 12px;
+            background-color: #00ff00;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .tech-grid { grid-template-columns: 1fr; }
+            .ingeniero-container { padding: 1rem; margin-top: 100px; }
+            .navbar { padding: 0.8rem 1rem; }
+            .logo { font-size: 1.2rem; }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #00aaff; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00ff00; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo" onclick="window.location.href='/'">⚡ LexPenal :: Ingeniero</div>
+        <div class="user-info">
+            <span id="nombreIngeniero" style="color:#00aaff;">Cargando...</span>
+            <button onclick="cerrarSesion()" class="btn-cerrar">Cerrar sesion</button>
+        </div>
+    </nav>
 
-// ==================== EXPORTAR DATOS ====================
-const XLSX = require('xlsx');
-const PDFDocument = require('pdfkit');
+    <div class="ingeniero-container">
+        <div class="tech-grid">
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
+                    <div class="terminal-title">system@lexpenal:~$ status</div>
+                </div>
+                <div class="terminal-body" id="systemStatus">
+                    <div class="status-row"><span class="status-label">Hostname:</span><span class="status-value">Cargando...</span></div>
+                    <div class="status-row"><span class="status-label">Plataforma:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Memoria Total:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Memoria Libre:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">CPU Cores:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Node.js:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Memoria Heap:</span><span class="status-value">-</span></div>
+                </div>
+            </div>
+            
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
+                    <div class="terminal-title">ingeniero@lexpenal:~$ env</div>
+                </div>
+                <div class="terminal-body" id="envVars">
+                    <div class="status-row"><span class="status-label">JWT_SECRET:</span><span class="status-value">••••••••</span></div>
+                    <div class="status-row"><span class="status-label">Supabase:</span><span class="status-value">Cargando...</span></div>
+                    <div class="status-row"><span class="status-label">WhatsApp:</span><span class="status-value">-</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tech-grid">
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
+                    <div class="terminal-title">C:\logs\lexpenal.log</div>
+                </div>
+                <div class="terminal-body" id="logsContainer" style="height: 300px;">
+                    <div class="log-line info">[INIT] Sistema iniciado</div>
+                    <span class="cursor"></span>
+                </div>
+                <div style="padding: 0.5rem; border-top: 1px solid #1a1a1a;">
+                    <button class="btn-tech" onclick="limpiarLogsLocal()">Limpiar</button>
+                    <button class="btn-tech" onclick="descargarLogsLocal()">Descargar</button>
+                </div>
+            </div>
+            
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
+                    <div class="terminal-title">postgres@supabase:~$ sql</div>
+                </div>
+                <div class="terminal-body">
+                    <textarea id="sqlQuery" class="sql-editor" rows="3" placeholder="SELECT * FROM consultas LIMIT 5;"></textarea>
+                    <button class="btn-tech" onclick="ejecutarSQL()">Ejecutar</button>
+                    <button class="btn-tech" onclick="limpiarSQL()">Limpiar</button>
+                    <div id="sqlResult" style="margin-top: 1rem; max-height: 150px; overflow-y: auto; font-size: 0.65rem;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tech-grid">
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
+                    <div class="terminal-title">stat@lexpenal:~$ analytics</div>
+                </div>
+                <div class="terminal-body" id="stats">
+                    <div class="status-row"><span class="status-label">Total Consultas:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Total Citas:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Usuarios:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Plantillas:</span><span class="status-value">-</span></div>
+                    <div class="status-row"><span class="status-label">Documentos:</span><span class="status-value">-</span></div>
+                </div>
+            </div>
+            
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
+                    <div class="terminal-title">admin@lexpenal:~$ actions</div>
+                </div>
+                <div class="terminal-body">
+                    <button class="btn-tech" onclick="verificarServidor()">Ping Server</button>
+                    <button class="btn-tech" onclick="probarAPI()">Test API</button>
+                    <button class="btn-tech" onclick="respaldarDB()">Backup DB</button>
+                    <button class="btn-tech" onclick="limpiarCache()">Clear Cache</button>
+                    <button class="btn-tech" onclick="verSupabase()">Supabase</button>
+                    <div id="actionResult" style="margin-top: 1rem; font-size: 0.7rem;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
+                <div class="terminal-title">dir@lexpenal:~$ ls -la</div>
+            </div>
+            <div class="terminal-body" id="fileExplorer" style="max-height: 200px;">
+                <div class="log-line info">Cargando archivos...</div>
+            </div>
+        </div>
+    </div>
 
-app.get('/api/exportar/excel', verificarToken, verificarAdmin, async (req, res) => {
-    try {
-        const db = readDB();
-        const consultas = db.consultas || [];
-        const citas = db.citas || [];
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        let token = localStorage.getItem('token');
+        let rol = localStorage.getItem('rol');
         
-        const datosConsultas = consultas.map(c => ({
-            'Código': c.codigo,
-            'Nombre': c.nombre,
-            'Teléfono': c.telefono,
-            'Email': c.email,
-            'Rama': c.rama,
-            'Hechos': c.hechos,
-            'Fecha': new Date(c.fecha).toLocaleString(),
-            'Estado': c.estado
-        }));
+        if (!token) {
+            window.location.href = '/login.html';
+        }
         
-        const datosCitas = citas.map(c => ({
-            'Código': c.codigo,
-            'Nombre': c.nombre,
-            'Teléfono': c.telefono,
-            'Email': c.email,
-            'Rama': c.rama,
-            'Motivo': c.motivo,
-            'Fecha Cita': c.fecha ? new Date(c.fecha).toLocaleString() : 'N/A',
-            'Estado': c.estado
-        }));
+        if (rol !== 'ingeniero') {
+            alert('Acceso denegado');
+            window.location.href = '/login.html';
+        }
         
-        const wb = XLSX.utils.book_new();
-        const wsConsultas = XLSX.utils.json_to_sheet(datosConsultas);
-        const wsCitas = XLSX.utils.json_to_sheet(datosCitas);
+        document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
         
-        XLSX.utils.book_append_sheet(wb, wsConsultas, 'Consultas');
-        XLSX.utils.book_append_sheet(wb, wsCitas, 'Citas');
+        let logsLocales = [];
         
-        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        function agregarLog(mensaje, tipo) {
+            const time = new Date().toLocaleTimeString();
+            logsLocales.unshift({ time, mensaje, tipo: tipo || 'info' });
+            if (logsLocales.length > 100) logsLocales.pop();
+            actualizarLogs();
+        }
         
-        res.setHeader('Content-Disposition', 'attachment; filename=lexpenal_datos.xlsx');
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.send(buffer);
+        function actualizarLogs() {
+            const container = document.getElementById('logsContainer');
+            if (logsLocales.length === 0) {
+                container.innerHTML = '<div class="log-line info">[INIT] Sistema listo</div><span class="cursor"></span>';
+                return;
+            }
+            container.innerHTML = logsLocales.map(log => 
+                `<div class="log-line ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
+            ).join('') + '<span class="cursor"></span>';
+            container.scrollTop = container.scrollHeight;
+        }
         
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/exportar/pdf', verificarToken, verificarAdmin, async (req, res) => {
-    try {
-        const db = readDB();
-        const consultas = db.consultas || [];
-        const citas = db.citas || [];
+        async function cargarStatus() {
+            try {
+                const res = await fetch(API_URL + '/ingeniero/status', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById('systemStatus').innerHTML = `
+                    <div class="status-row"><span class="status-label">Hostname:</span><span class="status-value">${data.sistema.hostname}</span></div>
+                    <div class="status-row"><span class="status-label">Plataforma:</span><span class="status-value">${data.sistema.platform} ${data.sistema.arch}</span></div>
+                    <div class="status-row"><span class="status-label">Memoria Total:</span><span class="status-value">${data.sistema.memoria_total}</span></div>
+                    <div class="status-row"><span class="status-label">Memoria Libre:</span><span class="status-value">${data.sistema.memoria_libre}</span></div>
+                    <div class="status-row"><span class="status-label">CPU Cores:</span><span class="status-value">${data.sistema.cpus}</span></div>
+                    <div class="status-row"><span class="status-label">Node.js:</span><span class="status-value">${data.node.version}</span></div>
+                    <div class="status-row"><span class="status-label">Memoria Heap:</span><span class="status-value">${data.node.memoria}</span></div>
+                `;
+                agregarLog('Estado del sistema actualizado', 'success');
+            } catch(e) {
+                agregarLog('Error al cargar estado', 'error');
+            }
+        }
         
-        const doc = new PDFDocument({ margin: 50 });
+        async function cargarEnv() {
+            try {
+                const res = await fetch(API_URL + '/ingeniero/env', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById('envVars').innerHTML = `
+                    <div class="status-row"><span class="status-label">JWT_SECRET:</span><span class="status-value">${data.JWT_SECRET}</span></div>
+                    <div class="status-row"><span class="status-label">Supabase:</span><span class="status-value">${data.SUPABASE_URL}</span></div>
+                    <div class="status-row"><span class="status-label">WhatsApp:</span><span class="status-value">${data.WHATSAPP_NUMBER}</span></div>
+                `;
+            } catch(e) {
+                agregarLog('Error al cargar env', 'error');
+            }
+        }
         
-        res.setHeader('Content-Disposition', 'attachment; filename=lexpenal_report.pdf');
-        res.setHeader('Content-Type', 'application/pdf');
+        async function cargarStats() {
+            try {
+                const res = await fetch(API_URL + '/ingeniero/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById('stats').innerHTML = `
+                    <div class="status-row"><span class="status-label">Total Consultas:</span><span class="status-value">${data.total_consultas}</span></div>
+                    <div class="status-row"><span class="status-label">Total Citas:</span><span class="status-value">${data.total_citas}</span></div>
+                    <div class="status-row"><span class="status-label">Usuarios:</span><span class="status-value">${data.usuarios}</span></div>
+                    <div class="status-row"><span class="status-label">Plantillas:</span><span class="status-value">${data.plantillas}</span></div>
+                    <div class="status-row"><span class="status-label">Documentos:</span><span class="status-value">${data.documentos}</span></div>
+                `;
+            } catch(e) {
+                agregarLog('Error al cargar stats', 'error');
+            }
+        }
         
-        doc.pipe(res);
+        async function cargarArchivos() {
+            try {
+                const res = await fetch(API_URL + '/ingeniero/files', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.files && data.files.length) {
+                    let html = `<div class="log-line info">${data.current_dir}</div>`;
+                    data.files.forEach(f => {
+                        const icon = f.type === 'dir' ? '📁' : '📄';
+                        html += `<div class="log-line info">${icon} ${f.name} ${f.size ? '(' + f.size + ')' : ''}</div>`;
+                    });
+                    document.getElementById('fileExplorer').innerHTML = html;
+                }
+            } catch(e) {
+                document.getElementById('fileExplorer').innerHTML = '<div class="log-line error">Error al cargar archivos</div>';
+            }
+        }
         
-        doc.fontSize(20).text('LexPenal - Reporte de Gestión', { align: 'center' });
-        doc.moveDown();
-        doc.fontSize(12).text(`Generado: ${new Date().toLocaleString()}`, { align: 'center' });
-        doc.moveDown();
+        async function ejecutarSQL() {
+            const query = document.getElementById('sqlQuery').value;
+            if (!query) {
+                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Ingrese una consulta</div>';
+                return;
+            }
+            if (!query.toLowerCase().startsWith('select')) {
+                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Solo SELECT permitidas</div>';
+                return;
+            }
+            document.getElementById('sqlResult').innerHTML = '<div class="log-line info">Ejecutando...</div>';
+            try {
+                const res = await fetch(API_URL + '/ingeniero/sql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ query })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('sqlResult').innerHTML = `<div class="log-line success">✅ ${data.data?.length || 0} filas</div><pre style="color:#0f0; font-size:0.6rem; margin-top:0.5rem;">${JSON.stringify(data.data, null, 2)}</pre>`;
+                    agregarLog('SQL ejecutado', 'success');
+                } else {
+                    document.getElementById('sqlResult').innerHTML = `<div class="log-line error">${data.error}</div>`;
+                }
+            } catch(e) {
+                document.getElementById('sqlResult').innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
+            }
+        }
         
-        doc.fontSize(16).text('📞 Consultas', { underline: true });
-        doc.moveDown(0.5);
-        consultas.forEach((c, i) => {
-            doc.fontSize(10).text(`${i + 1}. ${c.nombre} - ${c.codigo}`);
-            doc.text(`   Teléfono: ${c.telefono} | Estado: ${c.estado}`);
-            doc.text(`   Fecha: ${new Date(c.fecha).toLocaleDateString()}`);
-            doc.moveDown(0.3);
-        });
+        function limpiarSQL() {
+            document.getElementById('sqlQuery').value = '';
+            document.getElementById('sqlResult').innerHTML = '';
+        }
         
-        doc.addPage();
+        async function verificarServidor() {
+            document.getElementById('actionResult').innerHTML = '<div class="log-line info">Verificando...</div>';
+            try {
+                const res = await fetch(API_URL + '/ingeniero/status', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ Servidor OK</div>';
+                    agregarLog('Servidor verificado', 'success');
+                } else {
+                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">Error: ${res.status}</div>`;
+                }
+            } catch(e) {
+                document.getElementById('actionResult').innerHTML = `<div class="log-line error">${e.message}</div>`;
+            }
+        }
         
-        doc.fontSize(16).text('📅 Citas', { underline: true });
-        doc.moveDown(0.5);
-        citas.forEach((c, i) => {
-            doc.fontSize(10).text(`${i + 1}. ${c.nombre} - ${c.codigo}`);
-            doc.text(`   Teléfono: ${c.telefono} | Estado: ${c.estado}`);
-            doc.text(`   Fecha Cita: ${c.fecha ? new Date(c.fecha).toLocaleString() : 'N/A'}`);
-            doc.moveDown(0.3);
-        });
+        async function probarAPI() {
+            document.getElementById('actionResult').innerHTML = '<div class="log-line info">Probando API...</div>';
+            try {
+                const res = await fetch(API_URL + '/admin/dashboard', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ API OK</div>';
+                    agregarLog('API probada', 'success');
+                } else {
+                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">Error: ${res.status}</div>`;
+                }
+            } catch(e) {
+                document.getElementById('actionResult').innerHTML = `<div class="log-line error">${e.message}</div>`;
+            }
+        }
         
-        doc.end();
+        async function respaldarDB() {
+            document.getElementById('actionResult').innerHTML = '<div class="log-line info">Generando backup...</div>';
+            try {
+                const res = await fetch(API_URL + '/exportar/excel?token=' + token);
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backup_${Date.now()}.xlsx`;
+                    a.click();
+                    document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ Backup generado</div>';
+                    agregarLog('Backup completado', 'success');
+                } else {
+                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">Error: ${res.status}</div>`;
+                }
+            } catch(e) {
+                document.getElementById('actionResult').innerHTML = `<div class="log-line error">${e.message}</div>`;
+            }
+        }
         
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ==================== ENVÍO DE RECORDATORIOS ====================
-app.post('/api/enviar-recordatorios', verificarToken, verificarAdmin, async (req, res) => {
-    const db = readDB();
-    const manana = new Date();
-    manana.setDate(manana.getDate() + 1);
-    
-    const citasManana = db.citas.filter(c => {
-        if (!c.fecha || c.estado === 'cancelada' || c.recordatorio_enviado) return false;
-        const fechaCita = new Date(c.fecha);
-        return fechaCita.toDateString() === manana.toDateString();
-    });
-    
-    citasManana.forEach(cita => {
-        console.log(`📧 Recordatorio para ${cita.nombre}: Su cita es mañana`);
-        cita.recordatorio_enviado = true;
-    });
-    
-    writeDB(db);
-    res.json({ success: true, enviados: citasManana.length });
-});
-
-// ==================== RUTAS DE TESTIMONIOS ====================
-app.get('/api/testimonios', (req, res) => { const db = readDB(); res.json(db.testimonios.filter(t => t.aprobado)); });
-app.post('/api/testimonios', verificarToken, verificarAdmin, (req, res) => {
-    const { cliente, texto, aprobado } = req.body;
-    const db = readDB();
-    const nuevoTestimonio = { id: db.testimonios.length + 1, cliente: cliente || 'Cliente anónimo', texto, aprobado: aprobado !== undefined ? aprobado : true, fecha: new Date().toISOString().split('T')[0] };
-    db.testimonios.push(nuevoTestimonio);
-    writeDB(db);
-    res.json({ success: true, testimonio: nuevoTestimonio });
-});
-app.put('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const { cliente, texto, aprobado } = req.body;
-    const db = readDB();
-    const index = db.testimonios.findIndex(t => t.id === parseInt(id));
-    if (index !== -1) {
-        db.testimonios[index] = { ...db.testimonios[index], cliente, texto, aprobado };
-        writeDB(db);
-        res.json({ success: true });
-    } else { res.status(404).json({ error: 'Testimonio no encontrado' }); }
-});
-app.delete('/api/testimonios/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const db = readDB();
-    db.testimonios = db.testimonios.filter(t => t.id !== parseInt(id));
-    writeDB(db);
-    res.json({ success: true });
-});
-
-// ==================== RUTAS DE TIPOS DE CASO ====================
-app.get('/api/tipos-caso', (req, res) => { const db = readDB(); res.json(db.tipos_caso); });
-app.post('/api/tipos-caso', verificarToken, verificarAdmin, (req, res) => {
-    const { nombre, icono, orden } = req.body;
-    const db = readDB();
-    const nuevoTipo = { id: db.tipos_caso.length + 1, nombre, icono: icono || '⚖️', orden: orden || db.tipos_caso.length + 1 };
-    db.tipos_caso.push(nuevoTipo);
-    writeDB(db);
-    res.json({ success: true, tipo: nuevoTipo });
-});
-app.put('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const { nombre, icono, orden } = req.body;
-    const db = readDB();
-    const index = db.tipos_caso.findIndex(t => t.id === parseInt(id));
-    if (index !== -1) {
-        db.tipos_caso[index] = { ...db.tipos_caso[index], nombre, icono, orden };
-        writeDB(db);
-        res.json({ success: true });
-    } else { res.status(404).json({ error: 'Tipo no encontrado' }); }
-});
-app.delete('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => {
-    const { id } = req.params;
-    const db = readDB();
-    db.tipos_caso = db.tipos_caso.filter(t => t.id !== parseInt(id));
-    writeDB(db);
-    res.json({ success: true });
-});
-
-// ==================== RUTAS DE ADMIN GENERAL ====================
-app.get('/api/admin/abogado', (req, res) => { const db = readDB(); res.json(db.abogado); });
-app.put('/api/admin/abogado', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.abogado = { ...db.abogado, ...req.body }; writeDB(db); res.json({ success: true }); });
-app.get('/api/admin/configuracion', (req, res) => { const db = readDB(); res.json(db.configuracion); });
-app.put('/api/admin/configuracion', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion = { ...db.configuracion, ...req.body }; writeDB(db); res.json({ success: true }); });
-app.get('/api/configuracion/tema', (req, res) => { const db = readDB(); res.json({ tema: db.configuracion.tema || 'oscuro' }); });
-app.put('/api/configuracion/tema', verificarToken, verificarAdmin, (req, res) => { const db = readDB(); db.configuracion.tema = req.body.tema; writeDB(db); res.json({ success: true }); });
-
-// ==================== WHATSAPP ====================
-app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
-    res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20${req.usuario.nombre}` });
-});
-
-// ==================== FRONTEND ====================
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'index.html')); });
-app.get('/admin', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'index.html')); });
-app.get('/admin/ingeniero.html', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', 'ingeniero.html')); });
-app.get('/admin/:page', (req, res) => { res.sendFile(path.join(__dirname, 'frontend', 'admin', `${req.params.page}.html`)); });
-
-app.listen(PORT, () => {
-    console.log(`⚖️ Servidor LexPenal corriendo en http://localhost:${PORT}`);
-    console.log(`👑 Admin: 1018457093 / ACT1018457093`);
-    console.log(`🔧 Ingeniero: 1052041627 / 123luisancho`);
-    console.log(`📊 Diagnóstico: /api/diagnostico`);
-});
+        function limpiarCache() {
+            if (confirm('Limpiar cache? Se cerrara sesion.')) {
+                localStorage.clear();
+                window.location.href = '/login.html';
+            }
+        }
+        
+        function verSupabase() {
+            window.open('https://supabase.com/dashboard/projects', '_blank');
+            agregarLog('Abriendo Supabase', 'info');
+        }
+        
+        function limpiarLogsLocal() {
+            logsLocales = [];
+            agregarLog('Logs limpiados', 'warning');
+            actualizarLogs();
+        }
+        
+        function descargarLogsLocal() {
+            const logsText = logsLocales.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
+            const blob = new Blob([logsText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${Date.now()}.txt`;
+            a.click();
+        }
+        
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+        
+        agregarLog('Panel de ingeniero iniciado', 'success');
+        cargarStatus();
+        cargarEnv();
+        cargarStats();
+        cargarArchivos();
+        
+        setInterval(() => {
+            cargarStatus();
+            cargarStats();
+        }, 30000);
+    </script>
+</body>
+</html>
