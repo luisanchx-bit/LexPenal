@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expansión de Dominio | Jackpot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Idle Death Gamble | Jackpot</title>
     <style>
         * {
             margin: 0;
@@ -11,160 +11,143 @@
             box-sizing: border-box;
             user-select: none;
         }
-
         body {
             min-height: 100vh;
-            background: radial-gradient(circle at center, #0a0f1e 0%, #03060c 100%);
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
             display: flex;
-            justify-content: center;
             align-items: center;
-            font-family: 'Courier New', 'Impact', monospace;
-            overflow: hidden;
+            justify-content: center;
+            font-family: 'Courier New', 'Segoe UI', monospace;
+            overflow-x: hidden;
             position: relative;
         }
-
-        /* Fondo de energía maldita */
-        .cursed-energy {
+        /* Fondo geométrico */
+        .geometric-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(
-                45deg,
-                rgba(0, 255, 255, 0.02) 0px,
-                rgba(0, 255, 255, 0.02) 2px,
-                transparent 2px,
-                transparent 8px
-            );
-            pointer-events: none;
-            z-index: 1;
+            z-index: 0;
+            overflow: hidden;
         }
+        .hexagon {
+            width: 120px;
+            height: 138px;
+            background: rgba(200, 169, 81, 0.05);
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            border: 1px solid rgba(200, 169, 81, 0.3);
+            position: absolute;
+            animation: rotateSlow 30s infinite linear;
+        }
+        .circle-ring {
+            position: absolute;
+            border: 1px solid rgba(200, 169, 81, 0.15);
+            border-radius: 50%;
+            animation: pulseRing 6s infinite alternate;
+        }
+        .law-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(200, 169, 81, 0.4), transparent);
+            width: 200%;
+            transform: rotate(45deg);
+            animation: slideLine 14s infinite linear;
+        }
+        @keyframes rotateSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.2; } 100% { transform: scale(1.5); opacity: 0.05; } }
+        @keyframes slideLine { 0% { transform: translateX(-50%) rotate(25deg); } 100% { transform: translateX(50%) rotate(25deg); } }
 
-        /* Contenedor principal */
-        .domain-container {
+        /* Contenedor de la máquina */
+        .slot-machine {
+            background: #1e1b1a;
+            border-radius: 60px;
+            padding: 2rem 2.5rem;
+            border: 8px solid #c9a03d;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.6), inset 0 1px 4px rgba(255,255,200,0.3);
             position: relative;
             z-index: 10;
-            width: 100%;
-            max-width: 750px;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px);
-            border-radius: 48px;
-            padding: 2rem;
-            border: 2px solid #00ffff;
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
-            animation: borderPulse 2s infinite alternate;
-        }
-
-        @keyframes borderPulse {
-            0% { border-color: #00ffff; box-shadow: 0 0 20px cyan; }
-            100% { border-color: #ff00ff; box-shadow: 0 0 50px magenta; }
-        }
-
-        /* Título */
-        .domain-title {
-            text-align: center;
-            font-size: 2.2rem;
-            font-weight: bold;
-            letter-spacing: 5px;
-            color: #00ffff;
-            text-shadow: 0 0 10px cyan, 0 0 20px blue;
-            margin-bottom: 2rem;
-            font-family: 'Impact', 'Courier New', monospace;
-        }
-
-        /* Slot machine */
-        .slot-machine {
-            background: #1a1a2e;
-            border-radius: 30px;
-            padding: 2rem;
-            border: 3px solid gold;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .reels {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 2rem;
-        }
-
-        .reel {
-            background: #000;
-            border-radius: 20px;
-            padding: 15px;
-            flex: 1;
-            text-align: center;
-            border: 2px solid #ffd700;
-            box-shadow: inset 0 0 15px rgba(255,215,0,0.5), 0 5px 15px rgba(0,0,0,0.7);
-        }
-
-        .reel-symbol {
-            font-size: 5rem;
-            line-height: 1.2;
-            transition: transform 0.2s ease;
-            display: inline-block;
-        }
-
-        .spinning .reel-symbol {
-            animation: spinFast 0.1s linear infinite;
-        }
-
-        @keyframes spinFast {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-20px); opacity: 0.8; }
-        }
-
-        /* Botón de giro */
-        .spin-btn {
-            display: block;
-            width: 80%;
-            margin: 1rem auto;
-            padding: 15px;
-            font-size: 1.8rem;
-            font-weight: bold;
-            font-family: monospace;
-            background: radial-gradient(circle at 30% 10%, #ffd700, #b8860b);
-            border: none;
-            border-radius: 60px;
-            color: #1a1a1a;
-            text-shadow: 0 1px 2px white;
-            cursor: pointer;
+            max-width: 700px;
+            width: 90%;
             transition: 0.2s;
-            box-shadow: 0 5px 0 #7a5c00;
-        }
-
-        .spin-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #7a5c00;
-        }
-
-        /* Mensaje de resultado */
-        .result-message {
             text-align: center;
-            margin-top: 2rem;
-            font-size: 2rem;
+        }
+        .top-led {
+            font-size: 1.2rem;
             font-weight: bold;
             letter-spacing: 4px;
-            background: rgba(0,0,0,0.7);
-            padding: 1rem;
+            color: #ffd966;
+            background: #00000066;
             border-radius: 40px;
-            font-family: monospace;
+            width: fit-content;
+            margin: 0 auto 1rem;
+            padding: 0.3rem 2rem;
+            box-shadow: inset 0 0 4px gold, 0 2px 6px black;
         }
-
-        .jackpot-text {
-            color: gold;
-            text-shadow: 0 0 10px orange, 0 0 20px red;
-            animation: jackpotGlow 0.5s infinite alternate;
+        .reels-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.8rem;
+            margin: 2rem 0;
         }
-
-        @keyframes jackpotGlow {
-            from { text-shadow: 0 0 5px red; }
-            to { text-shadow: 0 0 30px gold; }
+        .reel {
+            background: #0a0705;
+            border-radius: 24px;
+            padding: 1.2rem;
+            width: 110px;
+            text-align: center;
+            border: 3px solid #e6b422;
+            box-shadow: inset 0 0 15px #000000aa, 0 10px 20px black;
         }
-
-        /* Efecto de luz estroboscópica para jackpot */
-        .jackpot-flash {
+        .reel-symbol {
+            font-size: 4.5rem;
+            display: inline-block;
+            filter: drop-shadow(0 0 4px gold);
+            transition: 0.02s linear;
+        }
+        .spinning .reel-symbol {
+            animation: reelSpin 0.08s infinite linear;
+        }
+        @keyframes reelSpin {
+            0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-18px) rotate(5deg); opacity: 0.8; }
+        }
+        .lever-area {
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        .lever {
+            width: 90px;
+            height: 90px;
+            background: radial-gradient(circle at 35% 25%, #f3cd81, #b57c1c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: 0.08s linear;
+            box-shadow: 0 12px 0 #684e12;
+            border: 1px solid #ffeaac;
+        }
+        .lever:active {
+            transform: translateY(6px);
+            box-shadow: 0 4px 0 #684e12;
+        }
+        .jackpot-message {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, gold, #ff8800);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 6px darkorange;
+            letter-spacing: 4px;
+            margin-top: 1rem;
+            display: none;
+        }
+        .winner-flash {
             position: fixed;
             top: 0;
             left: 0;
@@ -172,167 +155,280 @@
             height: 100%;
             background: radial-gradient(circle, gold, transparent);
             pointer-events: none;
-            z-index: 999;
-            animation: flashBang 0.6s ease-out forwards;
+            z-index: 100;
+            animation: flashWin 0.8s ease-out forwards;
         }
-
-        @keyframes flashBang {
-            0% { opacity: 0.9; background: radial-gradient(circle, gold, orange);}
+        @keyframes flashWin {
+            0% { opacity: 0.8; background: radial-gradient(circle, #ffd700, #ffaa33);}
             100% { opacity: 0; background: transparent; }
         }
-
-        /* Partículas de celebración */
         .confetti {
             position: fixed;
-            width: 10px;
-            height: 20px;
+            width: 12px;
+            height: 24px;
             background: gold;
-            position: absolute;
-            top: -20px;
-            animation: fall 2s linear forwards;
-            z-index: 1000;
+            top: -30px;
+            animation: fall 2.2s linear forwards;
+            z-index: 200;
         }
-
         @keyframes fall {
-            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+            to { transform: translateY(100vh) rotate(400deg); opacity: 0; }
+        }
+        .reset-btn {
+            background: #333;
+            border: 1px solid #c9a03d;
+            color: gold;
+            border-radius: 30px;
+            padding: 6px 18px;
+            margin-top: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .hakari-face {
+            margin-top: 2rem;
+            text-align: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.5s;
+        }
+        .hakari-face.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+        .manga-face {
+            width: 160px;
+            height: 160px;
+            background: #f5e6d3;
+            margin: 0 auto;
+            border-radius: 50%;
+            position: relative;
+            border: 3px solid #2c2c2c;
+            box-shadow: 0 0 0 5px #ffd966;
+        }
+        .eyes {
+            position: absolute;
+            top: 45px;
+            left: 25px;
+            width: 110px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .eye {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid black;
+            position: relative;
+        }
+        .pupil {
+            width: 16px;
+            height: 16px;
+            background: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 7px;
+            left: 7px;
+        }
+        .mouth {
+            position: absolute;
+            bottom: 40px;
+            left: 55px;
+            width: 50px;
+            height: 20px;
+            background: black;
+            border-radius: 0 0 30px 30px;
+        }
+        .hair {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            width: 120px;
+            height: 40px;
+            background: #2c2c2c;
+            border-radius: 50% 50% 0 0;
+        }
+        .hakari-name {
+            margin-top: 15px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #ffd966;
+            letter-spacing: 2px;
+        }
+        @media (max-width: 550px) {
+            .reel { width: 70px; padding: 0.8rem; }
+            .reel-symbol { font-size: 2.5rem; }
+            .slot-machine { padding: 1rem; }
+            .manga-face { width: 120px; height: 120px; }
+            .eyes { top: 30px; left: 18px; width: 85px; }
+            .eye { width: 25px; height: 25px; }
+            .pupil { width: 12px; height: 12px; top: 5px; left: 5px; }
+            .mouth { bottom: 25px; left: 40px; width: 40px; }
         }
     </style>
 </head>
 <body>
-<div class="cursed-energy"></div>
-<div class="domain-container">
-    <div class="domain-title">⚡ DOMAIN EXPANSION ⚡<br>🏮 IDLE DEATH GAMBLE 🏮</div>
-    <div class="slot-machine">
-        <div class="reels">
-            <div class="reel" id="reel1">
-                <div class="reel-symbol" id="symbol1">🎰</div>
-            </div>
-            <div class="reel" id="reel2">
-                <div class="reel-symbol" id="symbol2">🎰</div>
-            </div>
-            <div class="reel" id="reel3">
-                <div class="reel-symbol" id="symbol3">🎰</div>
-            </div>
+<div class="geometric-bg">
+    <div class="hexagon" style="top: 15%; left: -30px;"></div>
+    <div class="hexagon" style="bottom: 5%; right: -20px;"></div>
+    <div class="circle-ring" style="top: 20%; right: 5%; width: 150px; height: 150px;"></div>
+    <div class="law-line"></div>
+</div>
+
+<div class="slot-machine" id="slotMachine">
+    <div class="top-led">⚡ IDLE DEATH GAMBLE ⚡</div>
+    <div class="reels-container" id="reelsContainer">
+        <div class="reel" id="reel1"><div class="reel-symbol" id="symbol1">🎰</div></div>
+        <div class="reel" id="reel2"><div class="reel-symbol" id="symbol2">🎰</div></div>
+        <div class="reel" id="reel3"><div class="reel-symbol" id="symbol3">🎰</div></div>
+    </div>
+    <div class="lever-area">
+        <div class="lever" id="leverBtn">🎰</div>
+    </div>
+    <div class="jackpot-message" id="jackpotMsg">✨ JACKPOT ✨</div>
+    <div style="text-align: center; margin-top: 12px;">
+        <button class="reset-btn" id="resetBtn">🔄 GIRAR DE NUEVO</button>
+    </div>
+    <div id="hakariFace" class="hakari-face">
+        <div class="manga-face">
+            <div class="hair"></div>
+            <div class="eyes"><div class="eye"><div class="pupil"></div></div><div class="eye"><div class="pupil"></div></div></div>
+            <div class="mouth"></div>
         </div>
-        <button class="spin-btn" id="spinBtn">🎲 GIRAR 🎲</button>
-        <div class="result-message" id="resultMessage">Presiona GIRAR y busca el JACKPOT</div>
+        <div class="hakari-name">HAKARI KINJI</div>
+        <div style="font-size: 1.5rem; color: gold;">JACKPOT!!!</div>
     </div>
 </div>
 
 <script>
-    const symbols = ["💀", "🎰", "7️⃣", "⭐", "🔥", "💎", "🌀", "💰", "👑", "⚡"];
-    const jackpotSymbol = "7️⃣";  // Siete dorado, la gloria
+    const lever = document.getElementById('leverBtn');
+    const reel1Sym = document.getElementById('symbol1');
+    const reel2Sym = document.getElementById('symbol2');
+    const reel3Sym = document.getElementById('symbol3');
+    const reel1Div = document.getElementById('reel1');
+    const reel2Div = document.getElementById('reel2');
+    const reel3Div = document.getElementById('reel3');
+    const jackpotDiv = document.getElementById('jackpotMsg');
+    const resetBtn = document.getElementById('resetBtn');
+    const hakariFaceDiv = document.getElementById('hakariFace');
+    const reelsContainer = document.getElementById('reelsContainer');
+    
     let spinning = false;
     let interval1, interval2, interval3;
+    let stopTimeout1, stopTimeout2, stopTimeout3;
 
-    const reel1El = document.getElementById("symbol1");
-    const reel2El = document.getElementById("symbol2");
-    const reel3El = document.getElementById("symbol3");
-    const spinBtn = document.getElementById("spinBtn");
-    const resultMsg = document.getElementById("resultMessage");
+    const symbols = ["💀", "🎰", "7️⃣", "⭐", "🔥", "💎", "🌀", "👑", "💰", "⚡"];
 
-    // Función para cambiar símbolo rápido durante el giro
-    function fastChange(reelElement) {
-        const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-        reelElement.innerText = randomSymbol;
-    }
-
-    // Parar un reel con un símbolo final
-    function stopReel(reelElement, finalSymbol, delay, callback) {
-        setTimeout(() => {
-            reelElement.innerText = finalSymbol;
-            if (callback) callback();
-        }, delay);
-    }
-
-    // Generar partículas de confeti
-    function createConfetti() {
-        for (let i = 0; i < 150; i++) {
-            const conf = document.createElement("div");
-            conf.classList.add("confetti");
-            conf.style.left = Math.random() * 100 + "%";
-            conf.style.width = Math.random() * 8 + 4 + "px";
-            conf.style.height = Math.random() * 15 + 5 + "px";
-            conf.style.background = `hsl(${Math.random() * 60 + 40}, 100%, 60%)`;
-            conf.style.animationDuration = Math.random() * 1.5 + 1 + "s";
-            document.body.appendChild(conf);
-            setTimeout(() => conf.remove(), 2500);
-        }
-    }
-
-    // Efecto de flash y mensaje jackpot
-    function triggerJackpot() {
-        // Flash de luz
-        const flash = document.createElement("div");
-        flash.classList.add("jackpot-flash");
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 800);
-        // Confeti
-        createConfetti();
-        // Mensaje épico
-        resultMsg.innerHTML = "✨✨✨ JACKPOT !!! ✨✨✨<br>🔮 PREMIO MAYOR 🔮";
-        resultMsg.classList.add("jackpot-text");
-        // Sonido opcional si tienes el archivo (comentado)
-        // let audio = new Audio('/assets/audio/jackpot.mp3');
-        // audio.play().catch(e => console.log("Audio no cargado"));
-        // Redirigir después de la emoción (2.5 segundos)
-        setTimeout(() => {
-            window.location.href = "/admin/ingeniero.html";
-        }, 2500);
-    }
-
-    // Lógica principal
-    async function startSpin() {
+    function startSpin() {
         if (spinning) return;
         spinning = true;
-        spinBtn.disabled = true;
-        resultMsg.innerHTML = "🌀 GIRANDO... 🌀";
-        resultMsg.classList.remove("jackpot-text");
-
-        // Animación rápida en los tres reels
-        const reel1Int = setInterval(() => fastChange(reel1El), 70);
-        const reel2Int = setInterval(() => fastChange(reel2El), 70);
-        const reel3Int = setInterval(() => fastChange(reel3El), 70);
-
-        // Simular parada escalonada
-        setTimeout(() => { clearInterval(reel1Int); }, 800);
-        setTimeout(() => { clearInterval(reel2Int); }, 1000);
-        setTimeout(() => { clearInterval(reel3Int); }, 1200);
-
-        // Símbolos aleatorios finales
-        const final1 = symbols[Math.floor(Math.random() * symbols.length)];
-        const final2 = symbols[Math.floor(Math.random() * symbols.length)];
-        const final3 = symbols[Math.floor(Math.random() * symbols.length)];
-
-        // Asignar símbolos finales después de cada intervalo
-        setTimeout(() => { reel1El.innerText = final1; }, 800);
-        setTimeout(() => { reel2El.innerText = final2; }, 1000);
-        setTimeout(() => { reel3El.innerText = final3; }, 1200);
-
-        // Evaluar si es JACKPOT (tres sietes)
+        
+        resetBtn.disabled = true;
+        resetBtn.style.opacity = "0.6";
+        
+        jackpotDiv.style.display = "none";
+        hakariFaceDiv.classList.remove('visible');
+        
+        lever.style.transform = "translateY(6px)";
+        setTimeout(() => { lever.style.transform = ""; }, 120);
+        
+        reel1Div.classList.add('spinning');
+        reel2Div.classList.add('spinning');
+        reel3Div.classList.add('spinning');
+        
+        interval1 = setInterval(() => {
+            reel1Sym.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        }, 60);
+        interval2 = setInterval(() => {
+            reel2Sym.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        }, 60);
+        interval3 = setInterval(() => {
+            reel3Sym.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        }, 60);
+        
+        stopTimeout1 = setTimeout(() => {
+            clearInterval(interval1);
+            reel1Sym.innerText = "7️⃣";
+            reel1Div.classList.remove('spinning');
+        }, 900);
+        stopTimeout2 = setTimeout(() => {
+            clearInterval(interval2);
+            reel2Sym.innerText = "7️⃣";
+            reel2Div.classList.remove('spinning');
+        }, 1100);
+        stopTimeout3 = setTimeout(() => {
+            clearInterval(interval3);
+            reel3Sym.innerText = "7️⃣";
+            reel3Div.classList.remove('spinning');
+        }, 1300);
+        
         setTimeout(() => {
-            const isJackpot = (final1 === jackpotSymbol && final2 === jackpotSymbol && final3 === jackpotSymbol);
-            if (isJackpot) {
-                resultMsg.innerHTML = "✨✨✨ JACKPOT !!! ✨✨✨<br>🔮 PREMIO MAYOR 🔮";
-                resultMsg.classList.add("jackpot-text");
-                createConfetti();
-                const flash = document.createElement("div");
-                flash.classList.add("jackpot-flash");
-                document.body.appendChild(flash);
-                setTimeout(() => flash.remove(), 800);
-                // Redirigir
+            spinning = false;
+            resetBtn.disabled = false;
+            resetBtn.style.opacity = "1";
+            jackpotDiv.style.display = "block";
+            
+            const flash = document.createElement('div');
+            flash.classList.add('winner-flash');
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 800);
+            
+            for (let i = 0; i < 140; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + "%";
+                conf.style.width = Math.random() * 9 + 5 + "px";
+                conf.style.height = Math.random() * 20 + 10 + "px";
+                conf.style.background = `hsl(${Math.random() * 60 + 40}, 100%, 60%)`;
+                conf.style.animationDuration = Math.random() * 1.5 + 1 + "s";
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 2500);
+            }
+            
+            // Ocultar rodillos y mostrar Hakari después de 1 segundo
+            setTimeout(() => {
+                reelsContainer.style.display = 'none';
+                lever.style.display = 'none';
+                jackpotDiv.style.display = 'none';
+                hakariFaceDiv.classList.add('visible');
+                // Redirigir al panel de ingeniero después de 3 segundos
                 setTimeout(() => {
                     window.location.href = "/admin/ingeniero.html";
-                }, 2000);
-            } else {
-                resultMsg.innerHTML = "❌ SIN SUERTE... ❌<br>Intenta de nuevo, el destino espera";
-                spinBtn.disabled = false;
-                spinning = false;
-            }
-        }, 1300);
+                }, 3000);
+            }, 1000);
+            
+        }, 1400);
     }
 
-    spinBtn.addEventListener("click", startSpin);
+    resetBtn.addEventListener('click', () => {
+        if (spinning) return;
+        clearTimeout(stopTimeout1);
+        clearTimeout(stopTimeout2);
+        clearTimeout(stopTimeout3);
+        clearInterval(interval1);
+        clearInterval(interval2);
+        clearInterval(interval3);
+        reel1Div.classList.remove('spinning');
+        reel2Div.classList.remove('spinning');
+        reel3Div.classList.remove('spinning');
+        reel1Sym.innerText = "🎰";
+        reel2Sym.innerText = "🎰";
+        reel3Sym.innerText = "🎰";
+        jackpotDiv.style.display = "none";
+        // Restaurar visibilidad de los elementos
+        reelsContainer.style.display = 'flex';
+        lever.style.display = 'flex';
+        hakariFaceDiv.classList.remove('visible');
+        startSpin();
+    });
+
+    lever.addEventListener('click', startSpin);
+    
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            startSpin();
+        }, 500);
+    });
 </script>
 </body>
 </html>
