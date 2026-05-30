@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/admin/css/admin.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Responsive */
         .sidebar { transition: transform 0.3s ease; }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); position: fixed; z-index: 1001; width: 260px; background: #0a0a0a; height: 100vh; overflow-y: auto; }
@@ -60,6 +59,7 @@
                 <a href="/admin/plantillas.html">📄 Plantillas</a>
                 <a href="/admin/documentos.html">📁 Docs Generados</a>
                 <a href="/admin/configuracion.html">⚙️ Configuración</a>
+                <a href="/faq.html" target="_blank">❓ FAQ</a>
             </nav>
             <div class="sidebar-footer">
                 <p>Dr. Asmairo Conde Torres</p>
@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <div class="stats-grid" id="statsGrid">
+            <div class="stats-grid">
                 <div class="stat-card"><h3>Total Consultas</h3><div class="stat-number" id="totalConsultas">-</div></div>
                 <div class="stat-card"><h3>Total Citas</h3><div class="stat-number" id="totalCitas">-</div></div>
                 <div class="stat-card"><h3>Consultas Pendientes</h3><div class="stat-number" id="consultasPendientes">-</div></div>
@@ -89,18 +89,16 @@
 
             <div class="table-container">
                 <h3 style="margin-bottom:1rem; color:#C8A951;">📋 Consultas Recientes</h3>
-                <table>
-                    <thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
-                    <tbody id="consultasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody>
-                </table>
+                <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="consultasRecientes"><tr><td colspan="7">Cargando...<\/td><\/tr><\/tbody>
+            催促
             </div>
 
             <div class="table-container" style="margin-top:2rem;">
                 <h3 style="margin-bottom:1rem; color:#C8A951;">📅 Citas Recientes</h3>
-                <table>
-                    <thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Estado</th><th>Acciones</th></tr></thead>
-                    <tbody id="citasRecientes"><tr><td colspan="7">Cargando...</td></tr></tbody>
-                </table>
+                <table><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Rama</th><th>Fecha Cita</th><th>Hora</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="citasRecientes"><tr><td colspan="8">Cargando...<\/td><\/tr><\/tbody>
+            催促
             </div>
         </main>
     </div>
@@ -111,10 +109,7 @@
             <div id="modalBody"></div>
             <div style="margin-top:1rem; display:flex; gap:1rem;">
                 <select id="estadoSelect" style="flex:1; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:5px;">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="en_proceso">En Proceso</option>
-                    <option value="resuelto">Resuelto</option>
-                    <option value="cancelada">Cancelada</option>
+                    <option value="pendiente">Pendiente</option><option value="en_proceso">En Proceso</option><option value="resuelto">Resuelto</option><option value="cancelada">Cancelada</option>
                 </select>
                 <button class="btn-primary" onclick="actualizarEstado()">Actualizar</button>
                 <button class="btn-danger" onclick="eliminarRegistro()">Eliminar</button>
@@ -132,7 +127,6 @@
         let evolucionChart = null;
 
         if (!token) window.location.href = '/login.html';
-
         document.getElementById('nombreAdmin').textContent = localStorage.getItem('nombre') || 'Administrador';
 
         const menuToggleBtn = document.getElementById('menuToggleBtn');
@@ -144,9 +138,7 @@
 
         async function cargarDashboard() {
             try {
-                const res = await fetch(API_URL + '/admin/dashboard', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(API_URL + '/admin/dashboard', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.status === 401) { cerrarSesion(); return; }
                 const data = await res.json();
                 document.getElementById('totalConsultas').textContent = data.total_consultas || 0;
@@ -166,20 +158,35 @@
 
         async function cargarRegistrosRecientes() {
             try {
-                const res = await fetch(API_URL + '/casos/todos', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(API_URL + '/casos/todos', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.status === 401) { cerrarSesion(); return; }
                 const data = await res.json();
                 const consultas = (data.consultas || []).slice(-5).reverse();
                 const citas = (data.citas || []).slice(-5).reverse();
                 
                 document.getElementById('consultasRecientes').innerHTML = consultas.map(c => `
-                    <tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${new Date(c.fecha).toLocaleDateString()}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td></tr>
+                    <tr>
+                        <td>${c.codigo}</td>
+                        <td>${c.nombre}</td>
+                        <td>${c.telefono}</td>
+                        <td>${c.rama}</td>
+                        <td>${new Date(c.fecha).toLocaleDateString()}</td>
+                        <td><span class="badge badge-${c.estado}">${c.estado}</span></td>
+                        <td><button class="btn-primary" onclick="verDetalle(${c.id}, 'consulta')">Ver</button></td>
+                    </tr>
                 `).join('');
                 
                 document.getElementById('citasRecientes').innerHTML = citas.map(c => `
-                    <tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.telefono}</td><td>${c.rama}</td><td>${c.fecha ? new Date(c.fecha).toLocaleDateString() : '-'}</td><td><span class="badge badge-${c.estado}">${c.estado}</span></td><td><button class="btn-primary" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td></tr>
+                    <tr>
+                        <td>${c.codigo}</td>
+                        <td>${c.nombre}</td>
+                        <td>${c.telefono}</td>
+                        <td>${c.rama}</td>
+                        <td>${c.fecha || '-'}</td>
+                        <td>${c.hora || '-'}</td>
+                        <td><span class="badge badge-${c.estado}">${c.estado}</span></td>
+                        <td><button class="btn-primary" onclick="verDetalle(${c.id}, 'cita')">Ver</button></td>
+                    </tr>
                 `).join('');
             } catch (error) { console.error('Error al cargar registros:', error); }
         }
@@ -187,17 +194,22 @@
         async function verDetalle(id, tipo) {
             currentTipo = tipo;
             try {
-                const res = await fetch(API_URL + '/casos/todos', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(API_URL + '/casos/todos', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 const items = tipo === 'consulta' ? data.consultas : data.citas;
                 currentItem = items.find(i => i.id === id);
                 if (currentItem) {
                     document.getElementById('estadoSelect').value = currentItem.estado || 'pendiente';
                     let html = `<div><strong>Código:</strong> ${currentItem.codigo}</div><div><strong>Nombre:</strong> ${currentItem.nombre}</div><div><strong>Teléfono:</strong> ${currentItem.telefono}</div><div><strong>Email:</strong> ${currentItem.email}</div><div><strong>Rama:</strong> ${currentItem.rama}</div>`;
-                    if (tipo === 'consulta') html += `<div><strong>Hechos:</strong><br>${currentItem.hechos || 'N/A'}</div>`;
-                    else html += `<div><strong>Motivo:</strong> ${currentItem.motivo}</div><div><strong>Fecha Cita:</strong> ${currentItem.fecha ? new Date(currentItem.fecha).toLocaleString() : 'N/A'}</div>`;
+                    if (tipo === 'consulta') {
+                        html += `<div><strong>Hechos:</strong><br>${currentItem.hechos || 'N/A'}</div>`;
+                        if (currentItem.archivos?.length) {
+                            const audios = currentItem.archivos.filter(a => a.tipo?.startsWith('audio'));
+                            audios.forEach(a => { html += `<div><strong>🎙️ Audio:</strong><br><audio controls src="${API_BASE_URL + a.ruta}" style="max-width:100%"></audio></div>`; });
+                        }
+                    } else {
+                        html += `<div><strong>Motivo:</strong> ${currentItem.motivo}</div><div><strong>Fecha Cita:</strong> ${currentItem.fecha || 'N/A'} a las ${currentItem.hora || 'N/A'}</div>`;
+                    }
                     if (currentItem.notas_admin) html += `<div><strong>Notas:</strong> ${currentItem.notas_admin}</div>`;
                     document.getElementById('modalBody').innerHTML = html;
                     document.getElementById('modalDetalle').style.display = 'flex';
