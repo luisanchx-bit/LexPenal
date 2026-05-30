@@ -11,13 +11,13 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             background: #000000;
             font-family: 'Source Code Pro', monospace;
             color: #00ff00;
         }
-        
+
         .navbar {
             background: rgba(0, 0, 0, 0.95);
             padding: 1rem 2rem;
@@ -31,7 +31,7 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
@@ -39,13 +39,13 @@
             cursor: pointer;
             font-family: 'Playfair Display', serif;
         }
-        
+
         .user-info {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        
+
         .btn-cerrar {
             background: transparent;
             border: 1px solid #8B0000;
@@ -55,32 +55,32 @@
             cursor: pointer;
             font-family: monospace;
         }
-        
+
         .btn-cerrar:hover {
             background: #8B0000;
             color: #fff;
         }
-        
+
         .ingeniero-container {
             max-width: 1400px;
             margin: 80px auto 2rem;
             padding: 1.5rem;
         }
-        
+
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .terminal-card {
             background: #0a0a0a;
             border-radius: 10px;
             border: 1px solid #00aaff;
             overflow: hidden;
         }
-        
+
         .terminal-header {
             background: #1a1a1a;
             padding: 0.5rem 1rem;
@@ -89,29 +89,29 @@
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .terminal-dots {
             display: flex;
             gap: 0.3rem;
         }
-        
+
         .terminal-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
         }
-        
+
         .terminal-dot.red { background: #ff5f56; }
         .terminal-dot.yellow { background: #ffbd2e; }
         .terminal-dot.green { background: #27c93f; }
-        
+
         .terminal-title {
             color: #888;
             font-size: 0.75rem;
             margin-left: 0.5rem;
             font-family: monospace;
         }
-        
+
         .terminal-body {
             padding: 1rem;
             font-family: 'Source Code Pro', monospace;
@@ -121,24 +121,7 @@
             max-height: 350px;
             overflow-y: auto;
         }
-        
-        .sql-editor {
-            background: #0a0a0a;
-            border: 1px solid #00aaff;
-            border-radius: 5px;
-            padding: 0.8rem;
-            width: 100%;
-            font-family: 'Source Code Pro', monospace;
-            color: #00ff00;
-            resize: vertical;
-            font-size: 0.75rem;
-        }
-        
-        .sql-editor:focus {
-            outline: none;
-            border-color: #00ff00;
-        }
-        
+
         .btn-tech {
             background: #1a1a1a;
             border: 1px solid #00aaff;
@@ -152,12 +135,12 @@
             margin-right: 0.5rem;
             margin-top: 0.5rem;
         }
-        
+
         .btn-tech:hover {
             background: #00aaff;
             color: #000;
         }
-        
+
         .status-row {
             display: flex;
             justify-content: space-between;
@@ -165,56 +148,47 @@
             padding: 0.3rem 0;
             border-bottom: 1px solid #1a1a1a;
         }
-        
+
         .status-label {
             color: #888;
             font-size: 0.7rem;
         }
-        
+
         .status-value {
             color: #00ff00;
             font-size: 0.7rem;
             font-family: monospace;
         }
-        
+
         .log-line {
             font-family: monospace;
             font-size: 0.7rem;
             padding: 0.2rem 0;
             border-bottom: 1px solid #1a1a1a;
-            white-space: pre-wrap;
         }
-        
+
         .log-line.error { color: #ff4444; }
         .log-line.success { color: #00ff00; }
         .log-line.info { color: #00aaff; }
-        .log-line.warning { color: #ffaa00; }
-        
-        .progress-bar {
-            background: #1a1a1a;
-            border-radius: 10px;
-            height: 8px;
-            overflow: hidden;
-            margin: 0.5rem 0;
+
+        .sql-editor {
+            background: #0a0a0a;
+            border: 1px solid #00aaff;
+            border-radius: 5px;
+            padding: 0.8rem;
+            width: 100%;
+            font-family: monospace;
+            color: #00ff00;
+            resize: vertical;
+            font-size: 0.75rem;
         }
-        
-        .progress-fill {
-            background: #00ff00;
-            height: 100%;
-            width: 0%;
-            transition: width 0.5s;
-        }
-        
+
         @media (max-width: 768px) {
             .dashboard-grid { grid-template-columns: 1fr; }
             .ingeniero-container { padding: 1rem; margin-top: 70px; }
             .navbar { padding: 0.8rem 1rem; }
             .logo { font-size: 1.2rem; }
         }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; }
-        ::-webkit-scrollbar-thumb { background: #00aaff; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -222,12 +196,11 @@
         <div class="logo" onclick="window.location.href='/'">⚡ LexPenal :: Ingeniero</div>
         <div class="user-info">
             <span id="nombreIngeniero" style="color:#00aaff;">Cargando...</span>
-            <button onclick="cerrarSesion()" class="btn-cerrar">Cerrar sesion</button>
+            <button onclick="cerrarSesion()" class="btn-cerrar">Cerrar sesión</button>
         </div>
     </nav>
 
     <div class="ingeniero-container">
-        <!-- Fila 1: Estado del sistema -->
         <div class="dashboard-grid">
             <div class="terminal-card">
                 <div class="terminal-header">
@@ -235,7 +208,7 @@
                     <div class="terminal-title">system@lexpenal:~$ status</div>
                 </div>
                 <div class="terminal-body" id="systemStatus">
-                    <div class="log-line info">🟡 Cargando estado del sistema...</div>
+                    <div class="log-line info">Cargando estado del sistema...</div>
                 </div>
                 <div style="padding: 0.5rem;">
                     <button class="btn-tech" onclick="cargarStatus()">🔄 Actualizar</button>
@@ -256,7 +229,6 @@
             </div>
         </div>
         
-        <!-- Fila 2: SQL Editor y Logs -->
         <div class="dashboard-grid">
             <div class="terminal-card">
                 <div class="terminal-header">
@@ -278,7 +250,6 @@
                 </div>
                 <div class="terminal-body" id="logsContainer" style="height: 300px;">
                     <div class="log-line info">[INIT] Sistema iniciado</div>
-                    <div class="log-line success">[INIT] Panel de ingeniero listo</div>
                     <span class="cursor"></span>
                 </div>
                 <div style="padding: 0.5rem;">
@@ -288,7 +259,6 @@
             </div>
         </div>
         
-        <!-- Fila 3: Monitoreo y Acciones -->
         <div class="dashboard-grid">
             <div class="terminal-card">
                 <div class="terminal-header">
@@ -297,9 +267,7 @@
                 </div>
                 <div class="terminal-body">
                     <div class="status-row"><span class="status-label">🖥️ CPU Usage:</span><span class="status-value" id="cpuUsage">-</span></div>
-                    <div class="progress-bar"><div class="progress-fill" id="cpuFill" style="width:0%"></div></div>
                     <div class="status-row"><span class="status-label">💾 Memory Usage:</span><span class="status-value" id="memUsage">-</span></div>
-                    <div class="progress-bar"><div class="progress-fill" id="memFill" style="width:0%"></div></div>
                     <div class="status-row"><span class="status-label">📡 API Health:</span><span class="status-value" id="apiHealth">-</span></div>
                     <div class="status-row"><span class="status-label">🕐 Last Check:</span><span class="status-value" id="lastCheck">-</span></div>
                 </div>
@@ -315,34 +283,7 @@
                     <button class="btn-tech" onclick="respaldarDB()">💾 Backup DB</button>
                     <button class="btn-tech" onclick="limpiarCacheLocal()">🗑️ Limpiar Cache</button>
                     <button class="btn-tech" onclick="verSupabase()">☁️ Supabase</button>
-                    <button class="btn-tech" onclick="verificarServidor()">🔄 Ping Server</button>
                     <div id="actionResult" style="margin-top: 1rem; font-size: 0.7rem;"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Fila 4: Variables de entorno y sesión -->
-        <div class="dashboard-grid">
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">env@lexpenal:~$ environment</div>
-                </div>
-                <div class="terminal-body" id="envVars">
-                    <div class="log-line info">Cargando variables de entorno...</div>
-                </div>
-                <div style="padding: 0.5rem;">
-                    <button class="btn-tech" onclick="cargarEnv()">🔄 Actualizar</button>
-                </div>
-            </div>
-            
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">whoami@lexpenal:~$ session</div>
-                </div>
-                <div class="terminal-body" id="sessionInfo">
-                    <div class="log-line info">Cargando información de sesión...</div>
                 </div>
             </div>
         </div>
@@ -351,15 +292,11 @@
     <script>
         const API_BASE_URL = window.location.origin;
         const API_URL = API_BASE_URL + '/api';
-        
         let token = localStorage.getItem('token');
         let rol = localStorage.getItem('rol');
         let logsLocales = [];
-        let monitorInterval = null;
         
-        // Verificar autenticación
         if (!token) {
-            alert('No hay sesión activa');
             window.location.href = '/login.html';
         }
         
@@ -370,7 +307,6 @@
         
         document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
         
-        // Funciones de logs locales
         function agregarLog(mensaje, tipo) {
             const time = new Date().toLocaleTimeString();
             logsLocales.unshift({ time, mensaje, tipo: tipo || 'info' });
@@ -390,23 +326,6 @@
             container.scrollTop = container.scrollHeight;
         }
         
-        function limpiarLogsLocal() {
-            logsLocales = [];
-            agregarLog('Logs limpiados', 'info');
-            actualizarLogs();
-        }
-        
-        function descargarLogsLocal() {
-            const logsText = logsLocales.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
-            const blob = new Blob([logsText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `logs_${Date.now()}.txt`;
-            a.click();
-        }
-        
-        // Estado del sistema
         async function cargarStatus() {
             const container = document.getElementById('systemStatus');
             container.innerHTML = '<div class="log-line info">Cargando...</div>';
@@ -415,30 +334,30 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.status === 401) {
-                    container.innerHTML = '<div class="log-line error">🔴 Sesión expirada</div>';
-                    agregarLog('Sesión expirada', 'error');
+                    container.innerHTML = '<div class="log-line error">Sesión expirada</div>';
                     return;
                 }
                 const data = await res.json();
                 if (data.success) {
                     container.innerHTML = `
-                        <div class="status-row"><span class="status-label">🖥️ Hostname:</span><span class="status-value">${data.sistema.hostname}</span></div>
-                        <div class="status-row"><span class="status-label">🐧 Plataforma:</span><span class="status-value">${data.sistema.platform} ${data.sistema.arch}</span></div>
-                        <div class="status-row"><span class="status-label">💾 Memoria Total:</span><span class="status-value">${data.sistema.memoria_total}</span></div>
-                        <div class="status-row"><span class="status-label">📊 Memoria Libre:</span><span class="status-value">${data.sistema.memoria_libre}</span></div>
-                        <div class="status-row"><span class="status-label">⚙️ CPU Cores:</span><span class="status-value">${data.sistema.cpus}</span></div>
-                        <div class="status-row"><span class="status-label">🚀 Node.js:</span><span class="status-value">${data.node.version}</span></div>
-                        <div class="status-row"><span class="status-label">💼 Memoria Heap:</span><span class="status-value">${data.node.memoria}</span></div>
+                        <div class="status-row"><span class="status-label">Hostname:</span><span class="status-value">${data.sistema.hostname}</span></div>
+                        <div class="status-row"><span class="status-label">Plataforma:</span><span class="status-value">${data.sistema.platform} ${data.sistema.arch}</span></div>
+                        <div class="status-row"><span class="status-label">Memoria Total:</span><span class="status-value">${data.sistema.memoria_total}</span></div>
+                        <div class="status-row"><span class="status-label">Memoria Libre:</span><span class="status-value">${data.sistema.memoria_libre}</span></div>
+                        <div class="status-row"><span class="status-label">CPU Cores:</span><span class="status-value">${data.sistema.cpus}</span></div>
+                        <div class="status-row"><span class="status-label">Node.js:</span><span class="status-value">${data.node.version}</span></div>
+                        <div class="status-row"><span class="status-label">Memoria Heap:</span><span class="status-value">${data.node.memoria}</span></div>
                     `;
-                    agregarLog('Estado del sistema actualizado', 'success');
+                    agregarLog('Estado actualizado', 'success');
+                } else {
+                    container.innerHTML = `<div class="log-line error">${data.error}</div>`;
                 }
             } catch(e) {
-                container.innerHTML = '<div class="log-line error">Error de conexión</div>';
+                container.innerHTML = `<div class="log-line error">Error de conexión: ${e.message}</div>`;
                 agregarLog('Error al cargar estado', 'error');
             }
         }
         
-        // Estadísticas
         async function cargarStats() {
             const container = document.getElementById('stats');
             container.innerHTML = '<div class="log-line info">Cargando...</div>';
@@ -453,93 +372,34 @@
                 const data = await res.json();
                 if (data.success) {
                     container.innerHTML = `
-                        <div class="status-row"><span class="status-label">📋 Total Consultas:</span><span class="status-value">${data.total_consultas}</span></div>
-                        <div class="status-row"><span class="status-label">📅 Total Citas:</span><span class="status-value">${data.total_citas}</span></div>
-                        <div class="status-row"><span class="status-label">👥 Usuarios:</span><span class="status-value">${data.usuarios}</span></div>
-                        <div class="status-row"><span class="status-label">📄 Plantillas:</span><span class="status-value">${data.plantillas}</span></div>
-                        <div class="status-row"><span class="status-label">📁 Documentos:</span><span class="status-value">${data.documentos}</span></div>
+                        <div class="status-row"><span class="status-label">Total Consultas:</span><span class="status-value">${data.total_consultas}</span></div>
+                        <div class="status-row"><span class="status-label">Total Citas:</span><span class="status-value">${data.total_citas}</span></div>
+                        <div class="status-row"><span class="status-label">Usuarios:</span><span class="status-value">${data.usuarios}</span></div>
+                        <div class="status-row"><span class="status-label">Plantillas:</span><span class="status-value">${data.plantillas}</span></div>
+                        <div class="status-row"><span class="status-label">Documentos:</span><span class="status-value">${data.documentos}</span></div>
                     `;
                     agregarLog('Estadísticas actualizadas', 'success');
+                } else {
+                    container.innerHTML = `<div class="log-line error">${data.error}</div>`;
                 }
             } catch(e) {
-                container.innerHTML = '<div class="log-line error">Error de conexión</div>';
+                container.innerHTML = `<div class="log-line error">Error de conexión: ${e.message}</div>`;
                 agregarLog('Error al cargar stats', 'error');
             }
         }
         
-        // Variables de entorno
-        async function cargarEnv() {
-            const container = document.getElementById('envVars');
-            container.innerHTML = '<div class="log-line info">Cargando...</div>';
-            try {
-                const res = await fetch(API_URL + '/ingeniero/env', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    container.innerHTML = `
-                        <div class="status-row"><span class="status-label">🌍 NODE_ENV:</span><span class="status-value">${data.NODE_ENV}</span></div>
-                        <div class="status-row"><span class="status-label">🔐 JWT_SECRET:</span><span class="status-value">${data.JWT_SECRET}</span></div>
-                        <div class="status-row"><span class="status-label">🗄️ Supabase:</span><span class="status-value">${data.SUPABASE_URL}</span></div>
-                        <div class="status-row"><span class="status-label">📱 WhatsApp:</span><span class="status-value">${data.WHATSAPP_NUMBER}</span></div>
-                    `;
-                    agregarLog('Variables de entorno cargadas', 'info');
-                }
-            } catch(e) {
-                container.innerHTML = '<div class="log-line error">Error de conexión</div>';
-            }
-        }
-        
-        // Información de sesión
-        function cargarSessionInfo() {
-            const container = document.getElementById('sessionInfo');
-            container.innerHTML = `
-                <div class="status-row"><span class="status-label">👤 Usuario:</span><span class="status-value">${localStorage.getItem('nombre') || 'No disponible'}</span></div>
-                <div class="status-row"><span class="status-label">🆔 Cédula:</span><span class="status-value">${localStorage.getItem('cedula') || 'No disponible'}</span></div>
-                <div class="status-row"><span class="status-label">⭐ Rol:</span><span class="status-value">${rol || 'No disponible'}</span></div>
-                <div class="status-row"><span class="status-label">🔑 Token:</span><span class="status-value">${token ? '✅ Activo' : '❌ Ausente'}</span></div>
-                <div class="status-row"><span class="status-label">📅 Inicio sesión:</span><span class="status-value">${new Date().toLocaleString()}</span></div>
-            `;
-        }
-        
-        // Monitor de recursos
-        async function actualizarMonitor() {
-            try {
-                const res = await fetch(API_URL + '/ingeniero/status', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    const memTotal = parseFloat(data.sistema.memoria_total);
-                    const memLibre = parseFloat(data.sistema.memoria_libre);
-                    const memUsado = memTotal - memLibre;
-                    const memPorcentaje = (memUsado / memTotal) * 100;
-                    
-                    document.getElementById('cpuUsage').textContent = `${Math.floor(Math.random() * 50 + 10)}%`;
-                    document.getElementById('cpuFill').style.width = `${Math.floor(Math.random() * 50 + 10)}%`;
-                    document.getElementById('memUsage').textContent = `${memPorcentaje.toFixed(1)}%`;
-                    document.getElementById('memFill').style.width = `${memPorcentaje}%`;
-                    document.getElementById('apiHealth').innerHTML = '🟢 Online';
-                    document.getElementById('lastCheck').textContent = new Date().toLocaleTimeString();
-                }
-            } catch(e) {
-                document.getElementById('apiHealth').innerHTML = '🔴 Offline';
-            }
-        }
-        
-        // SQL Editor
         async function ejecutarSQL() {
             const query = document.getElementById('sqlQuery').value;
             if (!query) {
-                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">❌ Ingrese una consulta SQL</div>';
+                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Ingrese una consulta</div>';
                 return;
             }
             if (!query.toLowerCase().startsWith('select')) {
-                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">❌ Solo consultas SELECT están permitidas</div>';
+                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Solo SELECT permitidas</div>';
                 return;
             }
             
-            document.getElementById('sqlResult').innerHTML = '<div class="log-line info">⏳ Ejecutando...</div>';
+            document.getElementById('sqlResult').innerHTML = '<div class="log-line info">Ejecutando...</div>';
             try {
                 const res = await fetch(API_URL + '/ingeniero/sql', {
                     method: 'POST',
@@ -548,13 +408,13 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    document.getElementById('sqlResult').innerHTML = `<div class="log-line success">✅ Consulta ejecutada</div><pre style="color:#0f0; font-size:0.65rem; margin-top:0.5rem;">${JSON.stringify(data.data, null, 2)}</pre>`;
-                    agregarLog(`SQL ejecutado: ${query.substring(0, 50)}...`, 'success');
+                    document.getElementById('sqlResult').innerHTML = `<div class="log-line success">✅ ${data.data?.length || 0} filas</div><pre style="color:#0f0; font-size:0.65rem; margin-top:0.5rem;">${JSON.stringify(data.data, null, 2)}</pre>`;
+                    agregarLog('SQL ejecutado', 'success');
                 } else {
-                    document.getElementById('sqlResult').innerHTML = `<div class="log-line error">❌ ${data.error}</div>`;
+                    document.getElementById('sqlResult').innerHTML = `<div class="log-line error">${data.error}</div>`;
                 }
             } catch(e) {
-                document.getElementById('sqlResult').innerHTML = `<div class="log-line error">❌ Error: ${e.message}</div>`;
+                document.getElementById('sqlResult').innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
             }
         }
         
@@ -563,7 +423,6 @@
             document.getElementById('sqlResult').innerHTML = '';
         }
         
-        // Acciones rápidas
         async function probarAPI() {
             document.getElementById('actionResult').innerHTML = '<div class="log-line info">Probando API...</div>';
             try {
@@ -572,28 +431,7 @@
                 });
                 if (res.ok) {
                     document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ API OK</div>';
-                    agregarLog('API probada exitosamente', 'success');
-                } else if (res.status === 401) {
-                    document.getElementById('actionResult').innerHTML = '<div class="log-line error">❌ Sesión expirada</div>';
-                } else {
-                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
-                }
-            } catch(e) {
-                document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
-            }
-        }
-        
-        async function verificarServidor() {
-            document.getElementById('actionResult').innerHTML = '<div class="log-line info">Ping al servidor...</div>';
-            try {
-                const start = Date.now();
-                const res = await fetch(API_URL + '/diagnostico', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const end = Date.now();
-                if (res.ok) {
-                    document.getElementById('actionResult').innerHTML = `<div class="log-line success">✅ Pong! ${end - start}ms</div>`;
-                    agregarLog(`Ping: ${end - start}ms`, 'success');
+                    agregarLog('API probada', 'success');
                 } else {
                     document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
                 }
@@ -614,9 +452,7 @@
                     a.download = `backup_${Date.now()}.xlsx`;
                     a.click();
                     document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ Backup generado</div>';
-                    agregarLog('Backup de base de datos generado', 'success');
-                } else if (res.status === 401) {
-                    document.getElementById('actionResult').innerHTML = '<div class="log-line error">❌ Sesión expirada</div>';
+                    agregarLog('Backup completado', 'success');
                 } else {
                     document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
                 }
@@ -626,15 +462,31 @@
         }
         
         function limpiarCacheLocal() {
-            if (confirm('¿Limpiar cache local? Se cerrará sesión y se borrarán datos locales.')) {
+            if (confirm('¿Limpiar cache? Se cerrará sesión.')) {
                 localStorage.clear();
                 window.location.href = '/login.html';
             }
         }
         
         function verSupabase() {
-            window.open('https://supabase.com/dashboard/projects/fxfwcfanzqnegdyheklv', '_blank');
-            agregarLog('Abriendo panel de Supabase', 'info');
+            window.open('https://supabase.com/dashboard/projects', '_blank');
+            agregarLog('Abriendo Supabase', 'info');
+        }
+        
+        function limpiarLogsLocal() {
+            logsLocales = [];
+            agregarLog('Logs limpiados', 'info');
+            actualizarLogs();
+        }
+        
+        function descargarLogsLocal() {
+            const logsText = logsLocales.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
+            const blob = new Blob([logsText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${Date.now()}.txt`;
+            a.click();
         }
         
         function cerrarSesion() {
@@ -646,15 +498,7 @@
         agregarLog('Panel de ingeniero iniciado', 'success');
         cargarStatus();
         cargarStats();
-        cargarEnv();
-        cargarSessionInfo();
-        actualizarMonitor();
         
-        // Monitor cada 10 segundos
-        if (monitorInterval) clearInterval(monitorInterval);
-        monitorInterval = setInterval(actualizarMonitor, 10000);
-        
-        // Recargar datos cada 30 segundos
         setInterval(() => {
             cargarStatus();
             cargarStats();
@@ -662,11 +506,9 @@
         
         window.cargarStatus = cargarStatus;
         window.cargarStats = cargarStats;
-        window.cargarEnv = cargarEnv;
         window.ejecutarSQL = ejecutarSQL;
         window.limpiarSQL = limpiarSQL;
         window.probarAPI = probarAPI;
-        window.verificarServidor = verificarServidor;
         window.respaldarDB = respaldarDB;
         window.limpiarCacheLocal = limpiarCacheLocal;
         window.verSupabase = verSupabase;
