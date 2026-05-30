@@ -3,185 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexPenal - Acceso</title>
-    <link rel="stylesheet" href="/css/estilo.css">
+    <title>Panel de Ingeniero - LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
     <style>
-        .dominio-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0.95) 0%, rgba(0,0,0,1) 100%);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            visibility: hidden;
-            opacity: 0;
-            transition: visibility 0s, opacity 0.5s ease;
+        .ingeniero-container {
+            max-width: 1400px;
+            margin: 80px auto 2rem;
+            padding: 2rem;
         }
-        .dominio-overlay.active {
-            visibility: visible;
-            opacity: 1;
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
-        .dominio-contenido {
-            text-align: center;
-            animation: expandir 2s ease-out;
+        .tech-card {
+            background: #0a0a0a;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            padding: 1.5rem;
         }
-        @keyframes expandir {
-            0% { transform: scale(0.1); opacity: 0; filter: blur(10px); }
-            50% { transform: scale(1.2); opacity: 1; filter: blur(0px); }
-            100% { transform: scale(1); opacity: 1; }
+        .tech-card h3 {
+            color: #00aaff;
+            margin-bottom: 1rem;
+            border-left: 3px solid #00aaff;
+            padding-left: 0.8rem;
         }
-        .dominio-texto {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #C8A951;
-            text-shadow: 0 0 20px #C8A951;
-            font-family: 'Playfair Display', serif;
+        .tech-card .value {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #0f0;
+            background: #050505;
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin: 0.5rem 0;
         }
-        .dominio-subtexto {
-            font-size: 1rem;
-            color: #fff;
+        .btn-tech {
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border: 1px solid #00aaff;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #00aaff;
+            margin-right: 0.5rem;
             margin-top: 0.5rem;
         }
+        .btn-tech:hover {
+            background: #00aaff;
+            color: #000;
+        }
+        .log-list {
+            background: #050505;
+            border-radius: 10px;
+            padding: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+        .log-entry {
+            padding: 0.3rem;
+            border-bottom: 1px solid #222;
+        }
+        .log-entry.error { color: #f00; }
+        .log-entry.success { color: #0f0; }
+        .log-entry.info { color: #0ff; }
         @media (max-width: 768px) {
-            .dominio-texto { font-size: 1.5rem; }
+            .tech-grid { grid-template-columns: 1fr; }
+            .ingeniero-container { padding: 1rem; margin-top: 70px; }
         }
     </style>
 </head>
-<body class="login-body">
-    <div class="dominio-overlay" id="dominioOverlay">
-        <div class="dominio-contenido">
-            <div class="dominio-texto">⚡ EXPANSIÓN ⚡</div>
-            <div class="dominio-texto" style="font-size: 1.8rem;">DE DOMINIO</div>
-            <div class="dominio-subtexto">"Sentencia Mortal"</div>
-        </div>
-    </div>
-
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header" style="cursor: pointer;" onclick="window.location.href='/'">
+<body>
+    <nav class="navbar" style="background:#0a0a0a;">
+        <div class="nav-container">
+            <div class="logo" style="cursor:pointer" onclick="window.location.href='/'">
                 <h2>⚖️ LexPenal</h2>
-                <h3>Acceso al sistema</h3>
+            </div>
+            <div class="user-info">
+                <span id="nombreIngeniero" style="color:#00aaff;">Cargando...</span>
+                <button onclick="cerrarSesion()" class="btn-cerrar" style="margin-left:1rem; background:#8B0000; color:#fff; border:none; padding:0.3rem 0.8rem; border-radius:5px;">Cerrar sesión</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="ingeniero-container">
+        <h1 style="color:#00aaff; margin-bottom:1.5rem;">🔧 Panel de Ingeniero Técnico</h1>
+        
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>🖥️ Estado del Servidor</h3>
+                <div class="value" id="serverStatus">🟡 Verificando...</div>
+                <button class="btn-tech" onclick="verificarServidor()">🔄 Verificar</button>
+                <button class="btn-tech" onclick="probarAPI()">📡 Probar API</button>
             </div>
             
-            <form id="loginForm" onsubmit="event.preventDefault(); iniciarSesion();">
-                <div class="input-group">
-                    <label>Número de cédula</label>
-                    <input type="text" id="cedula" placeholder="Ej: 1018457093" required>
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="password" placeholder="••••••" required>
-                </div>
-                <button type="submit" class="btn-login-submit">Ingresar</button>
-            </form>
+            <div class="tech-card">
+                <h3>🗄️ Base de Datos</h3>
+                <div class="value" id="dbInfo">Cargando...</div>
+                <button class="btn-tech" onclick="respaldarDB()">💾 Respaldar</button>
+                <button class="btn-tech" onclick="limpiarCache()">🗑️ Limpiar Cache</button>
+            </div>
             
-            <div id="mensaje" class="mensaje"></div>
-            <div style="margin-top: 1rem; text-align: center; font-size: 0.7rem; color: #666;">
-                👑 Administrador | 🔧 Ingeniero Técnico
+            <div class="tech-card">
+                <h3>📋 Información de Sesión</h3>
+                <div class="value" id="sessionInfo">Cargando...</div>
+            </div>
+            
+            <div class="tech-card">
+                <h3>📋 Logs del Sistema</h3>
+                <div class="log-list" id="logsContainer">
+                    <div class="log-entry info">🟢 Sistema iniciado</div>
+                </div>
+                <button class="btn-tech" onclick="descargarLogs()">📥 Descargar</button>
+                <button class="btn-tech" onclick="limpiarLogs()">🗑️ Limpiar</button>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = '/api/auth';
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        let token = localStorage.getItem('token');
+        let rol = localStorage.getItem('rol');
         
-        function reproducirAudio() {
-            const audio = new Audio('/assets/audio/dominio.mp3');
-            audio.play().catch(e => console.log('Audio no disponible:', e));
+        // Mostrar información de sesión
+        document.getElementById('sessionInfo').innerHTML = `
+            Token: ${token ? '✅ Presente' : '❌ Ausente'}<br>
+            Rol: ${rol || 'No definido'}<br>
+            Nombre: ${localStorage.getItem('nombre') || 'No definido'}<br>
+            Cédula: ${localStorage.getItem('cedula') || 'No definida'}
+        `;
+        
+        // Verificar autenticación - Si no hay token o no es ingeniero, redirigir
+        if (!token) {
+            alert('No hay sesión activa. Redirigiendo al login...');
+            window.location.href = '/login.html';
         }
         
-        function mostrarAnimacion() {
-            return new Promise((resolve) => {
-                const overlay = document.getElementById('dominioOverlay');
-                overlay.classList.add('active');
-                setTimeout(() => {
-                    overlay.classList.remove('active');
-                    resolve();
-                }, 2000);
-            });
+        if (rol !== 'ingeniero') {
+            alert(`Acceso denegado. Tu rol es: ${rol}. Solo ingenieros pueden acceder.`);
+            window.location.href = '/login.html';
         }
         
-        async function iniciarSesion() {
-            const cedula = document.getElementById('cedula').value;
-            const contrasena = document.getElementById('password').value;
-            const mensajeDiv = document.getElementById('mensaje');
-            
-            if (!cedula || !contrasena) {
-                mostrarMensaje('Complete todos los campos', 'error');
+        document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
+        
+        let logs = [];
+        
+        function agregarLog(mensaje, tipo = 'info') {
+            const time = new Date().toLocaleTimeString();
+            logs.unshift({ time, mensaje, tipo });
+            if (logs.length > 50) logs.pop();
+            actualizarLogs();
+        }
+        
+        function actualizarLogs() {
+            const container = document.getElementById('logsContainer');
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="log-entry info">🟢 Sistema iniciado</div>';
                 return;
             }
-            
-            // Mostrar loading
-            const btn = document.querySelector('.btn-login-submit');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '⏳ Verificando...';
-            btn.disabled = true;
-            
+            container.innerHTML = logs.map(log => 
+                `<div class="log-entry ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
+            ).join('');
+        }
+        
+        async function verificarServidor() {
+            agregarLog('Verificando estado del servidor...', 'info');
+            document.getElementById('serverStatus').innerHTML = '🟡 Verificando...';
             try {
-                const response = await fetch(`${API_URL}/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cedula, contrasena })
+                const res = await fetch(API_URL + '/diagnostico', { 
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
-                const data = await response.json();
-                console.log('Respuesta del servidor:', data);
-                
-                if (data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('nombre', data.nombre);
-                    localStorage.setItem('cedula', data.cedula);
-                    localStorage.setItem('rol', data.rol);
-                    
-                    // INGENIERO
-                    if (data.rol === 'ingeniero') {
-                        mostrarMensaje('🔧 Acceso Ingeniero - Expansión de Dominio', 'exito');
-                        await mostrarAnimacion();
-                        reproducirAudio();
-                        setTimeout(() => {
-                            window.location.href = '/admin/ingeniero.html';
-                        }, 1000);
-                    } 
-                    // ADMIN
-                    else if (data.rol === 'super_admin') {
-                        mostrarMensaje('👑 Bienvenido Administrador', 'exito');
-                        setTimeout(() => {
-                            window.location.href = '/admin/index.html';
-                        }, 1000);
-                    }
-                    // CLIENTE
-                    else {
-                        mostrarMensaje('¡Bienvenido!', 'exito');
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 1000);
-                    }
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('serverStatus').innerHTML = `🟢 Servidor OK - Memoria: ${(data.servidor.memoria / 1024 / 1024).toFixed(2)} MB`;
+                    document.getElementById('dbInfo').innerHTML = `📊 Consultas: ${data.base_datos.consultas} | Citas: ${data.base_datos.citas}<br>📄 Usuarios: ${data.base_datos.usuarios} | Plantillas: ${data.base_datos.plantillas}`;
+                    agregarLog('Servidor verificado correctamente', 'success');
                 } else {
-                    mostrarMensaje(data.error || 'Credenciales incorrectas', 'error');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+                    document.getElementById('serverStatus').innerHTML = '🔴 Error en servidor';
+                    agregarLog('Error al verificar servidor', 'error');
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarMensaje('Error de conexión con el servidor', 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+            } catch(e) {
+                document.getElementById('serverStatus').innerHTML = '🔴 Servidor no responde';
+                agregarLog(`Servidor no responde: ${e.message}`, 'error');
             }
         }
         
-        function mostrarMensaje(texto, tipo) {
-            const mensajeDiv = document.getElementById('mensaje');
-            mensajeDiv.textContent = texto;
-            mensajeDiv.className = `mensaje ${tipo}`;
-            setTimeout(() => {
-                mensajeDiv.textContent = '';
-                mensajeDiv.className = 'mensaje';
-            }, 3000);
+        async function probarAPI() {
+            agregarLog('Probando conexión API...', 'info');
+            try {
+                const res = await fetch(API_URL + '/admin/dashboard', { 
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    agregarLog('API responde correctamente', 'success');
+                    alert('✅ API conectada correctamente');
+                } else {
+                    agregarLog(`API error: ${res.status}`, 'error');
+                    alert('❌ Error en la API');
+                }
+            } catch(e) {
+                agregarLog(`Error API: ${e.message}`, 'error');
+                alert('❌ No se pudo conectar a la API');
+            }
         }
+        
+        async function respaldarDB() {
+            agregarLog('Iniciando respaldo...', 'info');
+            try {
+                const res = await fetch(API_URL + '/exportar/excel?token=' + token);
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backup_${Date.now()}.xlsx`;
+                    a.click();
+                    agregarLog('Respaldo completado', 'success');
+                } else {
+                    agregarLog('Error en respaldo', 'error');
+                }
+            } catch(e) {
+                agregarLog(`Error: ${e.message}`, 'error');
+            }
+        }
+        
+        function limpiarCache() {
+            if (confirm('¿Limpiar caché? Esto cerrará tu sesión.')) {
+                agregarLog('Limpiando caché...', 'warning');
+                localStorage.clear();
+                setTimeout(() => window.location.href = '/login.html', 1000);
+            }
+        }
+        
+        function descargarLogs() {
+            const logsText = logs.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
+            const blob = new Blob([logsText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${Date.now()}.txt`;
+            a.click();
+            agregarLog('Logs descargados', 'success');
+        }
+        
+        function limpiarLogs() {
+            if (confirm('¿Limpiar logs?')) {
+                logs = [];
+                agregarLog('Logs limpiados', 'warning');
+                actualizarLogs();
+            }
+        }
+        
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+        
+        // Inicializar
+        verificarServidor();
+        
+        window.verificarServidor = verificarServidor;
+        window.probarAPI = probarAPI;
+        window.respaldarDB = respaldarDB;
+        window.limpiarCache = limpiarCache;
+        window.descargarLogs = descargarLogs;
+        window.limpiarLogs = limpiarLogs;
+        window.cerrarSesion = cerrarSesion;
     </script>
 </body>
 </html>
