@@ -34,6 +34,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const DATA_FILE = path.join(__dirname, 'database.json');
 
+// Datos en memoria con valores iniciales
 let memoriaDB = {
     usuarios: [],
     consultas: [],
@@ -88,6 +89,7 @@ function initDB() {
     memoriaDB.documentos_generados = [];
     memoriaDB.tokens_recuperacion = [];
 
+    // Intentar cargar datos existentes
     if (fs.existsSync(DATA_FILE)) {
         try {
             const data = fs.readFileSync(DATA_FILE, 'utf8');
@@ -119,8 +121,14 @@ function guardarDB() {
     }
 }
 
-function readDB() { return memoriaDB; }
-function writeDB(data) { memoriaDB = data; guardarDB(); }
+function readDB() { 
+    return memoriaDB; 
+}
+
+function writeDB(data) { 
+    memoriaDB = data; 
+    guardarDB(); 
+}
 
 initDB();
 
@@ -150,7 +158,7 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { cedula, contrasena } = req.body;
         
-        // INGENIERO (hardcodeado)
+        // INGENIERO
         if (cedula === "1052041627" && contrasena === "123luisancho") {
             const token = jwt.sign(
                 { id: 999, cedula: "1052041627", nombre: "Luis Angel Caballero Ortega", rol: 'ingeniero' },
@@ -167,7 +175,7 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
         
-        // ADMIN (hardcodeado)
+        // ADMIN
         if (cedula === "1018457093" && contrasena === "ACT1018457093") {
             const token = jwt.sign(
                 { id: 1, cedula: "1018457093", nombre: "Asmairo De Jesus Conde Torres", rol: 'super_admin' },
@@ -187,11 +195,9 @@ app.post('/api/auth/login', async (req, res) => {
         const db = readDB();
         const usuario = db.usuarios.find(u => u.cedula === cedula);
         if (!usuario) {
-            agregarLogSistema(`❌ Intento fallido: cédula ${cedula} no registrada`, 'warning');
             return res.status(401).json({ error: 'Cédula no registrada' });
         }
         if (!await bcrypt.compare(contrasena, usuario.contrasena_hash)) {
-            agregarLogSistema(`❌ Intento fallido: contraseña incorrecta para ${cedula}`, 'warning');
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
         
@@ -201,12 +207,56 @@ app.post('/api/auth/login', async (req, res) => {
             { expiresIn: '7d' }
         );
         
-        agregarLogSistema(`✅ Usuario autenticado: ${cedula} (${usuario.rol || 'cliente'})`, 'success');
+        agregarLogSistema(`✅ Usuario autenticado: ${cedula}`, 'success');
         res.json({ success: true, token, nombre: usuario.nombre_completo, cedula: usuario.cedula, rol: usuario.rol || 'cliente' });
         
     } catch (error) {
         agregarLogSistema(`❌ Error en login: ${error.message}`, 'error');
         res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// ==================== ADMIN DASHBOARD (ESTADÍSTICAS REALES) ====================
+app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        const db = readDB();
+        const consultas = db.consultas || [];
+        const citas = db.citas || [];
+        
+        const dashboardData = {
+            total_consultas: consultas.length,
+            total_citas: citas.length,
+            consultas_pendientes: consultas.filter(c => c.estado === 'pendiente').length,
+            citas_pendientes: citas.filter(c => c.estado === 'pendiente').length,
+            testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
+            tipos_caso_total: db.tipos_caso.length
+        };
+        
+        console.log('📊 Dashboard data enviada:', dashboardData);
+        res.json(dashboardData);
+    } catch (error) {
+        console.error('❌ Error en dashboard:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== OBTENER TODOS LOS REGISTROS ====================
+app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
+    try {
+        const db = readDB();
+        const consultas = db.consultas || [];
+        const citas = db.citas || [];
+        
+        console.log(`📋 Enviando: ${consultas.length} consultas, ${citas.length} citas`);
+        
+        res.json({ 
+            consultas: consultas, 
+            citas: citas, 
+            total: consultas.length + citas.length
+        });
+    } catch (error) {
+        console.error('❌ Error en /casos/todos:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -335,20 +385,7 @@ app.post('/api/citas/nueva', (req, res) => {
     }
 });
 
-// ==================== OBTENER TODOS LOS REGISTROS ====================
-app.get('/api/casos/todos', verificarToken, verificarAdmin, (req, res) => {
-    try {
-        const db = readDB();
-        res.json({ 
-            consultas: db.consultas || [], 
-            citas: db.citas || [], 
-            total: (db.consultas?.length || 0) + (db.citas?.length || 0)
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
+// ==================== CITAS OCUPADAS ====================
 app.get('/api/citas/ocupadas', (req, res) => {
     const db = readDB();
     const citas = db.citas || [];
@@ -356,6 +393,7 @@ app.get('/api/citas/ocupadas', (req, res) => {
     res.json(ocupadas);
 });
 
+// ==================== ACTUALIZAR ESTADO ====================
 app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     try {
         const { id } = req.params;
@@ -379,6 +417,7 @@ app.put('/api/casos/:id/estado', verificarToken, verificarAdmin, (req, res) => {
     }
 });
 
+// ==================== ELIMINAR REGISTRO ====================
 app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
     try {
         const { id } = req.params;
@@ -396,21 +435,6 @@ app.delete('/api/casos/:id', verificarToken, verificarAdmin, (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
-
-// ==================== ADMIN DASHBOARD ====================
-app.get('/api/admin/dashboard', verificarToken, verificarAdmin, (req, res) => {
-    const db = readDB();
-    const consultas = db.consultas || [];
-    const citas = db.citas || [];
-    res.json({ 
-        total_consultas: consultas.length,
-        total_citas: citas.length,
-        consultas_pendientes: consultas.filter(c => c.estado === 'pendiente').length,
-        citas_pendientes: citas.filter(c => c.estado === 'pendiente').length,
-        testimonios_activos: db.testimonios.filter(t => t.aprobado).length,
-        tipos_caso_total: db.tipos_caso.length 
-    });
 });
 
 // ==================== ADMIN GENERAL ====================
@@ -569,6 +593,20 @@ app.delete('/api/tipos-caso/:id', verificarToken, verificarAdmin, (req, res) => 
 // ==================== WHATSAPP ====================
 app.get('/api/whatsapp/contacto', verificarToken, (req, res) => {
     res.json({ url: `https://wa.me/573145879875?text=Hola,%20soy%20${req.usuario.nombre}` });
+});
+
+// ==================== DIAGNÓSTICO ====================
+app.get('/api/diagnostico', verificarToken, verificarAdmin, (req, res) => {
+    const db = readDB();
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        consultas: db.consultas.length,
+        citas: db.citas.length,
+        usuarios: db.usuarios.length,
+        plantillas: db.plantillas.length,
+        documentos: db.documentos_generados?.length || 0
+    });
 });
 
 // ==================== FRONTEND ====================
