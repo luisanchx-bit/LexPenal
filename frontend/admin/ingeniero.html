@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Panel de Ingeniero - LexPenal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+    <style>
+        .sidebar { transition: transform 0.3s ease; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); position: fixed; z-index: 1001; width: 260px; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; padding: 1rem; margin-top: 60px; }
+            .menu-toggle-btn { display: block !important; position: fixed; top: 15px; left: 15px; z-index: 1002; background: #00aaff; border: none; color: #fff; font-size: 1.5rem; padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; }
+            .consola-container { grid-template-columns: 1fr !important; }
+        }
+        @media (min-width: 769px) { .menu-toggle-btn { display: none; } .main-content { margin-left: 280px; } }
+        .menu-toggle-btn { display: none; }
+        .ingeniero-container {
+            max-width: 1400px;
+            margin: 80px auto 2rem;
+            padding: 2rem;
+        }
+        .consola-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .consola-card {
+            background: #0a0a0a;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            padding: 1.5rem;
+        }
+        .consola-card h3 {
+            color: #00aaff;
+            margin-bottom: 1rem;
+            border-left: 3px solid #00aaff;
+            padding-left: 0.8rem;
+        }
+        .consola-card .value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #0f0;
+            background: #050505;
+            padding: 0.5rem;
+            border-radius: 5px;
+            word-break: break-all;
+        }
+        .log-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #050505;
+            border-radius: 10px;
+            padding: 0.5rem;
+        }
+        .log-entry {
+            padding: 0.5rem;
+            border-bottom: 1px solid #222;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+        .log-entry.error { color: #f00; }
+        .log-entry.warning { color: #ff0; }
+        .log-entry.success { color: #0f0; }
+        .log-entry.info { color: #0ff; }
+        .btn-consola {
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border: 1px solid #00aaff;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #00aaff;
+            margin-right: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .btn-consola:hover {
+            background: #00aaff;
+            color: #000;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+        }
+        .status-ok { background: #2e7d32; color: #fff; }
+        .status-error { background: #c62828; color: #fff; }
+        .status-warning { background: #ff9800; color: #000; }
+        @media (max-width: 768px) {
+            .ingeniero-container { padding: 1rem; margin-top: 70px; }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle-btn" id="menuToggleBtn">☰</button>
+    
+    <div class="admin-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo" style="cursor:pointer" onclick="window.location.href='/admin/ingeniero.html'">
+                <h2>⚖️ LexPenal</h2>
+                <p>Panel Ingeniero</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin/ingeniero.html" class="active">🖥️ Consola</a>
+                <a href="/admin/index.html">📊 Dashboard Admin</a>
+                <a href="/admin/citas.html">📅 Citas y Consultas</a>
+                <a href="/admin/plantillas.html">📄 Plantillas</a>
+                <a href="/admin/documentos.html">📁 Docs Generados</a>
+                <a href="/admin/configuracion.html">⚙️ Configuración</a>
+                <a href="/faq.html">❓ FAQ</a>
+                <a href="/calculadora.html" target="_blank" style="border-top: 1px solid rgba(0,170,255,0.3); margin-top: 1rem; padding-top: 1rem;">⚖️ Calculadora de Penas</a>
+                <a href="https://www.mintrabajo.gov.co/atencion-al-ciudadano/tramites-y-servicios/mi-calculadora" target="_blank">📊 Calculadora Laboral</a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Ing. Luis Angel Caballero</p>
+                <button onclick="cerrarSesion()" class="btn-logout" style="margin-top:1rem">Cerrar sesión</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="admin-header">
+                <h1 style="color:#00aaff;">🖥️ Consola de Diagnóstico Técnico</h1>
+                <div class="user-info">
+                    <span id="nombreIngeniero" style="color:#00aaff;">Cargando...</span>
+                </div>
+            </div>
+
+            <div class="consola-container">
+                <!-- Estado del servidor -->
+                <div class="consola-card">
+                    <h3>🖥️ Estado del Servidor</h3>
+                    <div class="value" id="serverStatus">🟡 Verificando...</div>
+                    <div class="value" id="serverUptime" style="margin-top:0.5rem;"></div>
+                    <div class="value" id="serverMemoria" style="margin-top:0.5rem;"></div>
+                    <button class="btn-consola" onclick="verificarServidor()">🔄 Verificar Ahora</button>
+                    <button class="btn-consola" onclick="probarAPI()">📡 Probar API</button>
+                </div>
+
+                <!-- Base de datos -->
+                <div class="consola-card">
+                    <h3>🗄️ Base de Datos</h3>
+                    <div class="value" id="dbInfo">Cargando...</div>
+                    <button class="btn-consola" onclick="respaldarDB()">💾 Respaldar</button>
+                    <button class="btn-consola" onclick="limpiarCache()">🗑️ Limpiar Cache</button>
+                </div>
+
+                <!-- Logs del sistema -->
+                <div class="consola-card">
+                    <h3>📋 Logs del Sistema</h3>
+                    <div class="log-list" id="logsContainer">
+                        <div class="log-entry info">🟢 Sistema iniciado</div>
+                    </div>
+                    <button class="btn-consola" onclick="descargarLogs()">📥 Descargar Logs</button>
+                    <button class="btn-consola" onclick="limpiarLogs()">🗑️ Limpiar Logs</button>
+                </div>
+
+                <!-- Supabase Storage -->
+                <div class="consola-card">
+                    <h3>☁️ Supabase Storage</h3>
+                    <div class="value" id="supabaseInfo">Cargando...</div>
+                    <button class="btn-consola" onclick="verSupabase()">🔗 Abrir Supabase</button>
+                </div>
+            </div>
+
+            <!-- Errores recientes -->
+            <div class="consola-card" style="margin-top:1rem;">
+                <h3>⚠️ Errores Recientes</h3>
+                <div class="log-list" id="erroresContainer" style="max-height:200px;">
+                    <div class="log-entry info">No hay errores registrados</div>
+                </div>
+                <button class="btn-consola" onclick="limpiarErrores()">🗑️ Limpiar Errores</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const API_URL = API_BASE_URL + '/api';
+        let token = localStorage.getItem('token');
+        let rol = localStorage.getItem('rol');
+        
+        if (!token || rol !== 'ingeniero') {
+            window.location.href = '/login-ingeniero.html';
+        }
+        
+        document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
+        
+        // Menú responsive
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const sidebar = document.getElementById('sidebar');
+        menuToggleBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', () => sidebar.classList.remove('mobile-open'));
+        });
+        
+        // Logs locales
+        let logs = [];
+        let errores = [];
+        
+        function agregarLog(mensaje, tipo = 'info') {
+            const time = new Date().toLocaleTimeString();
+            logs.unshift({ time, mensaje, tipo });
+            if (logs.length > 50) logs.pop();
+            actualizarLogs();
+            
+            if (tipo === 'error') {
+                errores.unshift({ time, mensaje });
+                if (errores.length > 20) errores.pop();
+                actualizarErrores();
+            }
+        }
+        
+        function actualizarLogs() {
+            const container = document.getElementById('logsContainer');
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="log-entry info">🟢 Sistema iniciado</div>';
+                return;
+            }
+            container.innerHTML = logs.map(log => 
+                `<div class="log-entry ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
+            ).join('');
+        }
+        
+        function actualizarErrores() {
+            const container = document.getElementById('erroresContainer');
+            if (errores.length === 0) {
+                container.innerHTML = '<div class="log-entry info">No hay errores registrados</div>';
+                return;
+            }
+            container.innerHTML = errores.map(err => 
+                `<div class="log-entry error">[${err.time}] ${err.mensaje}</div>`
+            ).join('');
+        }
+        
+        async function verificarServidor() {
+            agregarLog('Verificando estado del servidor...', 'info');
+            document.getElementById('serverStatus').innerHTML = '🟡 Verificando...';
+            const startTime = performance.now();
+            try {
+                const res = await fetch(API_URL + '/diagnostico', { 
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const endTime = performance.now();
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('serverStatus').innerHTML = `🟢 Servidor OK <span class="status-badge status-ok">Activo</span>`;
+                    document.getElementById('serverUptime').innerHTML = `⏱️ Tiempo respuesta: ${Math.round(endTime - startTime)}ms`;
+                    document.getElementById('serverMemoria').innerHTML = `💾 Memoria: ${Math.round(data.servidor.memoria.heapUsed / 1024 / 1024)} MB / ${Math.round(data.servidor.memoria.heapTotal / 1024 / 1024)} MB`;
+                    document.getElementById('dbInfo').innerHTML = `📊 Consultas: ${data.base_datos.consultas} | Citas: ${data.base_datos.citas}<br>📄 Plantillas: ${data.base_datos.plantillas} | Docs: ${data.base_datos.documentos}`;
+                    document.getElementById('supabaseInfo').innerHTML = `🔗 ${data.supabase.url || '✅ Conectada'}<br>📦 ${data.supabase.configurada ? 'Configurada correctamente' : 'No configurada'}`;
+                    agregarLog(`Servidor OK - ${Math.round(endTime - startTime)}ms`, 'success');
+                } else {
+                    document.getElementById('serverStatus').innerHTML = '🔴 Error en servidor <span class="status-badge status-error">Error</span>';
+                    agregarLog('Error al verificar servidor', 'error');
+                }
+            } catch(e) {
+                document.getElementById('serverStatus').innerHTML = '🔴 Servidor no responde <span class="status-badge status-error">Caído</span>';
+                agregarLog(`Servidor no responde: ${e.message}`, 'error');
+            }
+        }
+        
+        async function probarAPI() {
+            agregarLog('Probando conexión con la API...', 'info');
+            try {
+                const res = await fetch(API_URL + '/admin/dashboard', { 
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    agregarLog('API responde correctamente', 'success');
+                } else {
+                    agregarLog(`API respondió con error ${res.status}`, 'error');
+                }
+            } catch(e) {
+                agregarLog(`Error de conexión API: ${e.message}`, 'error');
+            }
+        }
+        
+        async function respaldarDB() {
+            agregarLog('Iniciando respaldo de base de datos...', 'info');
+            try {
+                const res = await fetch(API_URL + '/exportar/excel?token=' + token);
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backup_lexpenal_${Date.now()}.xlsx`;
+                    a.click();
+                    agregarLog('Respaldo completado exitosamente', 'success');
+                } else {
+                    agregarLog('Error al generar respaldo', 'error');
+                }
+            } catch(e) {
+                agregarLog(`Error en respaldo: ${e.message}`, 'error');
+            }
+        }
+        
+        function limpiarCache() {
+            if (confirm('¿Limpiar caché del sistema? Esto cerrará tu sesión.')) {
+                agregarLog('Limpiando caché...', 'warning');
+                localStorage.clear();
+                setTimeout(() => {
+                    window.location.href = '/login-ingeniero.html';
+                }, 1000);
+            }
+        }
+        
+        function verSupabase() {
+            window.open('https://supabase.com/dashboard/projects', '_blank');
+            agregarLog('Abriendo panel de Supabase', 'info');
+        }
+        
+        function descargarLogs() {
+            const logsText = logs.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
+            const blob = new Blob([logsText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${Date.now()}.txt`;
+            a.click();
+            agregarLog('Logs descargados', 'success');
+        }
+        
+        function limpiarLogs() {
+            if (confirm('¿Limpiar todos los logs?')) {
+                logs = [];
+                agregarLog('Logs limpiados', 'warning');
+                actualizarLogs();
+            }
+        }
+        
+        function limpiarErrores() {
+            if (confirm('¿Limpiar registro de errores?')) {
+                errores = [];
+                actualizarErrores();
+                agregarLog('Registro de errores limpiado', 'warning');
+            }
+        }
+        
+        function cerrarSesion() {
+            agregarLog('Cerrando sesión...', 'info');
+            localStorage.clear();
+            window.location.href = '/login-ingeniero.html';
+        }
+        
+        // Inicializar
+        verificarServidor();
+        
+        window.verificarServidor = verificarServidor;
+        window.probarAPI = probarAPI;
+        window.respaldarDB = respaldarDB;
+        window.limpiarCache = limpiarCache;
+        window.verSupabase = verSupabase;
+        window.descargarLogs = descargarLogs;
+        window.limpiarLogs = limpiarLogs;
+        window.limpiarErrores = limpiarErrores;
+        window.cerrarSesion = cerrarSesion;
+    </script>
+</body>
+</html>
