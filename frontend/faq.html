@@ -57,11 +57,12 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo" style="cursor:pointer" onclick="window.location.href='/'"><h2>⚖️ LexPenal</h2></div>
+            <div class="logo" style="cursor:pointer" onclick="window.location.href='/'">
+                <h2>⚖️ LexPenal</h2>
+            </div>
             <button class="menu-toggle" id="menuToggle">☰</button>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="/">Inicio</a></li>
-                <li><a href="/faq.html">FAQ</a></li>
                 <li><a href="/login.html">Acceder</a></li>
             </ul>
         </div>
@@ -96,7 +97,7 @@
 
         <div class="faq-item">
             <div class="faq-question" onclick="toggleFaq(this)">
-                                ¿Cómo funciona la calculadora de penas?
+                ¿Cómo funciona la calculadora de penas?
                 <span class="faq-icon">▼</span>
             </div>
             <div class="faq-answer">La calculadora de penas es una herramienta que estima el rango de pena posible según el Código Penal Colombiano. Es solo una referencia y no constituye un dictamen legal definitivo.</div>
@@ -119,7 +120,12 @@
         </div>
     </div>
 
-    <footer><div class="container"><p>© 2026 LexPenal - Asesoría Legal Profesional</p><p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p></div></footer>
+    <footer>
+        <div class="container">
+            <p>© 2026 LexPenal - Asesoría Legal Profesional</p>
+            <p>📞 +57 3145879875 | ✉️ asmairo.conde.torres@hotmail.com</p>
+        </div>
+    </footer>
 
     <script>
         function toggleFaq(element) {
