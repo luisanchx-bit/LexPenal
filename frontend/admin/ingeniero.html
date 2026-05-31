@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Panel de Ingeniero - LexPenal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Code+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>NERV Tech | LexPenal Engineering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Code+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,123 +12,215 @@
             box-sizing: border-box;
         }
 
-        body {
-            background: #000000;
-            font-family: 'Source Code Pro', monospace;
-            color: #00ff00;
+        /* ========== VARIABLES EVANGELION ========== */
+        :root {
+            --nerv-red: #ff1a1a;
+            --nerv-dark: #0a0a0a;
+            --nerv-gray: #1a1a1a;
+            --nerv-text: #00ffcc;
+            --nerv-warning: #ffcc00;
+            --nerv-border: rgba(255, 26, 26, 0.4);
         }
 
-        .navbar {
-            background: rgba(0, 0, 0, 0.95);
-            padding: 1rem 2rem;
+        body {
+            background: var(--nerv-dark);
+            font-family: 'Source Code Pro', monospace;
+            color: var(--nerv-text);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* ========== FONDO DINÁMICO ========== */
+        .dynamic-bg {
             position: fixed;
             top: 0;
+            left: 0;
             width: 100%;
-            z-index: 100;
-            border-bottom: 1px solid #00aaff;
+            height: 100%;
+            z-index: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease;
+        }
+
+        .dynamic-bg::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.7) 100%);
+            pointer-events: none;
+        }
+
+        /* ========== LÍNEAS DE ADVERTENCIA NERV ========== */
+        .warning-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(255, 26, 26, 0.05) 0px,
+                rgba(255, 26, 26, 0.05) 2px,
+                transparent 2px,
+                transparent 10px
+            );
+        }
+
+        /* ========== NAVBAR NERV ========== */
+        .nerv-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 2px solid var(--nerv-red);
+            padding: 0.8rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 100;
             flex-wrap: wrap;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #00aaff;
-            cursor: pointer;
-            font-family: 'Playfair Display', serif;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
         }
 
-        .user-info {
+        .logo-symbol {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 0 5px var(--nerv-red));
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--nerv-red);
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .logo-sub {
+            font-size: 0.6rem;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        .user-area {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
 
-        .btn-cerrar {
-            background: transparent;
-            border: 1px solid #8B0000;
-            color: #8B0000;
-            padding: 0.3rem 0.8rem;
-            border-radius: 5px;
-            cursor: pointer;
+        .user-name {
+            color: var(--nerv-text);
+            font-size: 0.85rem;
             font-family: monospace;
         }
 
-        .btn-cerrar:hover {
-            background: #8B0000;
-            color: #fff;
+        .btn-cerrar {
+            background: transparent;
+            border: 1px solid var(--nerv-red);
+            color: var(--nerv-red);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: monospace;
+            transition: all 0.3s;
         }
 
+        .btn-cerrar:hover {
+            background: var(--nerv-red);
+            color: #000;
+        }
+
+        /* ========== CONTENEDOR PRINCIPAL ========== */
         .ingeniero-container {
+            position: relative;
+            z-index: 10;
             max-width: 1400px;
             margin: 80px auto 2rem;
             padding: 1.5rem;
         }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
+        /* ========== TERMINAL CARDS ESTILO NERV ========== */
+        .terminal-card {
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            border: 1px solid var(--nerv-border);
+            overflow: hidden;
             margin-bottom: 1.5rem;
+            transition: all 0.3s;
         }
 
-        .terminal-card {
-            background: #0a0a0a;
-            border-radius: 10px;
-            border: 1px solid #00aaff;
-            overflow: hidden;
+        .terminal-card:hover {
+            border-color: var(--nerv-red);
+            box-shadow: 0 0 15px rgba(255, 26, 26, 0.2);
         }
 
         .terminal-header {
-            background: #1a1a1a;
-            padding: 0.5rem 1rem;
-            border-bottom: 1px solid #00aaff;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--nerv-border);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .terminal-dots {
-            display: flex;
-            gap: 0.3rem;
-        }
-
-        .terminal-dot {
-            width: 12px;
-            height: 12px;
+        .terminal-led {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
+            background: var(--nerv-red);
+            animation: pulse 1.5s infinite;
         }
 
-        .terminal-dot.red { background: #ff5f56; }
-        .terminal-dot.yellow { background: #ffbd2e; }
-        .terminal-dot.green { background: #27c93f; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
 
         .terminal-title {
             color: #888;
-            font-size: 0.75rem;
-            margin-left: 0.5rem;
+            font-size: 0.7rem;
             font-family: monospace;
+            letter-spacing: 1px;
         }
 
         .terminal-body {
             padding: 1rem;
-            font-family: 'Source Code Pro', monospace;
             font-size: 0.75rem;
-            background: #050505;
-            color: #00ff00;
-            max-height: 350px;
-            overflow-y: auto;
+            background: rgba(5, 5, 10, 0.8);
+            color: var(--nerv-text);
         }
 
-        .btn-tech {
-            background: #1a1a1a;
-            border: 1px solid #00aaff;
-            border-radius: 5px;
+        /* ========== GRID DE MÓDULOS ========== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ========== BOTONES EVANGELION ========== */
+        .btn-nerv {
+            background: transparent;
+            border: 1px solid var(--nerv-red);
+            border-radius: 4px;
             padding: 0.4rem 0.8rem;
             cursor: pointer;
-            color: #00aaff;
+            color: var(--nerv-red);
             font-family: monospace;
             font-size: 0.7rem;
             transition: all 0.3s;
@@ -136,402 +228,504 @@
             margin-top: 0.5rem;
         }
 
-        .btn-tech:hover {
-            background: #00aaff;
+        .btn-nerv:hover {
+            background: var(--nerv-red);
             color: #000;
+            box-shadow: 0 0 10px var(--nerv-red);
         }
 
+        /* ========== SUBIR FONDO ========== */
+        .upload-area {
+            border: 1px dashed var(--nerv-red);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            background: rgba(255, 26, 26, 0.1);
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 100px;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            border: 1px solid var(--nerv-border);
+        }
+
+        /* ========== LOGS ========== */
+        .log-container {
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.7rem;
+        }
+
+        .log-line {
+            padding: 0.2rem 0;
+            border-bottom: 1px solid rgba(255, 26, 26, 0.2);
+            color: var(--nerv-text);
+        }
+
+        .log-line.error { color: var(--nerv-red); }
+        .log-line.success { color: #00ff00; }
+        .log-line.warning { color: var(--nerv-warning); }
+
+        /* ========== STATUS ROWS ========== */
         .status-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
             padding: 0.3rem 0;
-            border-bottom: 1px solid #1a1a1a;
+            border-bottom: 1px solid rgba(255, 26, 26, 0.2);
         }
 
         .status-label {
             color: #888;
-            font-size: 0.7rem;
         }
 
         .status-value {
-            color: #00ff00;
-            font-size: 0.7rem;
+            color: var(--nerv-text);
             font-family: monospace;
         }
 
-        .log-line {
-            font-family: monospace;
-            font-size: 0.7rem;
-            padding: 0.2rem 0;
-            border-bottom: 1px solid #1a1a1a;
-        }
-
-        .log-line.error { color: #ff4444; }
-        .log-line.success { color: #00ff00; }
-        .log-line.info { color: #00aaff; }
-
+        /* ========== SQL EDITOR ========== */
         .sql-editor {
-            background: #0a0a0a;
-            border: 1px solid #00aaff;
-            border-radius: 5px;
-            padding: 0.8rem;
             width: 100%;
+            background: #0a0a0a;
+            border: 1px solid var(--nerv-border);
+            border-radius: 4px;
+            padding: 0.6rem;
+            color: var(--nerv-text);
             font-family: monospace;
-            color: #00ff00;
+            font-size: 0.7rem;
             resize: vertical;
-            font-size: 0.75rem;
         }
 
+        .sql-editor:focus {
+            outline: none;
+            border-color: var(--nerv-red);
+        }
+
+        /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
             .dashboard-grid { grid-template-columns: 1fr; }
-            .ingeniero-container { padding: 1rem; margin-top: 70px; }
-            .navbar { padding: 0.8rem 1rem; }
-            .logo { font-size: 1.2rem; }
+            .ingeniero-container { padding: 1rem; margin-top: 100px; }
+            .nerv-bar { padding: 0.6rem 1rem; }
+            .logo-text { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo" onclick="window.location.href='/'">⚡ LexPenal :: Ingeniero</div>
-        <div class="user-info">
-            <span id="nombreIngeniero" style="color:#00aaff;">Cargando...</span>
-            <button onclick="cerrarSesion()" class="btn-cerrar">Cerrar sesión</button>
-        </div>
-    </nav>
 
-    <div class="ingeniero-container">
-        <div class="dashboard-grid">
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">system@lexpenal:~$ status</div>
-                </div>
-                <div class="terminal-body" id="systemStatus">
-                    <div class="log-line info">Cargando estado del sistema...</div>
-                </div>
-                <div style="padding: 0.5rem;">
-                    <button class="btn-tech" onclick="cargarStatus()">🔄 Actualizar</button>
-                </div>
+<!-- Fondo dinámico -->
+<div class="dynamic-bg" id="dynamicBg"></div>
+<div class="warning-lines"></div>
+
+<!-- Navbar NERV -->
+<nav class="nerv-bar">
+    <div class="logo">
+        <div class="logo-symbol">⚡</div>
+        <div>
+            <div class="logo-text">NERV ENGINEERING</div>
+            <div class="logo-sub">LEX PENAL DIVISION</div>
+        </div>
+    </div>
+    <div class="user-area">
+        <span class="user-name" id="nombreIngeniero">INITIALIZING...</span>
+        <button onclick="cerrarSesion()" class="btn-cerrar">[LOGOUT]</button>
+    </div>
+</nav>
+
+<div class="ingeniero-container">
+    <!-- Fila 1: Estado del sistema y fondo -->
+    <div class="dashboard-grid">
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">SYSTEM_STATUS::NERV_OS</div>
             </div>
-            
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">stat@lexpenal:~$ analytics</div>
-                </div>
-                <div class="terminal-body" id="stats">
-                    <div class="log-line info">Cargando estadísticas...</div>
-                </div>
-                <div style="padding: 0.5rem;">
-                    <button class="btn-tech" onclick="cargarStats()">🔄 Actualizar</button>
-                </div>
+            <div class="terminal-body" id="systemStatus">
+                <div class="log-line info">🟡 Cargando estado del sistema...</div>
+            </div>
+            <div style="padding: 0.5rem;">
+                <button class="btn-nerv" onclick="cargarStatus()">⟳ ACTUALIZAR</button>
             </div>
         </div>
         
-        <div class="dashboard-grid">
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">postgres@supabase:~$ sql_console</div>
-                </div>
-                <div class="terminal-body">
-                    <textarea id="sqlQuery" class="sql-editor" rows="4" placeholder="SELECT * FROM consultas LIMIT 5;"></textarea>
-                    <button class="btn-tech" onclick="ejecutarSQL()">▶ Ejecutar</button>
-                    <button class="btn-tech" onclick="limpiarSQL()">🗑️ Limpiar</button>
-                    <div id="sqlResult" style="margin-top: 1rem; max-height: 200px; overflow-y: auto;"></div>
-                </div>
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">NERV_ANALYTICS::DATABASE</div>
             </div>
-            
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">tail -f /var/log/lexpenal.log</div>
-                </div>
-                <div class="terminal-body" id="logsContainer" style="height: 300px;">
-                    <div class="log-line info">[INIT] Sistema iniciado</div>
-                    <span class="cursor"></span>
-                </div>
-                <div style="padding: 0.5rem;">
-                    <button class="btn-tech" onclick="limpiarLogsLocal()">🗑️ Limpiar</button>
-                    <button class="btn-tech" onclick="descargarLogsLocal()">📥 Descargar</button>
-                </div>
+            <div class="terminal-body" id="stats">
+                <div class="log-line info">🟡 Cargando estadísticas...</div>
             </div>
-        </div>
-        
-        <div class="dashboard-grid">
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">htop@lexpenal:~$ monitor</div>
-                </div>
-                <div class="terminal-body" id="monitorData">
-                    <div class="status-row"><span class="status-label">🕐 Uptime:</span><span class="status-value" id="uptime">-</span></div>
-                    <div class="status-row"><span class="status-label">🚀 Node.js:</span><span class="status-value" id="nodeVersion">-</span></div>
-                    <div class="status-row"><span class="status-label">💾 Memoria Heap:</span><span class="status-value" id="heapMem">-</span></div>
-                    <div class="status-row"><span class="status-label">📊 Total Consultas:</span><span class="status-value" id="totalConsultasMonitor">-</span></div>
-                    <div class="status-row"><span class="status-label">📅 Total Citas:</span><span class="status-value" id="totalCitasMonitor">-</span></div>
-                    <div class="status-row"><span class="status-label">📡 API Status:</span><span class="status-value" id="apiStatus">-</span></div>
-                </div>
-            </div>
-            
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
-                    <div class="terminal-title">admin@lexpenal:~$ actions</div>
-                </div>
-                <div class="terminal-body">
-                    <button class="btn-tech" onclick="probarAPI()">📡 Probar API</button>
-                    <button class="btn-tech" onclick="respaldarDB()">💾 Backup DB</button>
-                    <button class="btn-tech" onclick="limpiarCacheLocal()">🗑️ Limpiar Cache</button>
-                    <button class="btn-tech" onclick="verSupabase()">☁️ Supabase</button>
-                    <div id="actionResult" style="margin-top: 1rem; font-size: 0.7rem;"></div>
-                </div>
+            <div style="padding: 0.5rem;">
+                <button class="btn-nerv" onclick="cargarStats()">⟳ ACTUALIZAR</button>
             </div>
         </div>
     </div>
+    
+    <!-- Fila 2: Subir fondo y SQL console -->
+    <div class="dashboard-grid">
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">NERV_CUSTOMIZATION::WALLPAPER</div>
+            </div>
+            <div class="terminal-body">
+                <div class="upload-area" id="uploadArea">
+                    <div>🖼️ ARRASTRA O HAZ CLIC PARA SUBIR FONDO</div>
+                    <input type="file" id="fondoInput" accept="image/*" style="display:none;">
+                    <div id="previewContainer" style="margin-top:0.5rem;"></div>
+                </div>
+                <div id="uploadStatus" class="log-line info" style="margin-top:0.5rem;"></div>
+            </div>
+        </div>
+        
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">NERV_SQL_CONSOLE::SUPABASE</div>
+            </div>
+            <div class="terminal-body">
+                <textarea id="sqlQuery" class="sql-editor" rows="3" placeholder="SELECT * FROM consultas LIMIT 5;"></textarea>
+                <button class="btn-nerv" onclick="ejecutarSQL()">▶ EJECUTAR</button>
+                <button class="btn-nerv" onclick="limpiarSQL()">🗑️ LIMPIAR</button>
+                <div id="sqlResult" style="margin-top: 1rem; max-height: 150px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fila 3: Logs y acciones -->
+    <div class="dashboard-grid">
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">NERV_LOG_VIEWER::TAIL</div>
+            </div>
+            <div class="terminal-body">
+                <div class="log-container" id="logsContainer">
+                    <div class="log-line info">[INIT] NERV OS LOADED</div>
+                </div>
+                <button class="btn-nerv" onclick="limpiarLogsLocal()">🗑️ LIMPIAR</button>
+                <button class="btn-nerv" onclick="descargarLogsLocal()">📥 DESCARGAR</button>
+            </div>
+        </div>
+        
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">NERV_QUICK_ACTIONS</div>
+            </div>
+            <div class="terminal-body">
+                <button class="btn-nerv" onclick="probarAPI()">📡 TEST API</button>
+                <button class="btn-nerv" onclick="respaldarDB()">💾 BACKUP DB</button>
+                <button class="btn-nerv" onclick="limpiarCacheLocal()">🗑️ CLEAR CACHE</button>
+                <button class="btn-nerv" onclick="verSupabase()">☁️ SUPABASE</button>
+                <div id="actionResult" style="margin-top: 1rem; font-size: 0.7rem;"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script>
-        const API_BASE_URL = window.location.origin;
-        const API_URL = API_BASE_URL + '/api';
-        let token = localStorage.getItem('token');
-        let rol = localStorage.getItem('rol');
-        let logsLocales = [];
+<script>
+    const API_BASE_URL = window.location.origin;
+    const API_URL = API_BASE_URL + '/api';
+    let token = localStorage.getItem('token');
+    let rol = localStorage.getItem('rol');
+    let logsLocales = [];
+    
+    if (!token) window.location.href = '/login.html';
+    if (rol !== 'ingeniero') {
+        alert('ACCESO DENEGADO');
+        window.location.href = '/login.html';
+    }
+    
+    document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'ENGINEER';
+    
+    // ============ CONFIGURACIÓN DE FONDO ============
+    async function cargarFondo() {
+        try {
+            const res = await fetch(API_URL + '/ingeniero/fondo', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                document.getElementById('dynamicBg').style.backgroundImage = `url('${data.url}')`;
+            }
+        } catch(e) { console.error('Error cargando fondo:', e); }
+    }
+    
+    // Subir fondo
+    const uploadArea = document.getElementById('uploadArea');
+    const fondoInput = document.getElementById('fondoInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    uploadArea.addEventListener('click', () => fondoInput.click());
+    uploadArea.addEventListener('dragover', e => e.preventDefault());
+    uploadArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files[0]) subirFondo(e.dataTransfer.files[0]);
+    });
+    fondoInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) subirFondo(e.target.files[0]);
+    });
+    
+    async function subirFondo(file) {
+        const formData = new FormData();
+        formData.append('imagen', file);
         
-        if (!token) {
-            window.location.href = '/login.html';
+        uploadStatus.innerHTML = '⏳ SUBIENDO FONDO...';
+        uploadStatus.className = 'log-line info';
+        
+        try {
+            const res = await fetch(API_URL + '/ingeniero/fondo', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('dynamicBg').style.backgroundImage = `url('${data.url}')`;
+                uploadStatus.innerHTML = '✅ FONDO ACTUALIZADO';
+                uploadStatus.className = 'log-line success';
+                
+                // Mostrar preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image">`;
+                };
+                reader.readAsDataURL(file);
+                
+                agregarLog('Fondo de pantalla actualizado', 'success');
+            } else {
+                uploadStatus.innerHTML = '❌ ERROR AL SUBIR';
+                uploadStatus.className = 'log-line error';
+            }
+        } catch(e) {
+            uploadStatus.innerHTML = '❌ ERROR DE CONEXIÓN';
+            uploadStatus.className = 'log-line error';
         }
         
-        if (rol !== 'ingeniero') {
-            alert('Acceso denegado');
-            window.location.href = '/login.html';
+        setTimeout(() => {
+            uploadStatus.innerHTML = '';
+        }, 3000);
+    }
+    
+    // ============ FUNCIONES DE LOGS ============
+    function agregarLog(mensaje, tipo) {
+        const time = new Date().toLocaleTimeString();
+        logsLocales.unshift({ time, mensaje, tipo: tipo || 'info' });
+        if (logsLocales.length > 100) logsLocales.pop();
+        actualizarLogs();
+    }
+    
+    function actualizarLogs() {
+        const container = document.getElementById('logsContainer');
+        if (logsLocales.length === 0) {
+            container.innerHTML = '<div class="log-line info">[INIT] NERV OS LOADED</div>';
+            return;
         }
-        
-        document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'Ingeniero';
-        
-        function agregarLog(mensaje, tipo) {
-            const time = new Date().toLocaleTimeString();
-            logsLocales.unshift({ time, mensaje, tipo: tipo || 'info' });
-            if (logsLocales.length > 100) logsLocales.pop();
-            actualizarLogs();
-        }
-        
-        function actualizarLogs() {
-            const container = document.getElementById('logsContainer');
-            if (logsLocales.length === 0) {
-                container.innerHTML = '<div class="log-line info">[INIT] Sistema listo</div><span class="cursor"></span>';
+        container.innerHTML = logsLocales.map(log => 
+            `<div class="log-line ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
+        ).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    function limpiarLogsLocal() {
+        logsLocales = [];
+        agregarLog('Logs limpiados', 'info');
+        actualizarLogs();
+    }
+    
+    function descargarLogsLocal() {
+        const logsText = logsLocales.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
+        const blob = new Blob([logsText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `nerv_logs_${Date.now()}.txt`;
+        a.click();
+    }
+    
+    // ============ ESTADO Y ESTADÍSTICAS ============
+    async function cargarStatus() {
+        const container = document.getElementById('systemStatus');
+        container.innerHTML = '<div class="log-line info">Cargando...</div>';
+        try {
+            const res = await fetch(API_URL + '/ingeniero/status', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) {
+                container.innerHTML = '<div class="log-line error">Sesión expirada</div>';
                 return;
             }
-            container.innerHTML = logsLocales.map(log => 
-                `<div class="log-line ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
-            ).join('') + '<span class="cursor"></span>';
-            container.scrollTop = container.scrollHeight;
-        }
-        
-        async function cargarStatus() {
-            const container = document.getElementById('systemStatus');
-            container.innerHTML = '<div class="log-line info">Cargando...</div>';
-            try {
-                const res = await fetch(API_URL + '/ingeniero/status', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.status === 401) {
-                    container.innerHTML = '<div class="log-line error">Sesión expirada</div>';
-                    return;
-                }
-                const data = await res.json();
-                if (data.success) {
-                    const uptimeHoras = Math.floor(data.sistema.uptime / 3600);
-                    const uptimeMinutos = Math.floor((data.sistema.uptime % 3600) / 60);
-                    container.innerHTML = `
-                        <div class="status-row"><span class="status-label">Hostname:</span><span class="status-value">${data.sistema.hostname}</span></div>
-                        <div class="status-row"><span class="status-label">Plataforma:</span><span class="status-value">${data.sistema.platform} ${data.sistema.arch}</span></div>
-                        <div class="status-row"><span class="status-label">CPU Cores:</span><span class="status-value">${data.sistema.cpus}</span></div>
-                        <div class="status-row"><span class="status-label">Node.js:</span><span class="status-value">${data.node.version}</span></div>
-                        <div class="status-row"><span class="status-label">Memoria Heap:</span><span class="status-value">${data.node.memoria}</span></div>
-                        <div class="status-row"><span class="status-label">Uptime:</span><span class="status-value">${uptimeHoras}h ${uptimeMinutos}m</span></div>
-                    `;
-                    
-                    document.getElementById('uptime').textContent = `${uptimeHoras}h ${uptimeMinutos}m`;
-                    document.getElementById('nodeVersion').textContent = data.node.version;
-                    document.getElementById('heapMem').textContent = data.node.memoria;
-                    
-                    agregarLog('Estado actualizado', 'success');
-                } else {
-                    container.innerHTML = `<div class="log-line error">${data.error}</div>`;
-                }
-            } catch(e) {
-                container.innerHTML = `<div class="log-line error">Error de conexión: ${e.message}</div>`;
-                agregarLog('Error al cargar estado', 'error');
+            const data = await res.json();
+            if (data.success) {
+                const uptimeHoras = Math.floor(data.sistema.uptime / 3600);
+                const uptimeMinutos = Math.floor((data.sistema.uptime % 3600) / 60);
+                container.innerHTML = `
+                    <div class="status-row"><span class="status-label">🖥️ HOSTNAME:</span><span class="status-value">${data.sistema.hostname}</span></div>
+                    <div class="status-row"><span class="status-label">⚙️ PLATAFORMA:</span><span class="status-value">${data.sistema.platform}</span></div>
+                    <div class="status-row"><span class="status-label">🧠 CPU CORES:</span><span class="status-value">${data.sistema.cpus}</span></div>
+                    <div class="status-row"><span class="status-label">🚀 NODE.JS:</span><span class="status-value">${data.node.version}</span></div>
+                    <div class="status-row"><span class="status-label">💾 MEMORIA HEAP:</span><span class="status-value">${data.node.memoria}</span></div>
+                    <div class="status-row"><span class="status-label">⏱️ UPTIME:</span><span class="status-value">${uptimeHoras}h ${uptimeMinutos}m</span></div>
+                `;
+                agregarLog('Estado del sistema actualizado', 'success');
             }
+        } catch(e) {
+            container.innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
         }
-        
-        async function cargarStats() {
-            const container = document.getElementById('stats');
-            container.innerHTML = '<div class="log-line info">Cargando...</div>';
-            try {
-                const res = await fetch(API_URL + '/ingeniero/stats', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.status === 401) {
-                    container.innerHTML = '<div class="log-line error">Sesión expirada</div>';
-                    return;
-                }
-                const data = await res.json();
-                if (data.success) {
-                    container.innerHTML = `
-                        <div class="status-row"><span class="status-label">Total Consultas:</span><span class="status-value">${data.total_consultas}</span></div>
-                        <div class="status-row"><span class="status-label">Total Citas:</span><span class="status-value">${data.total_citas}</span></div>
-                        <div class="status-row"><span class="status-label">Usuarios:</span><span class="status-value">${data.usuarios}</span></div>
-                        <div class="status-row"><span class="status-label">Plantillas:</span><span class="status-value">${data.plantillas}</span></div>
-                        <div class="status-row"><span class="status-label">Documentos Generados:</span><span class="status-value">${data.documentos}</span></div>
-                    `;
-                    
-                    document.getElementById('totalConsultasMonitor').textContent = data.total_consultas;
-                    document.getElementById('totalCitasMonitor').textContent = data.total_citas;
-                    
-                    agregarLog('Estadísticas actualizadas', 'success');
-                } else {
-                    container.innerHTML = `<div class="log-line error">${data.error}</div>`;
-                }
-            } catch(e) {
-                container.innerHTML = `<div class="log-line error">Error de conexión: ${e.message}</div>`;
-                agregarLog('Error al cargar stats', 'error');
-            }
-        }
-        
-        async function ejecutarSQL() {
-            const query = document.getElementById('sqlQuery').value;
-            if (!query) {
-                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Ingrese una consulta</div>';
+    }
+    
+    async function cargarStats() {
+        const container = document.getElementById('stats');
+        container.innerHTML = '<div class="log-line info">Cargando...</div>';
+        try {
+            const res = await fetch(API_URL + '/ingeniero/stats', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) {
+                container.innerHTML = '<div class="log-line error">Sesión expirada</div>';
                 return;
             }
-            if (!query.toLowerCase().startsWith('select')) {
-                document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Solo SELECT permitidas</div>';
-                return;
+            const data = await res.json();
+            if (data.success) {
+                container.innerHTML = `
+                    <div class="status-row"><span class="status-label">📋 CONSULTAS:</span><span class="status-value">${data.total_consultas}</span></div>
+                    <div class="status-row"><span class="status-label">📅 CITAS:</span><span class="status-value">${data.total_citas}</span></div>
+                    <div class="status-row"><span class="status-label">👥 USUARIOS:</span><span class="status-value">${data.usuarios}</span></div>
+                    <div class="status-row"><span class="status-label">📄 PLANTILLAS:</span><span class="status-value">${data.plantillas}</span></div>
+                    <div class="status-row"><span class="status-label">📁 DOCUMENTOS:</span><span class="status-value">${data.documentos}</span></div>
+                `;
+                agregarLog('Estadísticas actualizadas', 'success');
             }
-            
-            document.getElementById('sqlResult').innerHTML = '<div class="log-line info">Ejecutando...</div>';
-            try {
-                const res = await fetch(API_URL + '/ingeniero/sql', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ query })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('sqlResult').innerHTML = `<div class="log-line success">✅ ${data.data?.length || 0} filas</div><pre style="color:#0f0; font-size:0.65rem; margin-top:0.5rem;">${JSON.stringify(data.data, null, 2)}</pre>`;
-                    agregarLog('SQL ejecutado', 'success');
-                } else {
-                    document.getElementById('sqlResult').innerHTML = `<div class="log-line error">${data.error}</div>`;
-                }
-            } catch(e) {
-                document.getElementById('sqlResult').innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
+        } catch(e) {
+            container.innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
+        }
+    }
+    
+    // ============ SQL ============
+    async function ejecutarSQL() {
+        const query = document.getElementById('sqlQuery').value;
+        if (!query) {
+            document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Ingrese una consulta</div>';
+            return;
+        }
+        if (!query.toLowerCase().startsWith('select')) {
+            document.getElementById('sqlResult').innerHTML = '<div class="log-line error">Solo SELECT permitidas</div>';
+            return;
+        }
+        
+        document.getElementById('sqlResult').innerHTML = '<div class="log-line info">Ejecutando...</div>';
+        try {
+            const res = await fetch(API_URL + '/ingeniero/sql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ query })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('sqlResult').innerHTML = `<div class="log-line success">✅ ${data.data?.length || 0} filas</div><pre style="color:#00ffcc; font-size:0.65rem; margin-top:0.5rem;">${JSON.stringify(data.data, null, 2)}</pre>`;
+                agregarLog('SQL ejecutado', 'success');
+            } else {
+                document.getElementById('sqlResult').innerHTML = `<div class="log-line error">${data.error}</div>`;
             }
+        } catch(e) {
+            document.getElementById('sqlResult').innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
         }
-        
-        function limpiarSQL() {
-            document.getElementById('sqlQuery').value = '';
-            document.getElementById('sqlResult').innerHTML = '';
-        }
-        
-        async function probarAPI() {
-            document.getElementById('actionResult').innerHTML = '<div class="log-line info">Probando API...</div>';
-            try {
-                const res = await fetch(API_URL + '/admin/dashboard', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ API OK</div>';
-                    document.getElementById('apiStatus').textContent = '🟢 Online';
-                    agregarLog('API probada', 'success');
-                } else {
-                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
-                    document.getElementById('apiStatus').textContent = '🔴 Offline';
-                }
-            } catch(e) {
-                document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
-                document.getElementById('apiStatus').textContent = '🔴 Offline';
+    }
+    
+    function limpiarSQL() {
+        document.getElementById('sqlQuery').value = '';
+        document.getElementById('sqlResult').innerHTML = '';
+    }
+    
+    // ============ ACCIONES ============
+    async function probarAPI() {
+        document.getElementById('actionResult').innerHTML = '<div class="log-line info">Probando API...</div>';
+        try {
+            const res = await fetch(API_URL + '/admin/dashboard', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ API OK</div>';
+                agregarLog('API probada', 'success');
+            } else {
+                document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
             }
+        } catch(e) {
+            document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
         }
-        
-        async function respaldarDB() {
-            document.getElementById('actionResult').innerHTML = '<div class="log-line info">Generando backup...</div>';
-            try {
-                const res = await fetch(API_URL + '/exportar/excel?token=' + token);
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `backup_${Date.now()}.xlsx`;
-                    a.click();
-                    document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ Backup generado</div>';
-                    agregarLog('Backup completado', 'success');
-                } else {
-                    document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
-                }
-            } catch(e) {
-                document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
+    }
+    
+    async function respaldarDB() {
+        document.getElementById('actionResult').innerHTML = '<div class="log-line info">Generando backup...</div>';
+        try {
+            const res = await fetch(API_URL + '/exportar/excel?token=' + token);
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `nerv_backup_${Date.now()}.xlsx`;
+                a.click();
+                document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ Backup generado</div>';
+                agregarLog('Backup completado', 'success');
+            } else {
+                document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
             }
+        } catch(e) {
+            document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
         }
-        
-        function limpiarCacheLocal() {
-            if (confirm('¿Limpiar cache? Se cerrará sesión.')) {
-                localStorage.clear();
-                window.location.href = '/login.html';
-            }
-        }
-        
-        function verSupabase() {
-            window.open('https://supabase.com/dashboard/projects', '_blank');
-            agregarLog('Abriendo Supabase', 'info');
-        }
-        
-        function limpiarLogsLocal() {
-            logsLocales = [];
-            agregarLog('Logs limpiados', 'info');
-            actualizarLogs();
-        }
-        
-        function descargarLogsLocal() {
-            const logsText = logsLocales.map(l => `[${l.time}] ${l.mensaje}`).join('\n');
-            const blob = new Blob([logsText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `logs_${Date.now()}.txt`;
-            a.click();
-        }
-        
-        function cerrarSesion() {
+    }
+    
+    function limpiarCacheLocal() {
+        if (confirm('¿Limpiar cache? Se cerrará sesión.')) {
             localStorage.clear();
             window.location.href = '/login.html';
         }
-        
-        // Inicializar
-        agregarLog('Panel de ingeniero iniciado', 'success');
+    }
+    
+    function verSupabase() {
+        window.open('https://supabase.com/dashboard/projects', '_blank');
+        agregarLog('Abriendo Supabase', 'info');
+    }
+    
+    function cerrarSesion() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+    
+    // ============ INICIALIZAR ============
+    agregarLog('NERV OS iniciado', 'success');
+    cargarFondo();
+    cargarStatus();
+    cargarStats();
+    
+    setInterval(() => {
         cargarStatus();
         cargarStats();
-        probarAPI();
-        
-        setInterval(() => {
-            cargarStatus();
-            cargarStats();
-            probarAPI();
-        }, 30000);
-        
-        window.cargarStatus = cargarStatus;
-        window.cargarStats = cargarStats;
-        window.ejecutarSQL = ejecutarSQL;
-        window.limpiarSQL = limpiarSQL;
-        window.probarAPI = probarAPI;
-        window.respaldarDB = respaldarDB;
-        window.limpiarCacheLocal = limpiarCacheLocal;
-        window.verSupabase = verSupabase;
-        window.limpiarLogsLocal = limpiarLogsLocal;
-        window.descargarLogsLocal = descargarLogsLocal;
-        window.cerrarSesion = cerrarSesion;
-    </script>
+    }, 30000);
+    
+    window.cargarStatus = cargarStatus;
+    window.cargarStats = cargarStats;
+    window.ejecutarSQL = ejecutarSQL;
+    window.limpiarSQL = limpiarSQL;
+    window.probarAPI = probarAPI;
+    window.respaldarDB = respaldarDB;
+    window.limpiarCacheLocal = limpiarCacheLocal;
+    window.verSupabase = verSupabase;
+    window.limpiarLogsLocal = limpiarLogsLocal;
+    window.descargarLogsLocal = descargarLogsLocal;
+    window.cerrarSesion = cerrarSesion;
+</script>
 </body>
 </html>
