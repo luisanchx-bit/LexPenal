@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Evangelion - Domain Expansion</title>
     <style>
         * {
@@ -13,7 +13,7 @@
 
         body {
             min-height: 100vh;
-            background: radial-gradient(circle at center, #ff0000, #3a0000);
+            background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -22,49 +22,91 @@
             position: relative;
         }
 
-        .blood-lines {
+        /* ========== FONDO DINÁMICO ========== */
+        .dynamic-bg {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(255, 0, 0, 0.3) 0px,
-                rgba(255, 0, 0, 0.3) 2px,
-                transparent 2px,
-                transparent 8px
-            );
-            pointer-events: none;
             z-index: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease;
         }
 
-        .domain-container {
+        .dynamic-bg::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none;
+        }
+
+        /* ========== CONTENEDOR LIQUID GLASS ========== */
+        .glass-container {
             position: relative;
             z-index: 10;
             text-align: center;
+            background: rgba(10, 10, 15, 0.4);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 2rem 2.5rem;
+            border: 1px solid rgba(255, 26, 26, 0.4);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.05);
+            max-width: 600px;
+            width: 85%;
+            margin: 1rem;
+            transition: all 0.3s ease;
             animation: fadeIn 2s ease-out;
         }
 
+        .glass-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0.05) 25%,
+                rgba(255, 200, 200, 0.1) 50%,
+                rgba(255, 255, 255, 0.05) 75%,
+                rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 62px;
+            z-index: -1;
+            animation: liquidMove 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes liquidMove {
+            0% { opacity: 0.5; background-position: 0% 0%; }
+            100% { opacity: 1; background-position: 100% 100%; }
+        }
+
         @keyframes fadeIn {
-            0% { opacity: 0; transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
+            0% { opacity: 0; transform: scale(0.9); backdrop-filter: blur(0px); }
+            100% { opacity: 1; transform: scale(1); backdrop-filter: blur(12px); }
         }
 
         .ege-title {
             font-size: 3rem;
             font-weight: bold;
-            color: #ff3333;
-            text-shadow: 0 0 20px red, 0 0 40px darkred;
+            color: #ff1a1a;
+            text-shadow: 0 0 20px rgba(255, 26, 26, 0.5);
             letter-spacing: 8px;
             font-family: 'Impact', 'Courier New', monospace;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             animation: pulseRed 1.5s infinite alternate;
         }
 
         @keyframes pulseRed {
-            from { text-shadow: 0 0 10px red; }
-            to { text-shadow: 0 0 30px #ff6666; }
+            from { text-shadow: 0 0 10px rgba(255, 26, 26, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 26, 26, 0.9); }
         }
 
         .ege-sub {
@@ -72,40 +114,80 @@
             color: #ff8888;
             font-family: monospace;
             letter-spacing: 4px;
-            margin-top: 1rem;
+            margin-bottom: 1rem;
             animation: blink 2s infinite;
         }
 
         @keyframes blink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.6; }
         }
 
         .question {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: white;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.4);
             display: inline-block;
             padding: 0.5rem 1.5rem;
-            border-radius: 10px;
-            margin-top: 2rem;
+            border-radius: 50px;
+            margin: 1rem 0;
             font-family: 'Georgia', serif;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ========== BOTONES NERV ========== */
+        .btn-nerv {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #ff1a1a;
+            border-radius: 30px;
+            padding: 0.4rem 1rem;
+            cursor: pointer;
+            color: #ff1a1a;
+            font-family: monospace;
+            font-size: 0.7rem;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-nerv:hover {
+            background: #ff1a1a;
+            color: #000;
+            box-shadow: 0 0 15px #ff1a1a;
+        }
+
+        /* ========== SUBIR FONDO ========== */
+        .upload-area-mini {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border: 1px dashed rgba(255, 26, 26, 0.5);
+            border-radius: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.7rem;
+        }
+
+        .upload-area-mini:hover {
+            background: rgba(255, 26, 26, 0.1);
         }
 
         .loading-bar {
-            width: 300px;
-            height: 4px;
-            background: #330000;
-            margin: 2rem auto 0;
+            width: 100%;
+            max-width: 250px;
+            height: 3px;
+            background: rgba(51, 0, 0, 0.6);
+            margin: 1.5rem auto 0;
             position: relative;
             overflow: hidden;
+            border-radius: 3px;
         }
 
         .loading-progress {
             width: 0%;
             height: 100%;
-            background: #ff3333;
+            background: linear-gradient(90deg, #ff1a1a, #ff8888);
             animation: loadProgress 2.5s linear forwards;
         }
 
@@ -120,18 +202,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                #fff 0px,
-                #fff 2px,
-                #000 2px,
-                #000 4px
-            );
+            background: repeating-linear-gradient(0deg, #fff 0px, #fff 2px, #000 2px, #000 4px);
             opacity: 0;
             pointer-events: none;
             z-index: 1000;
             animation: staticFlicker 0.5s forwards;
-            animation-delay: 2.3s;
+            animation-delay: 2.8s;
         }
 
         @keyframes staticFlicker {
@@ -145,28 +221,94 @@
         }
 
         @media (max-width: 768px) {
-            .ege-title { font-size: 1.8rem; }
+            .glass-container { padding: 1.5rem; }
+            .ege-title { font-size: 1.8rem; letter-spacing: 4px; }
             .question { font-size: 1.2rem; }
             .ege-sub { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
-    <div class="blood-lines"></div>
-    <div class="domain-container">
-        <div class="ege-title">EVANGELION</div>
-        <div class="ege-sub">CAP.25</div>
-        <div class="question">"Do You Love Me?"</div>
-        <div class="loading-bar">
-            <div class="loading-progress"></div>
-        </div>
-    </div>
-    <div class="static-overlay"></div>
 
-    <script>
-        setTimeout(() => {
-            window.location.href = "/admin/ingeniero.html";
-        }, 3000);
-    </script>
+<!-- Fondo dinámico -->
+<div class="dynamic-bg" id="dynamicBg"></div>
+
+<div class="glass-container">
+    <div class="ege-title">EVANGELION</div>
+    <div class="ege-sub">CAP.25</div>
+    <div class="question">"Do You Love Me?"</div>
+    
+    <!-- Botón para subir fondo -->
+    <div class="upload-area-mini" id="uploadArea">
+        🖼️ CAMBIAR FONDO DE PANTALLA
+        <input type="file" id="fondoInput" accept="image/*" style="display:none;">
+    </div>
+    <div id="uploadStatus" style="font-size:0.6rem; margin-top:0.5rem; color:#ff8888;"></div>
+    
+    <div class="loading-bar">
+        <div class="loading-progress"></div>
+    </div>
+</div>
+
+<div class="static-overlay"></div>
+
+<script>
+    const API_BASE_URL = window.location.origin;
+    const API_URL = API_BASE_URL + '/api';
+    let token = localStorage.getItem('token');
+    
+    // Cargar fondo guardado
+    async function cargarFondo() {
+        if (!token) return;
+        try {
+            const res = await fetch(API_URL + '/ingeniero/fondo', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                document.getElementById('dynamicBg').style.backgroundImage = `url('${data.url}')`;
+            }
+        } catch(e) { console.error('Error cargando fondo:', e); }
+    }
+    
+    // Subir fondo
+    const uploadArea = document.getElementById('uploadArea');
+    const fondoInput = document.getElementById('fondoInput');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    uploadArea.addEventListener('click', () => fondoInput.click());
+    fondoInput.addEventListener('change', async (e) => {
+        if (!e.target.files[0]) return;
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append('imagen', file);
+        
+        uploadStatus.innerHTML = '⏳ SUBIENDO...';
+        try {
+            const res = await fetch(API_URL + '/ingeniero/fondo', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('dynamicBg').style.backgroundImage = `url('${data.url}')`;
+                uploadStatus.innerHTML = '✅ FONDO ACTUALIZADO';
+                setTimeout(() => { uploadStatus.innerHTML = ''; }, 2000);
+            } else {
+                uploadStatus.innerHTML = '❌ ERROR';
+            }
+        } catch(e) {
+            uploadStatus.innerHTML = '❌ ERROR DE CONEXIÓN';
+        }
+    });
+    
+    cargarFondo();
+    
+    // Redirigir después de 3.2 segundos
+    setTimeout(() => {
+        window.location.href = "/admin/ingeniero.html";
+    }, 3200);
+</script>
 </body>
 </html>
