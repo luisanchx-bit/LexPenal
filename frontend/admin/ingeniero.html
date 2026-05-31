@@ -265,11 +265,13 @@
                     <div class="terminal-dots"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div></div>
                     <div class="terminal-title">htop@lexpenal:~$ monitor</div>
                 </div>
-                <div class="terminal-body">
-                    <div class="status-row"><span class="status-label">🖥️ CPU Usage:</span><span class="status-value" id="cpuUsage">-</span></div>
-                    <div class="status-row"><span class="status-label">💾 Memory Usage:</span><span class="status-value" id="memUsage">-</span></div>
-                    <div class="status-row"><span class="status-label">📡 API Health:</span><span class="status-value" id="apiHealth">-</span></div>
-                    <div class="status-row"><span class="status-label">🕐 Last Check:</span><span class="status-value" id="lastCheck">-</span></div>
+                <div class="terminal-body" id="monitorData">
+                    <div class="status-row"><span class="status-label">🕐 Uptime:</span><span class="status-value" id="uptime">-</span></div>
+                    <div class="status-row"><span class="status-label">🚀 Node.js:</span><span class="status-value" id="nodeVersion">-</span></div>
+                    <div class="status-row"><span class="status-label">💾 Memoria Heap:</span><span class="status-value" id="heapMem">-</span></div>
+                    <div class="status-row"><span class="status-label">📊 Total Consultas:</span><span class="status-value" id="totalConsultasMonitor">-</span></div>
+                    <div class="status-row"><span class="status-label">📅 Total Citas:</span><span class="status-value" id="totalCitasMonitor">-</span></div>
+                    <div class="status-row"><span class="status-label">📡 API Status:</span><span class="status-value" id="apiStatus">-</span></div>
                 </div>
             </div>
             
@@ -339,15 +341,21 @@
                 }
                 const data = await res.json();
                 if (data.success) {
+                    const uptimeHoras = Math.floor(data.sistema.uptime / 3600);
+                    const uptimeMinutos = Math.floor((data.sistema.uptime % 3600) / 60);
                     container.innerHTML = `
                         <div class="status-row"><span class="status-label">Hostname:</span><span class="status-value">${data.sistema.hostname}</span></div>
                         <div class="status-row"><span class="status-label">Plataforma:</span><span class="status-value">${data.sistema.platform} ${data.sistema.arch}</span></div>
-                        <div class="status-row"><span class="status-label">Memoria Total:</span><span class="status-value">${data.sistema.memoria_total}</span></div>
-                        <div class="status-row"><span class="status-label">Memoria Libre:</span><span class="status-value">${data.sistema.memoria_libre}</span></div>
                         <div class="status-row"><span class="status-label">CPU Cores:</span><span class="status-value">${data.sistema.cpus}</span></div>
                         <div class="status-row"><span class="status-label">Node.js:</span><span class="status-value">${data.node.version}</span></div>
                         <div class="status-row"><span class="status-label">Memoria Heap:</span><span class="status-value">${data.node.memoria}</span></div>
+                        <div class="status-row"><span class="status-label">Uptime:</span><span class="status-value">${uptimeHoras}h ${uptimeMinutos}m</span></div>
                     `;
+                    
+                    document.getElementById('uptime').textContent = `${uptimeHoras}h ${uptimeMinutos}m`;
+                    document.getElementById('nodeVersion').textContent = data.node.version;
+                    document.getElementById('heapMem').textContent = data.node.memoria;
+                    
                     agregarLog('Estado actualizado', 'success');
                 } else {
                     container.innerHTML = `<div class="log-line error">${data.error}</div>`;
@@ -376,8 +384,12 @@
                         <div class="status-row"><span class="status-label">Total Citas:</span><span class="status-value">${data.total_citas}</span></div>
                         <div class="status-row"><span class="status-label">Usuarios:</span><span class="status-value">${data.usuarios}</span></div>
                         <div class="status-row"><span class="status-label">Plantillas:</span><span class="status-value">${data.plantillas}</span></div>
-                        <div class="status-row"><span class="status-label">Documentos:</span><span class="status-value">${data.documentos}</span></div>
+                        <div class="status-row"><span class="status-label">Documentos Generados:</span><span class="status-value">${data.documentos}</span></div>
                     `;
+                    
+                    document.getElementById('totalConsultasMonitor').textContent = data.total_consultas;
+                    document.getElementById('totalCitasMonitor').textContent = data.total_citas;
+                    
                     agregarLog('Estadísticas actualizadas', 'success');
                 } else {
                     container.innerHTML = `<div class="log-line error">${data.error}</div>`;
@@ -431,12 +443,15 @@
                 });
                 if (res.ok) {
                     document.getElementById('actionResult').innerHTML = '<div class="log-line success">✅ API OK</div>';
+                    document.getElementById('apiStatus').textContent = '🟢 Online';
                     agregarLog('API probada', 'success');
                 } else {
                     document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ Error: ${res.status}</div>`;
+                    document.getElementById('apiStatus').textContent = '🔴 Offline';
                 }
             } catch(e) {
                 document.getElementById('actionResult').innerHTML = `<div class="log-line error">❌ ${e.message}</div>`;
+                document.getElementById('apiStatus').textContent = '🔴 Offline';
             }
         }
         
@@ -498,10 +513,12 @@
         agregarLog('Panel de ingeniero iniciado', 'success');
         cargarStatus();
         cargarStats();
+        probarAPI();
         
         setInterval(() => {
             cargarStatus();
             cargarStats();
+            probarAPI();
         }, 30000);
         
         window.cargarStatus = cargarStatus;
