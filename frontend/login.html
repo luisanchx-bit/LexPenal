@@ -157,19 +157,20 @@
             padding: 0.8rem;
             border-radius: 60px;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
         .mensaje.exito {
             background: rgba(46, 125, 50, 0.2);
             border: 1px solid #2E7D32;
-            color: #9eff9e;
+            color: #d4ffd4;
         }
 
         .mensaje.error {
             background: rgba(198, 40, 40, 0.2);
             border: 1px solid #C62828;
-            color: #ffa098;
+            color: #ffb7b7;
         }
 
         .footer-note {
@@ -236,6 +237,7 @@
         btn.disabled = true;
         btn.innerText = "⏳ VERIFICANDO CREDENCIALES...";
         msgDiv.innerText = "";
+        msgDiv.className = "mensaje";
         
         try {
             const response = await fetch(`${API_URL}/login`, {
@@ -252,29 +254,35 @@
                 localStorage.setItem('cedula', data.cedula);
                 localStorage.setItem('rol', data.rol);
                 
+                // ==============================================
                 // INGENIERO - Redirige a Evangelion
+                // ==============================================
                 if (data.rol === 'ingeniero') {
-                    msgDiv.innerText = "🔧 ACCESO INGENIERO - Iniciando dominio...";
+                    msgDiv.innerText = "🔧 ACCESO INGENIERO - Desbloqueando dominio técnico...";
                     msgDiv.className = "mensaje exito";
                     setTimeout(() => {
                         window.location.replace('/evangelion-domain.html');
-                    }, 1000);
+                    }, 1500);
                 } 
-                // ADMIN
+                // ==============================================
+                // ADMINISTRADOR - Mensaje claro y elegante
+                // ==============================================
                 else if (data.rol === 'super_admin') {
-                    msgDiv.innerText = "👑 BIENVENIDO ADMINISTRADOR";
+                    msgDiv.innerText = "👑 BIENVENIDO, DR. ASMAIRO CONDE TORRES\nAcceso al panel de administración concedido.";
                     msgDiv.className = "mensaje exito";
                     setTimeout(() => {
                         window.location.href = '/admin/index.html';
-                    }, 1000);
+                    }, 1800);
                 }
-                // CLIENTE
+                // ==============================================
+                // CLIENTE ESTÁNDAR
+                // ==============================================
                 else {
-                    msgDiv.innerText = "✅ ACCESO CONCEDIDO, REDIRIGIENDO...";
+                    msgDiv.innerText = "✅ ACCESO CONCEDIDO. Redirigiendo al portal de servicios...";
                     msgDiv.className = "mensaje exito";
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 1000);
+                    }, 1500);
                 }
             } else {
                 msgDiv.innerText = "❌ " + (data.error || "Credenciales inválidas");
