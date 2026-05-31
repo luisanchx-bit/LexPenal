@@ -349,9 +349,9 @@ app.post('/api/ingeniero/sql', verificarToken, (req, res) => {
         let resultado = [];
         
         if (query.toLowerCase().includes('consultas')) {
-            resultado = db.consultas.slice(0, 5);
+            resultado = db.consultas.slice(0, 10);
         } else if (query.toLowerCase().includes('citas')) {
-            resultado = db.citas.slice(0, 5);
+            resultado = db.citas.slice(0, 10);
         } else {
             resultado = [{ mensaje: 'Consulta ejecutada', registros: db.consultas.length + db.citas.length }];
         }
@@ -426,6 +426,57 @@ app.get('/api/ingeniero/files', verificarToken, (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ==================== SUBIR FONDO PARA INGENIERO ====================
+app.post('/api/ingeniero/fondo', verificarToken, upload.single('imagen'), async (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        
+        const archivo = req.file;
+        if (!archivo) {
+            return res.status(400).json({ error: 'No se subió ningún archivo' });
+        }
+        
+        // Crear carpeta si no existe
+        const imagesDir = path.join(__dirname, 'frontend', 'assets', 'images');
+        if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+        
+        const fileName = `fondo_ingeniero_${Date.now()}${path.extname(archivo.originalname)}`;
+        const targetPath = path.join(imagesDir, fileName);
+        
+        // Mover archivo
+        fs.renameSync(archivo.path, targetPath);
+        
+        // Guardar URL en la base de datos
+        const db = readDB();
+        if (!db.configuracion) db.configuracion = {};
+        db.configuracion.fondo_ingeniero = `/assets/images/${fileName}`;
+        writeDB(db);
+        
+        agregarLogSistema(`🖼️ Ingeniero actualizó el fondo de pantalla`, 'info');
+        res.json({ success: true, url: `/assets/images/${fileName}` });
+        
+    } catch (error) {
+        agregarLogSistema(`❌ Error al subir fondo: ${error.message}`, 'error');
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Obtener fondo actual
+app.get('/api/ingeniero/fondo', verificarToken, (req, res) => {
+    try {
+        if (req.usuario.rol !== 'ingeniero') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+        const db = readDB();
+        const fondo = db.configuracion?.fondo_ingeniero || null;
+        res.json({ success: true, url: fondo });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
