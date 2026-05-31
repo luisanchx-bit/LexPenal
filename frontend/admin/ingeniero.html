@@ -12,23 +12,13 @@
             box-sizing: border-box;
         }
 
-        /* ========== VARIABLES EVANGELION ========== */
-        :root {
-            --nerv-red: #ff1a1a;
-            --nerv-dark: #0a0a0a;
-            --nerv-gray: #1a1a1a;
-            --nerv-text: #00ffcc;
-            --nerv-warning: #ffcc00;
-            --nerv-border: rgba(255, 26, 26, 0.4);
-        }
-
         body {
-            background: var(--nerv-dark);
+            min-height: 100vh;
+            background: #0a0a0a;
             font-family: 'Source Code Pro', monospace;
-            color: var(--nerv-text);
+            color: #00ffcc;
             overflow-x: hidden;
             position: relative;
-            min-height: 100vh;
         }
 
         /* ========== FONDO DINÁMICO ========== */
@@ -74,21 +64,36 @@
             );
         }
 
-        /* ========== NAVBAR NERV ========== */
+        /* ========== NAVBAR NERV CON LIQUID GLASS ========== */
         .nerv-bar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(8px);
-            border-bottom: 2px solid var(--nerv-red);
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 26, 26, 0.5);
             padding: 0.8rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
             flex-wrap: wrap;
+            box-shadow: 0 0 20px rgba(255, 26, 26, 0.2);
+        }
+
+        /* ========== EFECTO LIQUID GLASS GLOBAL ========== */
+        .liquid-glass {
+            background: rgba(10, 10, 15, 0.35);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 26, 26, 0.3);
+            box-shadow: 0 0 20px rgba(255, 26, 26, 0.1), inset 0 0 30px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .liquid-glass:hover {
+            border-color: rgba(255, 26, 26, 0.6);
+            box-shadow: 0 0 30px rgba(255, 26, 26, 0.2);
         }
 
         .logo {
@@ -99,21 +104,19 @@
 
         .logo-symbol {
             font-size: 1.8rem;
-            filter: drop-shadow(0 0 5px var(--nerv-red));
+            filter: drop-shadow(0 0 5px #ff1a1a);
         }
 
         .logo-text {
             font-size: 1.3rem;
             font-weight: bold;
-            color: var(--nerv-red);
+            color: #ff1a1a;
             letter-spacing: 3px;
-            font-family: 'Courier New', monospace;
         }
 
         .logo-sub {
             font-size: 0.6rem;
             color: #888;
-            letter-spacing: 1px;
         }
 
         .user-area {
@@ -123,24 +126,22 @@
         }
 
         .user-name {
-            color: var(--nerv-text);
+            color: #00ffcc;
             font-size: 0.85rem;
-            font-family: monospace;
         }
 
         .btn-cerrar {
             background: transparent;
-            border: 1px solid var(--nerv-red);
-            color: var(--nerv-red);
+            border: 1px solid #ff1a1a;
+            color: #ff1a1a;
             padding: 0.3rem 0.8rem;
             border-radius: 4px;
             cursor: pointer;
-            font-family: monospace;
             transition: all 0.3s;
         }
 
         .btn-cerrar:hover {
-            background: var(--nerv-red);
+            background: #ff1a1a;
             color: #000;
         }
 
@@ -153,26 +154,26 @@
             padding: 1.5rem;
         }
 
-        /* ========== TERMINAL CARDS ESTILO NERV ========== */
+        /* ========== TERMINAL CARDS CON LIQUID GLASS ========== */
         .terminal-card {
-            background: rgba(10, 10, 15, 0.85);
-            backdrop-filter: blur(8px);
-            border-radius: 8px;
-            border: 1px solid var(--nerv-border);
+            border-radius: 12px;
             overflow: hidden;
             margin-bottom: 1.5rem;
             transition: all 0.3s;
+            background: rgba(10, 10, 15, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 26, 26, 0.3);
         }
 
         .terminal-card:hover {
-            border-color: var(--nerv-red);
-            box-shadow: 0 0 15px rgba(255, 26, 26, 0.2);
+            border-color: rgba(255, 26, 26, 0.7);
+            box-shadow: 0 0 25px rgba(255, 26, 26, 0.2);
         }
 
         .terminal-header {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.5);
             padding: 0.6rem 1rem;
-            border-bottom: 1px solid var(--nerv-border);
+            border-bottom: 1px solid rgba(255, 26, 26, 0.3);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -182,7 +183,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: var(--nerv-red);
+            background: #ff1a1a;
             animation: pulse 1.5s infinite;
         }
 
@@ -194,18 +195,17 @@
         .terminal-title {
             color: #888;
             font-size: 0.7rem;
-            font-family: monospace;
             letter-spacing: 1px;
         }
 
         .terminal-body {
             padding: 1rem;
             font-size: 0.75rem;
-            background: rgba(5, 5, 10, 0.8);
-            color: var(--nerv-text);
+            background: rgba(5, 5, 10, 0.5);
+            color: #00ffcc;
         }
 
-        /* ========== GRID DE MÓDULOS ========== */
+        /* ========== GRID ========== */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
@@ -213,36 +213,37 @@
             margin-bottom: 1.5rem;
         }
 
-        /* ========== BOTONES EVANGELION ========== */
+        /* ========== BOTONES NERV ========== */
         .btn-nerv {
-            background: transparent;
-            border: 1px solid var(--nerv-red);
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #ff1a1a;
             border-radius: 4px;
             padding: 0.4rem 0.8rem;
             cursor: pointer;
-            color: var(--nerv-red);
+            color: #ff1a1a;
             font-family: monospace;
             font-size: 0.7rem;
             transition: all 0.3s;
             margin-right: 0.5rem;
             margin-top: 0.5rem;
+            backdrop-filter: blur(4px);
         }
 
         .btn-nerv:hover {
-            background: var(--nerv-red);
+            background: #ff1a1a;
             color: #000;
-            box-shadow: 0 0 10px var(--nerv-red);
+            box-shadow: 0 0 10px #ff1a1a;
         }
 
         /* ========== SUBIR FONDO ========== */
         .upload-area {
-            border: 1px dashed var(--nerv-red);
+            border: 1px dashed #ff1a1a;
             border-radius: 8px;
             padding: 1rem;
             text-align: center;
             cursor: pointer;
-            margin-bottom: 1rem;
             transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.4);
         }
 
         .upload-area:hover {
@@ -251,10 +252,10 @@
 
         .preview-image {
             max-width: 100%;
-            max-height: 100px;
+            max-height: 80px;
             border-radius: 4px;
             margin-top: 0.5rem;
-            border: 1px solid var(--nerv-border);
+            border: 1px solid rgba(255, 26, 26, 0.5);
         }
 
         /* ========== LOGS ========== */
@@ -268,12 +269,12 @@
         .log-line {
             padding: 0.2rem 0;
             border-bottom: 1px solid rgba(255, 26, 26, 0.2);
-            color: var(--nerv-text);
+            color: #00ffcc;
         }
 
-        .log-line.error { color: var(--nerv-red); }
+        .log-line.error { color: #ff1a1a; }
         .log-line.success { color: #00ff00; }
-        .log-line.warning { color: var(--nerv-warning); }
+        .log-line.warning { color: #ffcc00; }
 
         /* ========== STATUS ROWS ========== */
         .status-row {
@@ -288,26 +289,46 @@
         }
 
         .status-value {
-            color: var(--nerv-text);
-            font-family: monospace;
+            color: #00ffcc;
         }
 
         /* ========== SQL EDITOR ========== */
         .sql-editor {
             width: 100%;
-            background: #0a0a0a;
-            border: 1px solid var(--nerv-border);
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(255, 26, 26, 0.5);
             border-radius: 4px;
             padding: 0.6rem;
-            color: var(--nerv-text);
+            color: #00ffcc;
             font-family: monospace;
             font-size: 0.7rem;
             resize: vertical;
+            backdrop-filter: blur(4px);
         }
 
         .sql-editor:focus {
             outline: none;
-            border-color: var(--nerv-red);
+            border-color: #ff1a1a;
+        }
+
+        /* ========== TABLA DE DATOS ========== */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            color: #ff1a1a;
+            padding: 0.3rem;
+            border-bottom: 1px solid rgba(255, 26, 26, 0.5);
+        }
+
+        .data-table td {
+            padding: 0.3rem;
+            border-bottom: 1px solid rgba(255, 26, 26, 0.2);
+            color: #00ffcc;
         }
 
         /* ========== RESPONSIVE ========== */
@@ -341,7 +362,7 @@
 </nav>
 
 <div class="ingeniero-container">
-    <!-- Fila 1: Estado del sistema y fondo -->
+    <!-- Fila 1: Estado del sistema y Supabase -->
     <div class="dashboard-grid">
         <div class="terminal-card">
             <div class="terminal-header">
@@ -401,7 +422,36 @@
         </div>
     </div>
     
-    <!-- Fila 3: Logs y acciones -->
+    <!-- Fila 3: Datos de Supabase (tablas reales) -->
+    <div class="dashboard-grid">
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">SUPABASE_DATA::CONSULTAS</div>
+            </div>
+            <div class="terminal-body" id="consultasTable">
+                <div class="log-line info">Cargando consultas...</div>
+            </div>
+            <div style="padding: 0.5rem;">
+                <button class="btn-nerv" onclick="cargarConsultas()">⟳ RECARGAR</button>
+            </div>
+        </div>
+        
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-led"></div>
+                <div class="terminal-title">SUPABASE_DATA::CITAS</div>
+            </div>
+            <div class="terminal-body" id="citasTable">
+                <div class="log-line info">Cargando citas...</div>
+            </div>
+            <div style="padding: 0.5rem;">
+                <button class="btn-nerv" onclick="cargarCitas()">⟳ RECARGAR</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fila 4: Logs y acciones -->
     <div class="dashboard-grid">
         <div class="terminal-card">
             <div class="terminal-header">
@@ -461,7 +511,6 @@
         } catch(e) { console.error('Error cargando fondo:', e); }
     }
     
-    // Subir fondo
     const uploadArea = document.getElementById('uploadArea');
     const fondoInput = document.getElementById('fondoInput');
     const previewContainer = document.getElementById('previewContainer');
@@ -496,7 +545,6 @@
                 uploadStatus.innerHTML = '✅ FONDO ACTUALIZADO';
                 uploadStatus.className = 'log-line success';
                 
-                // Mostrar preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image">`;
@@ -612,6 +660,72 @@
         }
     }
     
+    // ============ DATOS DE SUPABASE (TABLAS REALES) ============
+    async function cargarConsultas() {
+        const container = document.getElementById('consultasTable');
+        container.innerHTML = '<div class="log-line info">Cargando consultas...</div>';
+        try {
+            const res = await fetch(API_URL + '/casos/todos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const consultas = data.consultas || [];
+            
+            if (consultas.length === 0) {
+                container.innerHTML = '<div class="log-line info">No hay consultas registradas</div>';
+                return;
+            }
+            
+            let html = '<table class="data-table"><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th></tr></thead><tbody>';
+            consultas.slice(0, 10).forEach(c => {
+                html += `<tr>
+                    <td>${c.codigo || 'N/A'}</td>
+                    <td>${c.nombre || '-'}</td>
+                    <td>${c.telefono || '-'}</td>
+                    <td>${new Date(c.fecha).toLocaleDateString()}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            agregarLog(`Cargadas ${consultas.length} consultas`, 'success');
+        } catch(e) {
+            container.innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
+        }
+    }
+    
+    async function cargarCitas() {
+        const container = document.getElementById('citasTable');
+        container.innerHTML = '<div class="log-line info">Cargando citas...</div>';
+        try {
+            const res = await fetch(API_URL + '/casos/todos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const citas = data.citas || [];
+            
+            if (citas.length === 0) {
+                container.innerHTML = '<div class="log-line info">No hay citas registradas</div>';
+                return;
+            }
+            
+            let html = '<table class="data-table"><thead><tr><th>Código</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th></tr></thead><tbody>';
+            citas.slice(0, 10).forEach(c => {
+                html += `<tr>
+                    <td>${c.codigo || 'N/A'}</td>
+                    <td>${c.nombre || '-'}</td>
+                    <td>${c.telefono || '-'}</td>
+                    <td>${c.fecha || '-'}</td>
+                    <td>${c.hora || '-'}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            agregarLog(`Cargadas ${citas.length} citas`, 'success');
+        } catch(e) {
+            container.innerHTML = `<div class="log-line error">Error: ${e.message}</div>`;
+        }
+    }
+    
     // ============ SQL ============
     async function ejecutarSQL() {
         const query = document.getElementById('sqlQuery').value;
@@ -709,14 +823,20 @@
     cargarFondo();
     cargarStatus();
     cargarStats();
+    cargarConsultas();
+    cargarCitas();
     
     setInterval(() => {
         cargarStatus();
         cargarStats();
+        cargarConsultas();
+        cargarCitas();
     }, 30000);
     
     window.cargarStatus = cargarStatus;
     window.cargarStats = cargarStats;
+    window.cargarConsultas = cargarConsultas;
+    window.cargarCitas = cargarCitas;
     window.ejecutarSQL = ejecutarSQL;
     window.limpiarSQL = limpiarSQL;
     window.probarAPI = probarAPI;
