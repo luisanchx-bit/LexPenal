@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>NERV Tech | Eva-01 / Eva-02</title>
+    <title>NERV Tech | Ingeniero Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Code+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -30,7 +30,6 @@
             z-index: 0;
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
             transition: background-image 0.5s ease;
         }
 
@@ -51,9 +50,9 @@
             top: 0;
             left: 0;
             width: 100%;
-            background: rgba(10, 10, 10, 0.8);
+            background: rgba(10, 10, 10, 0.95);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 26, 26, 0.5);
             padding: 0.8rem 2rem;
             display: flex;
             justify-content: space-between;
@@ -68,119 +67,97 @@
             gap: 0.8rem;
         }
 
-        .logo-symbol {
-            font-size: 1.8rem;
+        .logo-symbol { font-size: 1.8rem; }
+        .logo-text { font-size: 1.3rem; font-weight: bold; color: #00ffcc; letter-spacing: 3px; }
+        .user-area { display: flex; align-items: center; gap: 1rem; }
+        .user-name { color: #00ffcc; font-size: 0.85rem; }
+        .btn-cerrar { background: transparent; border: 1px solid #ff1a1a; color: #ff1a1a; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; }
+
+        /* ========== MENÚ LATERAL ========== */
+        .ingeniero-layout {
+            display: flex;
+            position: relative;
+            z-index: 10;
+            margin-top: 70px;
+            min-height: calc(100vh - 70px);
         }
 
-        .logo-text {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #00ffcc;
-            letter-spacing: 3px;
+        .sidebar-menu {
+            width: 260px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(8px);
+            border-right: 1px solid rgba(255, 26, 26, 0.3);
+            padding: 1.5rem 0;
+            position: fixed;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
         }
 
-        .user-area {
+        .menu-item {
+            padding: 0.8rem 1.5rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-
-        .user-name {
-            color: #00ffcc;
+            gap: 0.8rem;
             font-size: 0.85rem;
         }
 
-        .btn-cerrar {
-            background: transparent;
-            border: 1px solid #ff1a1a;
+        .menu-item:hover {
+            background: rgba(255, 26, 26, 0.1);
             color: #ff1a1a;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .btn-cerrar:hover {
-            background: #ff1a1a;
-            color: #000;
+        .menu-item.active {
+            background: rgba(255, 26, 26, 0.15);
+            border-left-color: #ff1a1a;
+            color: #ff1a1a;
         }
 
-        /* ========== CONTENEDOR PRINCIPAL ========== */
-        .ingeniero-container {
-            position: relative;
-            z-index: 10;
-            max-width: 1600px;
-            margin: 80px auto 2rem;
+        /* ========== CONTENIDO PRINCIPAL ========== */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
             padding: 1.5rem;
+        }
+
+        .panel-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .panel-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ========== EVA CARDS ========== */
         .eva-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: 2rem;
             margin-bottom: 2rem;
         }
 
-        /* Eva-01 (Render) - Morado/Verde */
-        .eva-01 {
-            background: rgba(30, 20, 50, 0.4);
+        .eva-01, .eva-02 {
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            border: 1px solid rgba(156, 39, 176, 0.6);
             overflow: hidden;
             transition: all 0.3s;
-            box-shadow: 0 0 20px rgba(156, 39, 176, 0.2);
         }
 
-        .eva-01:hover {
-            border-color: #9c27b0;
-            box-shadow: 0 0 35px rgba(156, 39, 176, 0.4);
-        }
+        .eva-01 { border: 1px solid rgba(156, 39, 176, 0.6); }
+        .eva-01:hover { border-color: #9c27b0; box-shadow: 0 0 25px rgba(156, 39, 176, 0.3); }
+        .eva-02 { border: 1px solid rgba(244, 67, 54, 0.6); }
+        .eva-02:hover { border-color: #f44336; box-shadow: 0 0 25px rgba(244, 67, 54, 0.3); }
 
-        .eva-01 .eva-header {
-            background: linear-gradient(90deg, rgba(156, 39, 176, 0.3), rgba(76, 175, 80, 0.2));
-            border-bottom: 1px solid #9c27b0;
-        }
-
-        .eva-01 .eva-title {
-            color: #9c27b0;
-        }
-
-        .eva-01 .status-value {
-            color: #4caf50;
-        }
-
-        /* Eva-02 (Supabase) - Rojo/Naranja */
-        .eva-02 {
-            background: rgba(50, 20, 20, 0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(244, 67, 54, 0.6);
-            overflow: hidden;
-            transition: all 0.3s;
-            box-shadow: 0 0 20px rgba(244, 67, 54, 0.2);
-        }
-
-        .eva-02:hover {
-            border-color: #f44336;
-            box-shadow: 0 0 35px rgba(244, 67, 54, 0.4);
-        }
-
-        .eva-02 .eva-header {
-            background: linear-gradient(90deg, rgba(244, 67, 54, 0.3), rgba(255, 152, 0, 0.2));
-            border-bottom: 1px solid #f44336;
-        }
-
-        .eva-02 .eva-title {
-            color: #f44336;
-        }
-
-        .eva-02 .status-value {
-            color: #ff9800;
-        }
-
-        /* Header de Eva */
         .eva-header {
             padding: 1rem 1.5rem;
             display: flex;
@@ -188,134 +165,75 @@
             gap: 0.8rem;
         }
 
-        .eva-icon {
-            font-size: 2rem;
-        }
+        .eva-01 .eva-header { background: linear-gradient(90deg, rgba(156,39,176,0.2), transparent); border-bottom: 1px solid #9c27b0; }
+        .eva-02 .eva-header { background: linear-gradient(90deg, rgba(244,67,54,0.2), transparent); border-bottom: 1px solid #f44336; }
 
-        .eva-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
+        .eva-icon { font-size: 1.8rem; }
+        .eva-title { font-size: 1.2rem; font-weight: bold; }
+        .eva-01 .eva-title { color: #9c27b0; }
+        .eva-02 .eva-title { color: #f44336; }
 
-        .eva-sub {
-            font-size: 0.6rem;
-            color: #888;
-            margin-left: auto;
-        }
-
-        /* Cuerpo de Eva */
-        .eva-body {
-            padding: 1.5rem;
-        }
+        .eva-body { padding: 1.5rem; }
 
         .stats-grid-eva {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 0.8rem;
         }
 
         .stat-card-eva {
             background: rgba(0, 0, 0, 0.4);
-            border-radius: 12px;
+            border-radius: 10px;
             padding: 0.8rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .stat-label {
-            font-size: 0.65rem;
-            color: #888;
-            margin-bottom: 0.3rem;
-        }
+        .stat-label { font-size: 0.6rem; color: #888; margin-bottom: 0.2rem; }
+        .stat-value { font-size: 0.9rem; font-weight: bold; color: #fff; }
+        .eva-01 .stat-value { color: #4caf50; }
+        .eva-02 .stat-value { color: #ff9800; }
 
-        .stat-value {
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
-        /* Barras de progreso */
         .progress-bar {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
             overflow: hidden;
             margin-top: 0.5rem;
         }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 3px;
-            transition: width 0.5s;
-        }
-
+        .progress-fill { height: 100%; width: 0%; border-radius: 2px; }
         .eva-01 .progress-fill { background: linear-gradient(90deg, #9c27b0, #4caf50); }
         .eva-02 .progress-fill { background: linear-gradient(90deg, #f44336, #ff9800); }
 
-        /* Tablas dentro de Eva */
-        .eva-table {
-            width: 100%;
-            border-collapse: collapse;
+        .btn-nerv {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #ff1a1a;
+            border-radius: 20px;
+            padding: 0.3rem 1rem;
+            cursor: pointer;
+            color: #ff1a1a;
             font-size: 0.7rem;
             margin-top: 1rem;
         }
+        .btn-nerv:hover { background: #ff1a1a; color: #000; }
 
-        .eva-table th {
-            text-align: left;
-            padding: 0.4rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .eva-table td {
-            padding: 0.4rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Logs */
         .log-container {
-            max-height: 200px;
+            max-height: 150px;
             overflow-y: auto;
-            font-size: 0.65rem;
-            background: rgba(0, 0, 0, 0.4);
+            font-size: 0.6rem;
+            background: rgba(0,0,0,0.4);
             border-radius: 8px;
             padding: 0.5rem;
             margin-top: 1rem;
         }
-
-        .log-line {
-            padding: 0.2rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: #00ffcc;
-        }
-
+        .log-line { padding: 0.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: #00ffcc; }
         .log-line.error { color: #ff1a1a; }
         .log-line.success { color: #00ff00; }
 
-        /* Botones Nerv */
-        .btn-nerv {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid #ff1a1a;
-            border-radius: 20px;
-            padding: 0.4rem 1rem;
-            cursor: pointer;
-            color: #ff1a1a;
-            font-family: monospace;
-            font-size: 0.7rem;
-            transition: all 0.3s;
-            margin-top: 1rem;
-            margin-right: 0.5rem;
-        }
-
-        .btn-nerv:hover {
-            background: #ff1a1a;
-            color: #000;
-        }
-
         @media (max-width: 768px) {
-            .eva-grid { grid-template-columns: 1fr; }
+            .sidebar-menu { width: 70px; }
+            .sidebar-menu .menu-item span:not(.icon) { display: none; }
+            .main-content { margin-left: 70px; }
             .stats-grid-eva { grid-template-columns: 1fr; }
-            .ingeniero-container { padding: 1rem; margin-top: 100px; }
         }
     </style>
 </head>
@@ -324,71 +242,127 @@
 <div class="dynamic-bg" id="dynamicBg"></div>
 
 <nav class="nerv-bar">
-    <div class="logo">
-        <div class="logo-symbol">⚡</div>
-        <div>
-            <div class="logo-text">NERV ENGINEERING</div>
-            <div class="logo-sub">EVA-01 / EVA-02 INTEGRATION</div>
-        </div>
-    </div>
-    <div class="user-area">
-        <span class="user-name" id="nombreIngeniero">INITIALIZING...</span>
-        <button onclick="cerrarSesion()" class="btn-cerrar">[LOGOUT]</button>
-    </div>
+    <div class="logo"><div class="logo-symbol">⚡</div><div class="logo-text">NERV ENGINEERING</div></div>
+    <div class="user-area"><span class="user-name" id="nombreIngeniero">INITIALIZING...</span><button onclick="cerrarSesion()" class="btn-cerrar">LOGOUT</button></div>
 </nav>
 
-<div class="ingeniero-container">
-    <div class="eva-grid">
-        <!-- ==================== EVA-01 - SERVIDOR RENDER ==================== -->
-        <div class="eva-01">
-            <div class="eva-header">
-                <div class="eva-icon">🟣⚡</div>
-                <div class="eva-title">EVA-01 :: RENDER SERVER</div>
-                <div class="eva-sub">UNIT-01 | ACTIVO</div>
-            </div>
-            <div class="eva-body">
-                <div class="stats-grid-eva" id="renderStats">
-                    <div class="stat-card-eva"><div class="stat-label">🖥️ HOSTNAME</div><div class="stat-value" id="hostname">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">🐧 SO</div><div class="stat-value" id="platform">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">🧠 CPU CORES</div><div class="stat-value" id="cpuCores">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">⚙️ CPU USO</div><div class="stat-value" id="cpuUsage">-</div><div class="progress-bar"><div class="progress-fill" id="cpuFill"></div></div></div>
-                    <div class="stat-card-eva"><div class="stat-label">💾 RAM TOTAL</div><div class="stat-value" id="ramTotal">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">📊 RAM USO</div><div class="stat-value" id="ramUsage">-</div><div class="progress-bar"><div class="progress-fill" id="ramFill"></div></div></div>
-                    <div class="stat-card-eva"><div class="stat-label">💽 ALMACENAMIENTO</div><div class="stat-value" id="diskInfo">-</div><div class="progress-bar"><div class="progress-fill" id="diskFill"></div></div></div>
-                    <div class="stat-card-eva"><div class="stat-label">🔥 TEMPERATURA</div><div class="stat-value" id="temp">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">⏱️ UPTIME</div><div class="stat-value" id="uptime">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">🔄 ÚLTIMA ACT.</div><div class="stat-value" id="lastUpdate">-</div></div>
+<div class="ingeniero-layout">
+    <div class="sidebar-menu">
+        <div class="menu-item active" data-panel="sistema">
+            <span class="icon">📊</span> <span>SISTEMA</span>
+        </div>
+        <div class="menu-item" data-panel="render">
+            <span class="icon">🖥️</span> <span>RENDER SERVER</span>
+        </div>
+        <div class="menu-item" data-panel="supabase">
+            <span class="icon">☁️</span> <span>SUPABASE</span>
+        </div>
+        <div class="menu-item" data-panel="plantillas">
+            <span class="icon">📄</span> <span>PLANTILLAS</span>
+        </div>
+        <div class="menu-item" data-panel="documentos">
+            <span class="icon">📁</span> <span>DOCS GENERADOS</span>
+        </div>
+        <div class="menu-item" data-panel="configuracion">
+            <span class="icon">⚙️</span> <span>CONFIGURACIÓN</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- PANEL SISTEMA (Eva-01 y Eva-02) -->
+        <div id="panel-sistema" class="panel-section active">
+            <div class="eva-grid">
+                <!-- EVA-01 RENDER -->
+                <div class="eva-01">
+                    <div class="eva-header"><div class="eva-icon">🟣⚡</div><div class="eva-title">EVA-01 :: RENDER SERVER</div></div>
+                    <div class="eva-body">
+                        <div class="stats-grid-eva" id="renderStats">
+                            <div class="stat-card-eva"><div class="stat-label">🖥️ HOSTNAME</div><div class="stat-value" id="hostname">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">🐧 SO</div><div class="stat-value" id="platform">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">🧠 CPU CORES</div><div class="stat-value" id="cpuCores">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">⚙️ CPU USO</div><div class="stat-value" id="cpuUsage">-</div><div class="progress-bar"><div class="progress-fill" id="cpuFill"></div></div></div>
+                            <div class="stat-card-eva"><div class="stat-label">💾 RAM TOTAL</div><div class="stat-value" id="ramTotal">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">📊 RAM USO</div><div class="stat-value" id="ramUsage">-</div><div class="progress-bar"><div class="progress-fill" id="ramFill"></div></div></div>
+                            <div class="stat-card-eva"><div class="stat-label">💽 ALMACENAMIENTO</div><div class="stat-value" id="diskInfo">-</div><div class="progress-bar"><div class="progress-fill" id="diskFill"></div></div></div>
+                            <div class="stat-card-eva"><div class="stat-label">🔥 TEMPERATURA</div><div class="stat-value" id="temp">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">⏱️ UPTIME</div><div class="stat-value" id="uptime">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">🔄 ÚLTIMA ACT.</div><div class="stat-value" id="lastUpdate">-</div></div>
+                        </div>
+                        <button class="btn-nerv" onclick="cargarRenderStatus()">⟳ ACTUALIZAR RENDER</button>
+                        <div class="log-container" id="renderLogs"><div class="log-line info">[EVA-01] Sistema iniciado</div></div>
+                    </div>
                 </div>
-                <button class="btn-nerv" onclick="cargarRenderStatus()">⟳ ACTUALIZAR RENDER</button>
-                <div class="log-container" id="renderLogs">
-                    <div class="log-line info">[EVA-01] Sistema iniciado</div>
+                <!-- EVA-02 SUPABASE -->
+                <div class="eva-02">
+                    <div class="eva-header"><div class="eva-icon">🔴🔥</div><div class="eva-title">EVA-02 :: SUPABASE</div></div>
+                    <div class="eva-body">
+                        <div class="stats-grid-eva" id="supabaseStats">
+                            <div class="stat-card-eva"><div class="stat-label">🔗 CONEXIÓN</div><div class="stat-value" id="supaStatus">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">🗄️ TABLAS</div><div class="stat-value" id="tablasCount">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">📋 CONSULTAS</div><div class="stat-value" id="supaConsultas">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">📅 CITAS</div><div class="stat-value" id="supaCitas">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">👥 USUARIOS</div><div class="stat-value" id="supaUsuarios">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">📄 PLANTILLAS</div><div class="stat-value" id="supaPlantillas">-</div></div>
+                            <div class="stat-card-eva"><div class="stat-label">💾 ALMACENAMIENTO</div><div class="stat-value" id="supaStorage">-</div><div class="progress-bar"><div class="progress-fill" id="supaStorageFill"></div></div></div>
+                            <div class="stat-card-eva"><div class="stat-label">⏱️ UPTIME</div><div class="stat-value" id="supaUptime">-</div></div>
+                        </div>
+                        <button class="btn-nerv" onclick="cargarSupabaseStatus()">⟳ ACTUALIZAR SUPABASE</button>
+                        <div class="log-container" id="supabaseLogs"><div class="log-line info">[EVA-02] Supabase conectado</div></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== EVA-02 - SUPABASE ==================== -->
-        <div class="eva-02">
-            <div class="eva-header">
-                <div class="eva-icon">🔴🔥</div>
-                <div class="eva-title">EVA-02 :: SUPABASE</div>
-                <div class="eva-sub">UNIT-02 | ACTIVO</div>
-            </div>
-            <div class="eva-body">
-                <div class="stats-grid-eva" id="supabaseStats">
-                    <div class="stat-card-eva"><div class="stat-label">🔗 CONEXIÓN</div><div class="stat-value" id="supaStatus">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">🗄️ TABLAS</div><div class="stat-value" id="tablasCount">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">📋 CONSULTAS</div><div class="stat-value" id="supaConsultas">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">📅 CITAS</div><div class="stat-value" id="supaCitas">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">👥 USUARIOS</div><div class="stat-value" id="supaUsuarios">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">📄 PLANTILLAS</div><div class="stat-value" id="supaPlantillas">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">📁 DOCUMENTOS</div><div class="stat-value" id="supaDocumentos">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">💾 ALMACENAMIENTO</div><div class="stat-value" id="supaStorage">-</div><div class="progress-bar"><div class="progress-fill" id="supaStorageFill"></div></div></div>
-                    <div class="stat-card-eva"><div class="stat-label">⏱️ UPTIME</div><div class="stat-value" id="supaUptime">-</div></div>
-                    <div class="stat-card-eva"><div class="stat-label">🔄 ÚLTIMA ACT.</div><div class="stat-value" id="supaLastUpdate">-</div></div>
+        <!-- PANEL RENDER SERVER -->
+        <div id="panel-render" class="panel-section">
+            <div class="eva-01" style="margin-bottom:1.5rem;">
+                <div class="eva-header"><div class="eva-icon">🖥️</div><div class="eva-title">RENDER SERVER - MONITOREO</div></div>
+                <div class="eva-body">
+                    <div class="stats-grid-eva" id="renderFullStats"></div>
+                    <button class="btn-nerv" onclick="cargarRenderStatus()">⟳ ACTUALIZAR</button>
+                    <div class="log-container" id="renderFullLogs" style="max-height:300px;"></div>
                 </div>
-                <button class="btn-nerv" onclick="cargarSupabaseStatus()">⟳ ACTUALIZAR SUPABASE</button>
-                <div class="log-container" id="supabaseLogs">
-                    <div class="log-line info">[EVA-02] Supabase conectado</div>
+            </div>
+        </div>
+
+        <!-- PANEL SUPABASE -->
+        <div id="panel-supabase" class="panel-section">
+            <div class="eva-02" style="margin-bottom:1.5rem;">
+                <div class="eva-header"><div class="eva-icon">☁️</div><div class="eva-title">SUPABASE - MONITOREO</div></div>
+                <div class="eva-body">
+                    <div class="stats-grid-eva" id="supabaseFullStats"></div>
+                    <button class="btn-nerv" onclick="cargarSupabaseStatus()">⟳ ACTUALIZAR</button>
+                    <div class="log-container" id="supabaseFullLogs" style="max-height:300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL PLANTILLAS -->
+        <div id="panel-plantillas" class="panel-section">
+            <div class="eva-01">
+                <div class="eva-header"><div class="eva-icon">📄</div><div class="eva-title">GESTIÓN DE PLANTILLAS</div></div>
+                <div class="eva-body">
+                    <iframe src="/admin/plantillas.html" style="width:100%; height:600px; border:none; border-radius:10px;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL DOCUMENTOS -->
+        <div id="panel-documentos" class="panel-section">
+            <div class="eva-02">
+                <div class="eva-header"><div class="eva-icon">📁</div><div class="eva-title">DOCUMENTOS GENERADOS</div></div>
+                <div class="eva-body">
+                    <iframe src="/admin/documentos.html" style="width:100%; height:600px; border:none; border-radius:10px;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL CONFIGURACIÓN -->
+        <div id="panel-configuracion" class="panel-section">
+            <div class="eva-01">
+                <div class="eva-header"><div class="eva-icon">⚙️</div><div class="eva-title">CONFIGURACIÓN</div></div>
+                <div class="eva-body">
+                    <iframe src="/admin/configuracion.html" style="width:100%; height:600px; border:none; border-radius:10px;"></iframe>
                 </div>
             </div>
         </div>
@@ -400,37 +374,34 @@
     const API_URL = API_BASE_URL + '/api';
     let token = localStorage.getItem('token');
     let rol = localStorage.getItem('rol');
-    let renderLogs = [];
-    let supabaseLogs = [];
+    let renderLogs = [], supabaseLogs = [];
     
     if (!token) window.location.href = '/login.html';
-    if (rol !== 'ingeniero') {
-        alert('ACCESO DENEGADO');
-        window.location.href = '/login.html';
-    }
+    if (rol !== 'ingeniero') { alert('ACCESO DENEGADO'); window.location.href = '/login.html'; }
     
     document.getElementById('nombreIngeniero').textContent = localStorage.getItem('nombre') || 'ENGINEER';
     
-    // ============ CARGAR FONDO ============
+    // Menú lateral
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+            item.classList.add('active');
+            document.getElementById(`panel-${item.dataset.panel}`).classList.add('active');
+        });
+    });
+    
     async function cargarFondo() {
         try {
-            const res = await fetch(API_URL + '/ingeniero/fondo', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetch(API_URL + '/ingeniero/fondo', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            if (data.success && data.url) {
-                document.getElementById('dynamicBg').style.backgroundImage = `url('${data.url}')`;
-            }
-        } catch(e) { console.error('Error cargando fondo:', e); }
+            if (data.success && data.url) document.getElementById('dynamicBg').style.backgroundImage = `url('${data.url}')`;
+        } catch(e) {}
     }
     
-    // ============ EVA-01 - SERVIDOR RENDER ============
     async function cargarRenderStatus() {
-        agregarRenderLog('Actualizando estado del servidor Render...', 'info');
         try {
-            const res = await fetch(API_URL + '/ingeniero/status', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetch(API_URL + '/ingeniero/status', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
             if (data.success) {
                 const uptimeHoras = Math.floor(data.sistema.uptime / 3600);
@@ -459,89 +430,56 @@
                 document.getElementById('uptime').innerHTML = `${uptimeHoras}h ${uptimeMinutos}m`;
                 document.getElementById('lastUpdate').innerHTML = new Date().toLocaleString();
                 
-                agregarRenderLog(`Estado actualizado - CPU: ${cpuSimulado}% | RAM: ${memoriaPorcentaje.toFixed(0)}% | Temp: ${tempSimulada}°C`, 'success');
+                agregarLog('render', `Estado actualizado - CPU: ${cpuSimulado}% | RAM: ${memoriaPorcentaje.toFixed(0)}%`, 'success');
             }
-        } catch(e) {
-            agregarRenderLog(`Error: ${e.message}`, 'error');
-        }
+        } catch(e) { agregarLog('render', `Error: ${e.message}`, 'error'); }
     }
     
-    // ============ EVA-02 - SUPABASE ============
     async function cargarSupabaseStatus() {
-        agregarSupabaseLog('Actualizando estado de Supabase...', 'info');
         try {
-            const res = await fetch(API_URL + '/admin/dashboard', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetch(API_URL + '/admin/dashboard', { headers: { 'Authorization': `Bearer ${token}` } });
             const data = await res.json();
-            
-            const resCasos = await fetch(API_URL + '/casos/todos', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const casosData = await resCasos.json();
-            
             document.getElementById('supaStatus').innerHTML = '🟢 CONECTADO';
             document.getElementById('tablasCount').innerHTML = '6';
             document.getElementById('supaConsultas').innerHTML = data.total_consultas || 0;
             document.getElementById('supaCitas').innerHTML = data.total_citas || 0;
             document.getElementById('supaUsuarios').innerHTML = '1';
             document.getElementById('supaPlantillas').innerHTML = data.tipos_caso_total || 6;
-            document.getElementById('supaDocumentos').innerHTML = '0';
-            
             const storageTotal = 500;
             const storageUsed = Math.floor(Math.random() * 50 + 10);
             const storagePorcentaje = (storageUsed / storageTotal) * 100;
             document.getElementById('supaStorage').innerHTML = `${storageUsed} MB / ${storageTotal} MB`;
             document.getElementById('supaStorageFill').style.width = `${storagePorcentaje}%`;
             document.getElementById('supaUptime').innerHTML = '24 días';
-            document.getElementById('supaLastUpdate').innerHTML = new Date().toLocaleString();
-            
-            agregarSupabaseLog(`Supabase OK - Consultas: ${data.total_consultas} | Citas: ${data.total_citas}`, 'success');
+            agregarLog('supabase', `Supabase OK - Consultas: ${data.total_consultas} | Citas: ${data.total_citas}`, 'success');
         } catch(e) {
             document.getElementById('supaStatus').innerHTML = '🔴 OFFLINE';
-            agregarSupabaseLog(`Error: ${e.message}`, 'error');
+            agregarLog('supabase', `Error: ${e.message}`, 'error');
         }
     }
     
-    // ============ LOGS ============
-    function agregarRenderLog(mensaje, tipo) {
+    function agregarLog(servidor, mensaje, tipo) {
         const time = new Date().toLocaleTimeString();
-        renderLogs.unshift({ time, mensaje, tipo });
-        if (renderLogs.length > 20) renderLogs.pop();
-        const container = document.getElementById('renderLogs');
-        container.innerHTML = renderLogs.map(log => 
-            `<div class="log-line ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
-        ).join('');
+        if (servidor === 'render') {
+            renderLogs.unshift({ time, mensaje, tipo });
+            if (renderLogs.length > 20) renderLogs.pop();
+            document.getElementById('renderLogs').innerHTML = renderLogs.map(l => `<div class="log-line ${l.tipo}">[${l.time}] ${l.mensaje}</div>`).join('');
+        } else {
+            supabaseLogs.unshift({ time, mensaje, tipo });
+            if (supabaseLogs.length > 20) supabaseLogs.pop();
+            document.getElementById('supabaseLogs').innerHTML = supabaseLogs.map(l => `<div class="log-line ${l.tipo}">[${l.time}] ${l.mensaje}</div>`).join('');
+        }
     }
     
-    function agregarSupabaseLog(mensaje, tipo) {
-        const time = new Date().toLocaleTimeString();
-        supabaseLogs.unshift({ time, mensaje, tipo });
-        if (supabaseLogs.length > 20) supabaseLogs.pop();
-        const container = document.getElementById('supabaseLogs');
-        container.innerHTML = supabaseLogs.map(log => 
-            `<div class="log-line ${log.tipo}">[${log.time}] ${log.mensaje}</div>`
-        ).join('');
-    }
+    function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
     
-    function cerrarSesion() {
-        localStorage.clear();
-        window.location.href = '/login.html';
-    }
-    
-    // ============ INICIALIZAR ============
     cargarFondo();
     cargarRenderStatus();
     cargarSupabaseStatus();
-    
-    setInterval(() => {
-        cargarRenderStatus();
-        cargarSupabaseStatus();
-    }, 30000);
+    setInterval(() => { cargarRenderStatus(); cargarSupabaseStatus(); }, 30000);
     
     window.cargarRenderStatus = cargarRenderStatus;
     window.cargarSupabaseStatus = cargarSupabaseStatus;
-    window.cerrarSesion = cerrarSesion;
 </script>
 </body>
 </html>
